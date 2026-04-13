@@ -13,6 +13,7 @@ const baseProps = {
   onSelectNote: vi.fn(),
   onCreateNote: vi.fn(),
   onDeleteNote: vi.fn(),
+  onImportFiles: vi.fn(),
   allTags: ["project"],
   selectedTag: null,
   onSelectTag: vi.fn(),

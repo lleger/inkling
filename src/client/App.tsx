@@ -6,7 +6,7 @@ import { ShortcutsHud } from "./components/ShortcutsHud";
 import { SettingsModal } from "./components/SettingsModal";
 import { FocusOverlay } from "./components/FocusOverlay";
 import { CommandPalette, type PaletteAction } from "./components/CommandPalette";
-import { PanelLeftOpen, Type, Code, Columns2, Maximize, FilePlus, Copy, PanelLeftClose, Settings, Keyboard, Home } from "lucide-react";
+import { PanelLeftOpen, Type, Code, Columns2, Maximize, FilePlus, Copy, PanelLeftClose, Settings, Keyboard, Home, Upload } from "lucide-react";
 import { useNotes } from "./hooks/useNotes";
 import { useUser } from "./hooks/useUser";
 import { useTheme } from "./hooks/useTheme";
@@ -247,6 +247,30 @@ export function App() {
     }
   }, [create, activeNote]);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImportFiles = useCallback(
+    async (files: FileList | File[]) => {
+      let lastNote: Note | null = null;
+      for (const file of Array.from(files)) {
+        if (!file.name.endsWith(".md") && !file.name.endsWith(".markdown") && !file.name.endsWith(".txt")) continue;
+        const content = await file.text();
+        const title = file.name.replace(/\.(md|markdown|txt)$/, "");
+        const note = await create({ title, content });
+        lastNote = note;
+      }
+      if (lastNote) {
+        setActiveNote(lastNote);
+        setSaveStatus("saved");
+        pendingContentRef.current = null;
+        currentContentRef.current = lastNote.content;
+        updateStats(lastNote.content);
+        window.history.replaceState(null, "", `#${lastNote.id}`);
+      }
+    },
+    [create],
+  );
+
   const handleDeleteNote = useCallback(
     async (id: string) => {
       await remove(id);
@@ -262,6 +286,7 @@ export function App() {
     () => [
       { id: "new-note", label: "New note", icon: <FilePlus size={15} />, category: "action", onSelect: handleCreateNote },
       { id: "duplicate-note", label: "Duplicate note", icon: <Copy size={15} />, category: "action", onSelect: handleDuplicateNote },
+      { id: "import-md", label: "Import markdown", icon: <Upload size={15} />, category: "action", onSelect: () => fileInputRef.current?.click() },
       { id: "go-home", label: "Go home", icon: <Home size={15} />, category: "action", onSelect: () => { setActiveNote(null); window.history.replaceState(null, "", window.location.pathname); } },
       { id: "mode-richtext", label: "Rich text mode", icon: <Type size={15} />, category: "action", onSelect: () => setModeTo("richtext") },
       { id: "mode-markdown", label: "Markdown mode", icon: <Code size={15} />, category: "action", onSelect: () => setModeTo("markdown") },
@@ -380,6 +405,7 @@ export function App() {
             onSelectNote={handleSelectNote}
             onCreateNote={handleCreateNote}
             onDeleteNote={handleDeleteNote}
+            onImportFiles={handleImportFiles}
             allTags={allTags}
             selectedTag={selectedTag}
             onSelectTag={setSelectedTag}
@@ -402,6 +428,17 @@ export function App() {
         settings={settings}
         onUpdateSettings={updateSettings}
         userEmail={user?.email ?? null}
+      />
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".md,.markdown,.txt"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files) handleImportFiles(e.target.files);
+          e.target.value = "";
+        }}
       />
     </div>
   );

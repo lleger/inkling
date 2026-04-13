@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { Search, Plus, FileText, CheckSquare, X } from "lucide-react";
+import { useState, useMemo, useCallback } from "react";
+import { Search, Plus, FileText, CheckSquare, X, Upload } from "lucide-react";
 import type { NoteMeta } from "../types";
 
 function timeAgo(dateStr: string): string {
@@ -20,13 +20,35 @@ interface HomePageProps {
   onSelectNote: (id: string) => void;
   onCreateNote: () => void;
   onDeleteNote: (id: string) => void;
+  onImportFiles: (files: FileList | File[]) => void;
   allTags: string[];
   selectedTag: string | null;
   onSelectTag: (tag: string | null) => void;
 }
 
-export function HomePage({ notes, onSelectNote, onCreateNote, onDeleteNote, allTags, selectedTag, onSelectTag }: HomePageProps) {
+export function HomePage({ notes, onSelectNote, onCreateNote, onDeleteNote, onImportFiles, allTags, selectedTag, onSelectTag }: HomePageProps) {
   const [query, setQuery] = useState("");
+  const [dragging, setDragging] = useState(false);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback(() => {
+    setDragging(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setDragging(false);
+      if (e.dataTransfer.files.length > 0) {
+        onImportFiles(e.dataTransfer.files);
+      }
+    },
+    [onImportFiles],
+  );
 
   // Client-side filter
   const filtered = useMemo(() => {
@@ -53,7 +75,22 @@ export function HomePage({ notes, onSelectNote, onCreateNote, onDeleteNote, allT
   }, [notes]);
 
   return (
-    <div className="flex w-full max-w-[680px] flex-col px-6 pt-12 pb-24 min-h-full animate-[fade-in_0.2s_ease-out]">
+    <div
+      className={`flex w-full max-w-[680px] flex-col px-6 pt-12 pb-24 min-h-full animate-[fade-in_0.2s_ease-out] transition-colors ${
+        dragging ? "bg-accent/5" : ""
+      }`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {/* Drag overlay */}
+      {dragging && (
+        <div className="mb-6 flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-accent bg-accent/5 py-10 text-accent">
+          <Upload size={24} />
+          <span className="text-sm font-medium">Drop .md files to import</span>
+        </div>
+      )}
+
       {/* Search */}
       <div className="relative mb-8">
         <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
