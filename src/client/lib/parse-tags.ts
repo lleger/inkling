@@ -9,21 +9,25 @@ export function isTagZoneLine(line: string): boolean {
 export function parseTags(content: string): string[] {
   const lines = content.split("\n");
   let headingFound = false;
+  let foundFirstTag = false;
   const tags: string[] = [];
 
   for (const line of lines) {
     const trimmed = line.trim();
 
-    // Find the first heading
     if (!headingFound) {
-      if (/^#{1,6}\s+/.test(trimmed)) {
-        headingFound = true;
-      }
+      if (/^#{1,6}\s+/.test(trimmed)) headingFound = true;
       continue;
     }
 
-    // After heading: collect tag lines
+    // Skip blank lines between heading and tag zone
+    if (trimmed.length === 0) {
+      if (foundFirstTag) break; // blank after tags ends the zone
+      continue; // blank before tags, keep looking
+    }
+
     if (isTagZoneLine(trimmed)) {
+      foundFirstTag = true;
       const tokens = trimmed.split(/\s+/);
       for (const t of tokens) {
         const match = t.match(TAG_RE);
@@ -32,7 +36,6 @@ export function parseTags(content: string): string[] {
       continue;
     }
 
-    // First non-tag line (including blank) ends the tag zone
     break;
   }
 

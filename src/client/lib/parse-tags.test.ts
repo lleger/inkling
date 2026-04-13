@@ -24,8 +24,12 @@ describe("parseTags", () => {
     expect(parseTags("# Title\n#a #b\n#c\n\nBody")).toEqual(["a", "b", "c"]);
   });
 
-  it("stops at blank line", () => {
-    expect(parseTags("# Title\n\n#notag\n\nBody")).toEqual([]);
+  it("tolerates blank line between heading and tags", () => {
+    expect(parseTags("# Title\n\n#project\n\nBody")).toEqual(["project"]);
+  });
+
+  it("stops at blank line after tag zone", () => {
+    expect(parseTags("# Title\n#a\n\n#notag\n\nBody")).toEqual(["a"]);
   });
 
   it("stops at non-tag content", () => {
