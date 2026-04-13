@@ -24,6 +24,9 @@ interface SidebarProps {
   userEmail: string | null;
   open: boolean;
   saveStatus: SaveStatus;
+  allTags: string[];
+  selectedTag: string | null;
+  onSelectTag: (tag: string | null) => void;
 }
 
 export function Sidebar({
@@ -37,6 +40,9 @@ export function Sidebar({
   onOpenSettings,
   userEmail,
   open,
+  allTags,
+  selectedTag,
+  onSelectTag,
   saveStatus,
 }: SidebarProps) {
   return (
@@ -70,6 +76,24 @@ export function Sidebar({
           </button>
         </div>
       </div>
+
+      {allTags.length > 0 && (
+        <div className="flex flex-wrap gap-1 px-3 py-2 border-b border-border">
+          {allTags.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => onSelectTag(selectedTag === tag ? null : tag)}
+              className={`rounded-full px-2 py-0.5 text-[11px] font-medium transition-colors ${
+                selectedTag === tag
+                  ? "bg-accent text-white"
+                  : "bg-surface-tertiary text-text-secondary hover:text-text"
+              }`}
+            >
+              #{tag}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto px-1.5 py-1 flex flex-col gap-0.5">
         {notes.map((note) => {

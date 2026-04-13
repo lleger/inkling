@@ -16,6 +16,7 @@ export const richTextTheme: EditorThemeClasses = {
     strikethrough: "editor-text-strikethrough",
     code: "editor-text-code",
   },
+  hashtag: "editor-hashtag",
   quote: "editor-quote",
   link: "editor-link",
   list: {

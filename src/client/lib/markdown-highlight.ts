@@ -7,6 +7,30 @@ export interface Segment {
 }
 
 export const MARKER_STYLE = "opacity: 0.45";
+export const TAG_STYLE =
+  "background: color-mix(in srgb, var(--color-accent), transparent 85%); color: var(--color-accent); padding: 1px 6px; border-radius: 9999px; font-size: 0.9em; font-weight: 500";
+
+const TAG_LINE_RE = /#([a-zA-Z0-9_-]+)/g;
+
+export function parseTagLineSegments(text: string): Segment[] {
+  const segments: Segment[] = [];
+  let lastIndex = 0;
+
+  TAG_LINE_RE.lastIndex = 0;
+  let match;
+  while ((match = TAG_LINE_RE.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      segments.push({ text: text.slice(lastIndex, match.index), format: 0, style: "" });
+    }
+    segments.push({ text: match[0], format: 0, style: TAG_STYLE });
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < text.length) {
+    segments.push({ text: text.slice(lastIndex), format: 0, style: "" });
+  }
+
+  return segments.filter((s) => s.text.length > 0);
+}
 
 const HIGHLIGHT_PATTERNS: [RegExp, number][] = [
   [/\*\*\*(.+?)\*\*\*/g, IS_BOLD | IS_ITALIC],

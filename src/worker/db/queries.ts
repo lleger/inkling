@@ -7,6 +7,7 @@ export interface NoteRow {
   word_count: number;
   task_done: number;
   task_total: number;
+  tags: string;
   created_at: string;
   updated_at: string;
 }
@@ -18,8 +19,41 @@ export interface NoteMeta {
   word_count: number;
   task_done: number;
   task_total: number;
+  tags: string;
   created_at: string;
   updated_at: string;
+}
+
+const TAG_RE = /^#([a-zA-Z0-9_-]+)$/;
+
+function isTagZoneLine(line: string): boolean {
+  const tokens = line.trim().split(/\s+/);
+  if (tokens.length === 0 || (tokens.length === 1 && tokens[0] === "")) return false;
+  return tokens.every((t) => TAG_RE.test(t));
+}
+
+function computeTags(content: string): string[] {
+  const lines = content.split("\n");
+  let headingFound = false;
+  const tags: string[] = [];
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!headingFound) {
+      if (/^#{1,6}\s+/.test(trimmed)) headingFound = true;
+      continue;
+    }
+    if (isTagZoneLine(trimmed)) {
+      for (const t of trimmed.split(/\s+/)) {
+        const match = t.match(TAG_RE);
+        if (match) tags.push(match[1].toLowerCase());
+      }
+      continue;
+    }
+    break;
+  }
+
+  return [...new Set(tags)];
 }
 
 function computeStats(content: string) {
@@ -28,7 +62,8 @@ function computeStats(content: string) {
   const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
   const taskDone = (content.match(/- \[x\]/gi) || []).length;
   const taskUndone = (content.match(/- \[ \]/g) || []).length;
-  return { title, preview, wordCount, taskDone, taskTotal: taskDone + taskUndone };
+  const tags = computeTags(content);
+  return { title, preview, wordCount, taskDone, taskTotal: taskDone + taskUndone, tags };
 }
 
 function extractTitle(content: string): string {
@@ -41,21 +76,26 @@ function extractTitle(content: string): string {
 
 function extractPreview(content: string): string {
   const lines = content.split("\n");
-  // Skip the first heading line, find the first content line
-  let started = false;
+  let afterHeading = false;
+  let pastTagZone = false;
   const parts: string[] = [];
+
   for (const line of lines) {
-    if (!started && /^#{1,6}\s+/.test(line)) {
-      started = true;
-      continue;
-    }
     const trimmed = line.trim();
-    if (trimmed.length === 0) {
-      if (started) continue;
-      started = true;
+
+    if (!afterHeading) {
+      if (/^#{1,6}\s+/.test(trimmed)) afterHeading = true;
       continue;
     }
-    // Strip markdown syntax for cleaner preview
+
+    // Skip tag zone lines
+    if (!pastTagZone) {
+      if (isTagZoneLine(trimmed)) continue;
+      pastTagZone = true;
+    }
+
+    if (trimmed.length === 0) continue;
+
     const clean = trimmed
       .replace(/^#{1,6}\s+/, "")
       .replace(/^[-*+]\s+(\[.\]\s+)?/, "")
@@ -67,15 +107,18 @@ function extractPreview(content: string): string {
     parts.push(clean);
     if (parts.join(" ").length >= 120) break;
   }
+
   return parts.join(" ").slice(0, 120);
 }
+
+const LIST_COLS = "id, title, preview, word_count, task_done, task_total, tags, created_at, updated_at";
 
 export async function listNotes(db: D1Database, userId: string, query?: string): Promise<NoteMeta[]> {
   if (query && query.trim()) {
     const pattern = `%${query.trim()}%`;
     const result = await db
       .prepare(
-        "SELECT id, title, preview, word_count, task_done, task_total, created_at, updated_at FROM notes WHERE user_id = ? AND (title LIKE ? OR content LIKE ?) ORDER BY updated_at DESC",
+        `SELECT ${LIST_COLS} FROM notes WHERE user_id = ? AND (title LIKE ? OR content LIKE ?) ORDER BY updated_at DESC`,
       )
       .bind(userId, pattern, pattern)
       .all<NoteMeta>();
@@ -83,9 +126,7 @@ export async function listNotes(db: D1Database, userId: string, query?: string):
   }
 
   const result = await db
-    .prepare(
-      "SELECT id, title, preview, word_count, task_done, task_total, created_at, updated_at FROM notes WHERE user_id = ? ORDER BY updated_at DESC",
-    )
+    .prepare(`SELECT ${LIST_COLS} FROM notes WHERE user_id = ? ORDER BY updated_at DESC`)
     .bind(userId)
     .all<NoteMeta>();
   return result.results;
@@ -111,9 +152,9 @@ export async function createNote(
 
   await db
     .prepare(
-      "INSERT INTO notes (id, user_id, title, content, preview, word_count, task_done, task_total) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO notes (id, user_id, title, content, preview, word_count, task_done, task_total, tags) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
     )
-    .bind(id, userId, t, c, stats.preview, stats.wordCount, stats.taskDone, stats.taskTotal)
+    .bind(id, userId, t, c, stats.preview, stats.wordCount, stats.taskDone, stats.taskTotal, JSON.stringify(stats.tags))
     .run();
 
   return (await getNote(db, userId, id))!;
@@ -134,9 +175,9 @@ export async function updateNote(
 
   await db
     .prepare(
-      "UPDATE notes SET title = ?, content = ?, preview = ?, word_count = ?, task_done = ?, task_total = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ? AND user_id = ?",
+      "UPDATE notes SET title = ?, content = ?, preview = ?, word_count = ?, task_done = ?, task_total = ?, tags = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ? AND user_id = ?",
     )
-    .bind(title, content, stats.preview, stats.wordCount, stats.taskDone, stats.taskTotal, noteId, userId)
+    .bind(title, content, stats.preview, stats.wordCount, stats.taskDone, stats.taskTotal, JSON.stringify(stats.tags), noteId, userId)
     .run();
 
   return getNote(db, userId, noteId);

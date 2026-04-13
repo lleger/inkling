@@ -16,6 +16,16 @@ export function normalizeMarkdown(text: string): string {
     );
   }
 
+  // Compact heading → tag line: \n\n between heading and #tag line → \n
+  result = result.replace(/(^#{1,6}\s+.+)\n\n(#[a-zA-Z0-9_-]+)/gm, "$1\n$2");
+
+  // Compact consecutive tag lines: \n\n between #tag lines → \n
+  prev = "";
+  while (prev !== result) {
+    prev = result;
+    result = result.replace(/(^#[a-zA-Z0-9_-]+(?:\s+#[a-zA-Z0-9_-]+)*)\n\n(#[a-zA-Z0-9_-]+)/gm, "$1\n$2");
+  }
+
   // Compact table rows: \n\n between consecutive | ... | lines → \n
   prev = "";
   while (prev !== result) {

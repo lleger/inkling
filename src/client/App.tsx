@@ -36,10 +36,33 @@ export function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [editorMode, setEditorMode] = useState<EditorMode>(settings.defaultMode);
   const [editorKey, setEditorKey] = useState(0);
   const [wordCount, setWordCount] = useState(0);
   const [taskStats, setTaskStats] = useState<{ done: number; total: number } | null>(null);
+
+  const allTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    for (const note of notes) {
+      try {
+        const parsed = JSON.parse(note.tags) as string[];
+        for (const t of parsed) tagSet.add(t);
+      } catch {}
+    }
+    return [...tagSet].sort();
+  }, [notes]);
+
+  const filteredNotes = useMemo(() => {
+    if (!selectedTag) return notes;
+    return notes.filter((n) => {
+      try {
+        return (JSON.parse(n.tags) as string[]).includes(selectedTag);
+      } catch {
+        return false;
+      }
+    });
+  }, [notes, selectedTag]);
 
   const updateStats = useCallback((content: string) => {
     setWordCount(content.trim().split(/\s+/).filter(Boolean).length);
@@ -277,17 +300,20 @@ export function App() {
     <div className="flex h-full">
       <div className={`flex h-full transition-opacity duration-200 ${focusMode ? "opacity-0 pointer-events-none w-0 overflow-hidden" : "opacity-100"}`}>
         <Sidebar
-          notes={notes}
+          notes={filteredNotes}
           activeNoteId={activeNote?.id ?? null}
           onSelectNote={handleSelectNote}
           onCreateNote={handleCreateNote}
           onDeleteNote={handleDeleteNote}
           onCollapse={() => setSidebarOpen(false)}
-          onHome={() => { setActiveNote(null); window.history.replaceState(null, "", window.location.pathname); }}
+          onHome={() => { setActiveNote(null); setSelectedTag(null); window.history.replaceState(null, "", window.location.pathname); }}
           onOpenSettings={() => setSettingsOpen(true)}
           userEmail={user?.email ?? null}
           open={sidebarOpen && !focusMode}
           saveStatus={saveStatus}
+          allTags={allTags}
+          selectedTag={selectedTag}
+          onSelectTag={setSelectedTag}
         />
       </div>
 
@@ -354,6 +380,9 @@ export function App() {
             onSelectNote={handleSelectNote}
             onCreateNote={handleCreateNote}
             onDeleteNote={handleDeleteNote}
+            allTags={allTags}
+            selectedTag={selectedTag}
+            onSelectTag={setSelectedTag}
           />
         )}
       </main>

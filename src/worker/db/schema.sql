@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS notes (
   word_count INTEGER NOT NULL DEFAULT 0,
   task_done INTEGER NOT NULL DEFAULT 0,
   task_total INTEGER NOT NULL DEFAULT 0,
+  tags TEXT NOT NULL DEFAULT '[]',
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
 );

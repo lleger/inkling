@@ -14,11 +14,11 @@ function createMockD1(): D1Database {
 
     // INSERT with 8 fields
     if (/INSERT INTO notes/i.test(trimmed)) {
-      const [id, user_id, title, content, preview, word_count, task_done, task_total] = bindings;
+      const [id, user_id, title, content, preview, word_count, task_done, task_total, tags] = bindings;
       const now = new Date().toISOString();
       rows.set(id as string, {
         id, user_id, title, content, preview,
-        word_count, task_done, task_total,
+        word_count, task_done, task_total, tags,
         created_at: now, updated_at: now,
       });
       return { results: [], meta: { changes: 1 } };
@@ -41,8 +41,8 @@ function createMockD1(): D1Database {
           (r.title as string).toLowerCase().includes(searchTerm) ||
           (r.content as string).toLowerCase().includes(searchTerm)
         ))
-        .map(({ id, title, preview, word_count, task_done, task_total, created_at, updated_at }) => ({
-          id, title, preview, word_count, task_done, task_total, created_at, updated_at,
+        .map(({ id, title, preview, word_count, task_done, task_total, tags, created_at, updated_at }) => ({
+          id, title, preview, word_count, task_done, task_total, tags, created_at, updated_at,
         }))
         .sort((a, b) => (b.updated_at as string).localeCompare(a.updated_at as string));
       return { results, meta: { changes: 0 } };
@@ -53,19 +53,19 @@ function createMockD1(): D1Database {
       const [uid] = bindings as string[];
       const results = [...rows.values()]
         .filter((r) => r.user_id === uid)
-        .map(({ id, title, preview, word_count, task_done, task_total, created_at, updated_at }) => ({
-          id, title, preview, word_count, task_done, task_total, created_at, updated_at,
+        .map(({ id, title, preview, word_count, task_done, task_total, tags, created_at, updated_at }) => ({
+          id, title, preview, word_count, task_done, task_total, tags, created_at, updated_at,
         }))
         .sort((a, b) => (b.updated_at as string).localeCompare(a.updated_at as string));
       return { results, meta: { changes: 0 } };
     }
 
-    // UPDATE with 8 bindings
+    // UPDATE with 9 bindings
     if (/UPDATE notes SET/i.test(trimmed)) {
-      const [title, content, preview, word_count, task_done, task_total, id, uid] = bindings;
+      const [title, content, preview, word_count, task_done, task_total, tags, id, uid] = bindings;
       const row = rows.get(id as string);
       if (row && row.user_id === uid) {
-        Object.assign(row, { title, content, preview, word_count, task_done, task_total, updated_at: new Date().toISOString() });
+        Object.assign(row, { title, content, preview, word_count, task_done, task_total, tags, updated_at: new Date().toISOString() });
         return { results: [], meta: { changes: 1 } };
       }
       return { results: [], meta: { changes: 0 } };

@@ -196,6 +196,17 @@ button:focus-visible {
   border-radius: 3px;
 }
 
+/* Hashtag pills */
+.editor-hashtag {
+  background: color-mix(in srgb, var(--color-accent), transparent 85%);
+  color: var(--color-accent);
+  padding: 1px 7px;
+  border-radius: 9999px;
+  font-size: 0.85em;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 /* Block elements */
 .editor-quote {
   border-left: 2px solid var(--color-border);

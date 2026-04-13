@@ -54,6 +54,15 @@ export function CommandPalette({ open, onClose, notes, actions, onSelectNote, on
       return items;
     }
 
+    // Create option first — the primary intent when typing a name
+    items.push({
+      id: "create-from-query",
+      label: `Create "${query.trim()}"`,
+      icon: <FilePlus size={15} />,
+      category: "action",
+      onSelect: () => onCreateWithTitle(query.trim()),
+    });
+
     // Filter actions
     const matchedActions = actions.filter((a) => fuzzyMatch(a.label, query));
     items.push(...matchedActions);
@@ -72,15 +81,6 @@ export function CommandPalette({ open, onClose, notes, actions, onSelectNote, on
         onSelect: () => onSelectNote(note.id),
       });
     }
-
-    // Offer to create a note with the query as title
-    items.push({
-      id: "create-from-query",
-      label: `Create "${query.trim()}"`,
-      icon: <FilePlus size={15} />,
-      category: "action",
-      onSelect: () => onCreateWithTitle(query.trim()),
-    });
 
     return items;
   }, [query, actions, notes, onSelectNote, onCreateWithTitle]);

@@ -6,6 +6,7 @@ export interface Note {
   word_count: number;
   task_done: number;
   task_total: number;
+  tags: string;
   created_at: string;
   updated_at: string;
 }
@@ -17,6 +18,7 @@ export interface NoteMeta {
   word_count: number;
   task_done: number;
   task_total: number;
+  tags: string;
   created_at: string;
   updated_at: string;
 }

@@ -14,6 +14,7 @@ import {
   $createParagraphNode,
   $createTextNode,
   TextNode,
+  type LexicalNode,
   COMMAND_PRIORITY_HIGH,
   INSERT_LINE_BREAK_COMMAND,
   KEY_DOWN_COMMAND,
@@ -21,7 +22,8 @@ import {
 } from "lexical";
 import { ScrollIntoViewPlugin } from "./ScrollIntoViewPlugin";
 import { plainTextTheme } from "../lib/editor-theme";
-import { parseMarkdownSegments, type Segment } from "../lib/markdown-highlight";
+import { parseMarkdownSegments, parseTagLineSegments, type Segment } from "../lib/markdown-highlight";
+import { isTagZoneLine } from "../lib/parse-tags";
 import { plainifyTypography } from "../lib/plain-typography";
 
 function InitPlugin({ content }: { content: string }) {
@@ -179,6 +181,33 @@ function segmentsMatchChildren(
   return true;
 }
 
+function isInTagZone(parent: LexicalNode): boolean {
+  const root = $getRoot();
+  const allParagraphs = root.getChildren();
+  let headingIdx = -1;
+
+  // Find the first heading-like paragraph (starts with #)
+  for (let i = 0; i < allParagraphs.length; i++) {
+    if (/^#{1,6}\s+/.test(allParagraphs[i].getTextContent())) {
+      headingIdx = i;
+      break;
+    }
+  }
+
+  if (headingIdx === -1) return false;
+
+  // Check if parent is in the tag zone (consecutive tag lines after heading)
+  const parentIdx = allParagraphs.indexOf(parent as any);
+  if (parentIdx <= headingIdx) return false;
+
+  // Every paragraph between heading+1 and parent must be a tag zone line
+  for (let i = headingIdx + 1; i <= parentIdx; i++) {
+    if (!isTagZoneLine(allParagraphs[i].getTextContent())) return false;
+  }
+
+  return true;
+}
+
 function MarkdownHighlightPlugin() {
   const [editor] = useLexicalComposerContext();
 
@@ -197,7 +226,9 @@ function MarkdownHighlightPlugin() {
 
       // Get full paragraph text
       const fullText = textChildren.map((c) => c.getTextContent()).join("");
-      const segments = parseMarkdownSegments(fullText);
+
+      // Use tag line segments if in the tag zone, otherwise standard markdown segments
+      const segments = isInTagZone(parent) ? parseTagLineSegments(fullText) : parseMarkdownSegments(fullText);
 
       // Already correct?
       if (segmentsMatchChildren(segments, textChildren)) return;
@@ -213,9 +244,6 @@ function MarkdownHighlightPlugin() {
         if (seg.style) textNode.setStyle(seg.style);
         parent.append(textNode);
       }
-
-      // Restore selection to end of paragraph (transform may displace cursor)
-      // Lexical will reconcile selection automatically in most cases
     });
   }, [editor]);
 

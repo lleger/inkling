@@ -20,19 +20,30 @@ interface HomePageProps {
   onSelectNote: (id: string) => void;
   onCreateNote: () => void;
   onDeleteNote: (id: string) => void;
+  allTags: string[];
+  selectedTag: string | null;
+  onSelectTag: (tag: string | null) => void;
 }
 
-export function HomePage({ notes, onSelectNote, onCreateNote, onDeleteNote }: HomePageProps) {
+export function HomePage({ notes, onSelectNote, onCreateNote, onDeleteNote, allTags, selectedTag, onSelectTag }: HomePageProps) {
   const [query, setQuery] = useState("");
 
-  // Client-side filter — sidebar stays unaffected
+  // Client-side filter
   const filtered = useMemo(() => {
-    if (!query.trim()) return notes;
-    const q = query.toLowerCase();
-    return notes.filter(
-      (n) => n.title.toLowerCase().includes(q) || n.preview.toLowerCase().includes(q),
-    );
-  }, [notes, query]);
+    let result = notes;
+    if (selectedTag) {
+      result = result.filter((n) => {
+        try { return (JSON.parse(n.tags) as string[]).includes(selectedTag); } catch { return false; }
+      });
+    }
+    if (query.trim()) {
+      const q = query.toLowerCase();
+      result = result.filter(
+        (n) => n.title.toLowerCase().includes(q) || n.preview.toLowerCase().includes(q),
+      );
+    }
+    return result;
+  }, [notes, query, selectedTag]);
 
   const stats = useMemo(() => {
     const totalWords = notes.reduce((sum, n) => sum + n.word_count, 0);
@@ -62,6 +73,25 @@ export function HomePage({ notes, onSelectNote, onCreateNote, onDeleteNote }: Ho
           </button>
         )}
       </div>
+
+      {/* Tag filter */}
+      {allTags.length > 0 && (
+        <div className="mb-4 flex flex-wrap gap-1.5">
+          {allTags.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => onSelectTag(selectedTag === tag ? null : tag)}
+              className={`rounded-full px-2.5 py-0.5 text-[12px] font-medium transition-colors ${
+                selectedTag === tag
+                  ? "bg-accent text-white"
+                  : "bg-surface-tertiary text-text-secondary hover:text-text"
+              }`}
+            >
+              #{tag}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Stats summary */}
       <div className="mb-8 flex items-center gap-2">

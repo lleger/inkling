@@ -15,6 +15,7 @@ import { CodeNode, CodeHighlightNode } from "@lexical/code";
 import { LinkNode, AutoLinkNode } from "@lexical/link";
 import { TableNode, TableRowNode, TableCellNode } from "@lexical/table";
 import { HorizontalRuleNode } from "@lexical/react/LexicalHorizontalRuleNode";
+import { HashtagNode } from "@lexical/hashtag";
 import { $getRoot } from "lexical";
 import { richTextTheme } from "../lib/editor-theme";
 import { TRANSFORMERS } from "../lib/markdown-transformers";
@@ -57,6 +58,7 @@ export function RichTextPreview({ content }: RichTextPreviewProps) {
       TableRowNode,
       TableCellNode,
       HorizontalRuleNode,
+      HashtagNode,
     ],
   };
 
