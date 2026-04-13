@@ -6,7 +6,7 @@ import { ShortcutsHud } from "./components/ShortcutsHud";
 import { SettingsModal } from "./components/SettingsModal";
 import { FocusOverlay } from "./components/FocusOverlay";
 import { CommandPalette, type PaletteAction } from "./components/CommandPalette";
-import { PanelLeftOpen, Type, Code, Columns2, Maximize, FilePlus, PanelLeftClose, Settings, Keyboard, Home } from "lucide-react";
+import { PanelLeftOpen, Type, Code, Columns2, Maximize, FilePlus, Copy, PanelLeftClose, Settings, Keyboard, Home } from "lucide-react";
 import { useNotes } from "./hooks/useNotes";
 import { useUser } from "./hooks/useUser";
 import { useTheme } from "./hooks/useTheme";
@@ -192,6 +192,38 @@ export function App() {
     }
   }, [create]);
 
+  const handleCreateWithTitle = useCallback(
+    async (title: string) => {
+      try {
+        const note = await create({ title, content: `# ${title}\n\n` });
+        setActiveNote(note);
+        setSaveStatus("saved");
+        pendingContentRef.current = null;
+        currentContentRef.current = note.content;
+        updateStats(note.content);
+        window.history.replaceState(null, "", `#${note.id}`);
+      } catch (err) {
+        console.error("Failed to create note:", err);
+      }
+    },
+    [create],
+  );
+
+  const handleDuplicateNote = useCallback(async () => {
+    if (!activeNote) return;
+    try {
+      const note = await create({ title: `${activeNote.title} (copy)`, content: currentContentRef.current });
+      setActiveNote(note);
+      setSaveStatus("saved");
+      pendingContentRef.current = null;
+      currentContentRef.current = note.content;
+      updateStats(note.content);
+      window.history.replaceState(null, "", `#${note.id}`);
+    } catch (err) {
+      console.error("Failed to duplicate note:", err);
+    }
+  }, [create, activeNote]);
+
   const handleDeleteNote = useCallback(
     async (id: string) => {
       await remove(id);
@@ -206,6 +238,7 @@ export function App() {
   const paletteActions: PaletteAction[] = useMemo(
     () => [
       { id: "new-note", label: "New note", icon: <FilePlus size={15} />, category: "action", onSelect: handleCreateNote },
+      { id: "duplicate-note", label: "Duplicate note", icon: <Copy size={15} />, category: "action", onSelect: handleDuplicateNote },
       { id: "go-home", label: "Go home", icon: <Home size={15} />, category: "action", onSelect: () => { setActiveNote(null); window.history.replaceState(null, "", window.location.pathname); } },
       { id: "mode-richtext", label: "Rich text mode", icon: <Type size={15} />, category: "action", onSelect: () => setModeTo("richtext") },
       { id: "mode-markdown", label: "Markdown mode", icon: <Code size={15} />, category: "action", onSelect: () => setModeTo("markdown") },
@@ -215,7 +248,7 @@ export function App() {
       { id: "settings", label: "Settings", icon: <Settings size={15} />, category: "action", onSelect: () => setSettingsOpen(true) },
       { id: "shortcuts", label: "Keyboard shortcuts", icon: <Keyboard size={15} />, category: "action", onSelect: () => setHudOpen(true) },
     ],
-    [handleCreateNote, setModeTo],
+    [handleCreateNote, handleDuplicateNote, setModeTo],
   );
 
   const modeBtn = (mode: EditorMode, icon: React.ReactNode, title: string) => (
@@ -331,6 +364,7 @@ export function App() {
         notes={notes}
         actions={paletteActions}
         onSelectNote={handleSelectNote}
+        onCreateWithTitle={handleCreateWithTitle}
       />
       <ShortcutsHud open={hudOpen} onClose={() => setHudOpen(false)} />
       <SettingsModal

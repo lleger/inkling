@@ -30,8 +30,11 @@ export async function fetchNote(id: string): Promise<Note> {
   return data.note;
 }
 
-export async function createNote(): Promise<Note> {
-  const data = await request<{ note: Note }>("/api/notes", { method: "POST", body: "{}" });
+export async function createNote(options?: { title?: string; content?: string }): Promise<Note> {
+  const data = await request<{ note: Note }>("/api/notes", {
+    method: "POST",
+    body: JSON.stringify(options || {}),
+  });
   return data.note;
 }
 

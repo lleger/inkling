@@ -21,8 +21,8 @@ export function useNotes() {
     refresh();
   }, [refresh]);
 
-  const create = useCallback(async () => {
-    const note = await api.createNote();
+  const create = useCallback(async (options?: { title?: string; content?: string }) => {
+    const note = await api.createNote(options);
     await refresh();
     return note;
   }, [refresh]);

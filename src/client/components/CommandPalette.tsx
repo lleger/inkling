@@ -1,18 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import {
-  Search,
-  FilePlus,
-  Type,
-  Code,
-  Columns2,
-  Maximize,
-  PanelLeftClose,
-  Settings,
-  Keyboard,
-  FileText,
-  Home,
-  Sun,
-} from "lucide-react";
+import { Search, FileText, FilePlus } from "lucide-react";
 import type { NoteMeta } from "../types";
 
 export interface PaletteAction {
@@ -29,6 +16,7 @@ interface CommandPaletteProps {
   notes: NoteMeta[];
   actions: PaletteAction[];
   onSelectNote: (id: string) => void;
+  onCreateWithTitle: (title: string) => void;
 }
 
 function fuzzyMatch(text: string, query: string): boolean {
@@ -41,7 +29,7 @@ function fuzzyMatch(text: string, query: string): boolean {
   return qi === q.length;
 }
 
-export function CommandPalette({ open, onClose, notes, actions, onSelectNote }: CommandPaletteProps) {
+export function CommandPalette({ open, onClose, notes, actions, onSelectNote, onCreateWithTitle }: CommandPaletteProps) {
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -85,8 +73,17 @@ export function CommandPalette({ open, onClose, notes, actions, onSelectNote }: 
       });
     }
 
+    // Offer to create a note with the query as title
+    items.push({
+      id: "create-from-query",
+      label: `Create "${query.trim()}"`,
+      icon: <FilePlus size={15} />,
+      category: "action",
+      onSelect: () => onCreateWithTitle(query.trim()),
+    });
+
     return items;
-  }, [query, actions, notes, onSelectNote]);
+  }, [query, actions, notes, onSelectNote, onCreateWithTitle]);
 
   // Reset state when opening
   useEffect(() => {

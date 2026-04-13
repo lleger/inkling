@@ -21,6 +21,7 @@ const baseProps = {
   notes,
   actions,
   onSelectNote: vi.fn(),
+  onCreateWithTitle: vi.fn(),
 };
 
 describe("CommandPalette", () => {
@@ -66,12 +67,12 @@ describe("CommandPalette", () => {
     expect(screen.queryByText("New note")).toBeNull();
   });
 
-  it("shows no results message", () => {
+  it("shows create option as fallback when nothing else matches", () => {
     render(<CommandPalette {...baseProps} />);
     fireEvent.change(screen.getByPlaceholderText("Search notes and actions..."), {
       target: { value: "xyznonexistent" },
     });
-    expect(screen.getByText("No results")).toBeTruthy();
+    expect(screen.getByText(/Create "xyznonexistent"/)).toBeTruthy();
   });
 
   it("calls onClose on Escape", () => {
@@ -108,6 +109,14 @@ describe("CommandPalette", () => {
     fireEvent.keyDown(input, { key: "ArrowUp" });
     // Should be on second item (index 1) — just verify no crash
     expect(input).toBeTruthy();
+  });
+
+  it("shows create option when query is entered", () => {
+    render(<CommandPalette {...baseProps} />);
+    fireEvent.change(screen.getByPlaceholderText("Search notes and actions..."), {
+      target: { value: "My new doc" },
+    });
+    expect(screen.getByText(/Create "My new doc"/)).toBeTruthy();
   });
 
   it("shows footer with keyboard hints", () => {
