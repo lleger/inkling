@@ -2,11 +2,10 @@ import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { Editor } from "./components/Editor";
 import { Sidebar } from "./components/Sidebar";
 import { HomePage } from "./components/HomePage";
-import { ShortcutsHud } from "./components/ShortcutsHud";
 import { SettingsModal } from "./components/SettingsModal";
 import { FocusOverlay } from "./components/FocusOverlay";
 import { CommandPalette, type PaletteAction } from "./components/CommandPalette";
-import { PanelLeftOpen, Type, Code, Columns2, Maximize, FilePlus, Copy, PanelLeftClose, Settings, Keyboard, Home, Upload } from "lucide-react";
+import { PanelLeftOpen, Type, Code, Columns2, Maximize, FilePlus, Copy, PanelLeftClose, Settings, Home, Upload, ListChecks } from "lucide-react";
 import { useNotes } from "./hooks/useNotes";
 import { useUser } from "./hooks/useUser";
 import { useTheme } from "./hooks/useTheme";
@@ -14,9 +13,9 @@ import { useSettings } from "./hooks/useSettings";
 import { fetchNote, updateNote } from "./lib/api";
 import { normalizeMarkdown } from "./lib/normalize-markdown";
 import { applyAccent } from "./lib/accent-colors";
+import { clearDoneTasks } from "./lib/clear-done-tasks";
 import type { Note, SaveStatus, EditorMode } from "./types";
 
-const MODE_CYCLE: EditorMode[] = ["richtext", "markdown", "split"];
 
 export function App() {
   const { notes, loading, create, remove, refresh } = useNotes();
@@ -32,7 +31,6 @@ export function App() {
   const [activeNote, setActiveNote] = useState<Note | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [focusMode, setFocusMode] = useState(false);
-  const [hudOpen, setHudOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
@@ -125,14 +123,6 @@ export function App() {
     });
   }, []);
 
-  const cycleMode = useCallback(() => {
-    setEditorMode((prev) => {
-      currentContentRef.current = normalizeMarkdown(currentContentRef.current);
-      const idx = MODE_CYCLE.indexOf(prev);
-      setEditorKey((k) => k + 1);
-      return MODE_CYCLE[(idx + 1) % MODE_CYCLE.length];
-    });
-  }, []);
 
   // Load note from URL hash on startup
   useEffect(() => {
@@ -153,39 +143,18 @@ export function App() {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      const mod = e.metaKey || e.ctrlKey;
-      if (mod && e.shiftKey && e.key === "S") {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        setSidebarOpen((o) => !o);
-      }
-      if (mod && e.shiftKey && e.key === "N") {
-        e.preventDefault();
-        handleCreateNote();
-      }
-      if (mod && e.shiftKey && e.key === "M") {
-        e.preventDefault();
-        cycleMode();
-      }
-      if (mod && e.shiftKey && e.key === "F") {
-        e.preventDefault();
-        setFocusMode((f) => !f);
+        setPaletteOpen((o) => !o);
       }
       if (e.key === "Escape" && focusMode) {
         e.preventDefault();
         setFocusMode(false);
       }
-      if (mod && e.key === "k") {
-        e.preventDefault();
-        setPaletteOpen((o) => !o);
-      }
-      if (mod && e.key === "/") {
-        e.preventDefault();
-        setHudOpen((o) => !o);
-      }
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [flushSave, cycleMode, focusMode]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [focusMode]);
 
   const handleSelectNote = useCallback(async (id: string) => {
     try {
@@ -247,6 +216,14 @@ export function App() {
     }
   }, [create, activeNote]);
 
+  const handleClearDoneTasks = useCallback(() => {
+    if (!activeNote || !taskStats || taskStats.done === 0) return;
+    const cleaned = clearDoneTasks(currentContentRef.current);
+    currentContentRef.current = cleaned;
+    handleContentChange(cleaned);
+    setEditorKey((k) => k + 1);
+  }, [activeNote, taskStats, handleContentChange]);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImportFiles = useCallback(
@@ -294,9 +271,11 @@ export function App() {
       { id: "focus-mode", label: "Focus mode", icon: <Maximize size={15} />, category: "action", onSelect: () => setFocusMode(true) },
       { id: "toggle-sidebar", label: "Toggle sidebar", icon: <PanelLeftClose size={15} />, category: "action", onSelect: () => setSidebarOpen((o) => !o) },
       { id: "settings", label: "Settings", icon: <Settings size={15} />, category: "action", onSelect: () => setSettingsOpen(true) },
-      { id: "shortcuts", label: "Keyboard shortcuts", icon: <Keyboard size={15} />, category: "action", onSelect: () => setHudOpen(true) },
+      ...(taskStats && taskStats.done > 0
+        ? [{ id: "clear-done", label: `Clear ${taskStats.done} done tasks`, icon: <ListChecks size={15} />, category: "action" as const, onSelect: handleClearDoneTasks }]
+        : []),
     ],
-    [handleCreateNote, handleDuplicateNote, setModeTo],
+    [handleCreateNote, handleDuplicateNote, handleClearDoneTasks, taskStats, setModeTo],
   );
 
   const modeBtn = (mode: EditorMode, icon: React.ReactNode, title: string) => (
@@ -360,7 +339,17 @@ export function App() {
             <div className="fixed bottom-4 right-4 z-10 flex items-center gap-2 rounded-lg bg-surface-secondary/80 backdrop-blur-sm border border-border px-3 py-1.5 text-[11px] text-text-muted select-none">
               {taskStats && (
                 <>
-                  <span>{taskStats.done}/{taskStats.total} tasks</span>
+                  {taskStats.done > 0 ? (
+                    <button
+                      onClick={handleClearDoneTasks}
+                      title="Clear done tasks"
+                      className="transition-colors hover:text-text-secondary"
+                    >
+                      {taskStats.done}/{taskStats.total} tasks
+                    </button>
+                  ) : (
+                    <span>{taskStats.done}/{taskStats.total} tasks</span>
+                  )}
                   <span className="text-border">·</span>
                 </>
               )}
@@ -421,7 +410,7 @@ export function App() {
         onSelectNote={handleSelectNote}
         onCreateWithTitle={handleCreateWithTitle}
       />
-      <ShortcutsHud open={hudOpen} onClose={() => setHudOpen(false)} />
+
       <SettingsModal
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}

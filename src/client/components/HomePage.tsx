@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { Search, Plus, FileText, CheckSquare, X, Upload } from "lucide-react";
 import type { NoteMeta } from "../types";
 
@@ -28,21 +28,44 @@ interface HomePageProps {
 
 export function HomePage({ notes, onSelectNote, onCreateNote, onDeleteNote, onImportFiles, allTags, selectedTag, onSelectTag }: HomePageProps) {
   const [query, setQuery] = useState("");
-  const [dragging, setDragging] = useState(false);
+  const [dragFiles, setDragFiles] = useState<string[]>([]);
+  const dragCountRef = useRef(0);
+
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    dragCountRef.current++;
+    if (dragCountRef.current === 1) {
+      // Try to get file names from dataTransfer
+      const names: string[] = [];
+      if (e.dataTransfer.files.length > 0) {
+        for (const f of Array.from(e.dataTransfer.files)) {
+          names.push(f.name);
+        }
+      } else {
+        // Fallback: count items (names not always available during drag)
+        for (const item of Array.from(e.dataTransfer.items)) {
+          if (item.kind === "file") names.push("file");
+        }
+      }
+      setDragFiles(names.length > 0 ? names : ["file"]);
+    }
+  }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-    setDragging(true);
   }, []);
 
-  const handleDragLeave = useCallback(() => {
-    setDragging(false);
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    dragCountRef.current--;
+    if (dragCountRef.current === 0) setDragFiles([]);
   }, []);
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
-      setDragging(false);
+      dragCountRef.current = 0;
+      setDragFiles([]);
       if (e.dataTransfer.files.length > 0) {
         onImportFiles(e.dataTransfer.files);
       }
@@ -77,17 +100,30 @@ export function HomePage({ notes, onSelectNote, onCreateNote, onDeleteNote, onIm
   return (
     <div
       className={`flex w-full max-w-[680px] flex-col px-6 pt-12 pb-24 min-h-full animate-[fade-in_0.2s_ease-out] transition-colors ${
-        dragging ? "bg-accent/5" : ""
+        dragFiles.length > 0 ? "bg-accent/5" : ""
       }`}
+      onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       {/* Drag overlay */}
-      {dragging && (
-        <div className="mb-6 flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-accent bg-accent/5 py-10 text-accent">
+      {dragFiles.length > 0 && (
+        <div className="pointer-events-none mb-6 flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-accent bg-accent/5 py-8 text-accent">
           <Upload size={24} />
-          <span className="text-sm font-medium">Drop .md files to import</span>
+          {dragFiles.some((n) => n !== "file") ? (
+            <div className="flex flex-col items-center gap-1">
+              {dragFiles.map((name, i) => (
+                <span key={i} className="text-sm font-medium">
+                  {name.replace(/\.(md|markdown|txt)$/, "")}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <span className="text-sm font-medium">
+              Drop {dragFiles.length === 1 ? "file" : `${dragFiles.length} files`} to import
+            </span>
+          )}
         </div>
       )}
 
@@ -194,6 +230,21 @@ export function HomePage({ notes, onSelectNote, onCreateNote, onDeleteNote, onIm
                   </span>
                 )}
               </div>
+              {(() => {
+                try {
+                  const tags = JSON.parse(note.tags) as string[];
+                  if (tags.length === 0) return null;
+                  return (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {tags.map((tag) => (
+                        <span key={tag} className="rounded-full bg-accent/10 px-2 py-px text-[10px] font-medium text-accent">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  );
+                } catch { return null; }
+              })()}
             </div>
           ))}
         </div>
