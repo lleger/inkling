@@ -53,6 +53,26 @@ export async function deleteNote(id: string): Promise<void> {
   await request(`/api/notes/${id}`, { method: "DELETE" });
 }
 
+export async function restoreNote(id: string): Promise<void> {
+  await request(`/api/notes/${id}/restore`, { method: "POST" });
+}
+
+export interface DeletedNoteMeta {
+  id: string;
+  title: string;
+  deleted_at: string;
+  created_at: string;
+}
+
+export async function fetchTrash(): Promise<DeletedNoteMeta[]> {
+  const data = await request<{ notes: DeletedNoteMeta[] }>("/api/notes/trash/list");
+  return data.notes;
+}
+
+export async function permanentlyDeleteNote(id: string): Promise<void> {
+  await request(`/api/notes/${id}/permanent`, { method: "DELETE" });
+}
+
 export async function fetchSettings(): Promise<Record<string, unknown>> {
   const data = await request<{ settings: Record<string, unknown> }>("/api/settings");
   return data.settings;

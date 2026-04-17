@@ -11,6 +11,7 @@ const baseProps = {
   onCollapse: vi.fn(),
   onHome: vi.fn(),
   onOpenSettings: vi.fn(),
+  onOpenTrash: vi.fn(),
   allTags: [],
   selectedTag: null,
   onSelectTag: vi.fn(),

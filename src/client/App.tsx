@@ -4,13 +4,15 @@ import { Sidebar } from "./components/Sidebar";
 import { HomePage } from "./components/HomePage";
 import { SettingsModal } from "./components/SettingsModal";
 import { FocusOverlay } from "./components/FocusOverlay";
+import { Toast } from "./components/Toast";
+import { TrashView } from "./components/TrashView";
 import { CommandPalette, type PaletteAction } from "./components/CommandPalette";
-import { PanelLeftOpen, Type, Code, Columns2, Maximize, FilePlus, Copy, PanelLeftClose, Settings, Home, Upload, ListChecks } from "lucide-react";
+import { PanelLeftOpen, Type, Code, Columns2, Maximize, FilePlus, Copy, PanelLeftClose, Settings, Home, Upload, ListChecks, Trash2 } from "lucide-react";
 import { useNotes } from "./hooks/useNotes";
 import { useUser } from "./hooks/useUser";
 import { useTheme } from "./hooks/useTheme";
 import { useSettings } from "./hooks/useSettings";
-import { fetchNote, updateNote } from "./lib/api";
+import { fetchNote, updateNote, restoreNote } from "./lib/api";
 import { normalizeMarkdown } from "./lib/normalize-markdown";
 import { applyAccent } from "./lib/accent-colors";
 import { clearDoneTasks } from "./lib/clear-done-tasks";
@@ -33,8 +35,10 @@ export function App() {
   const [focusMode, setFocusMode] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [showTrash, setShowTrash] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; action?: { label: string; onClick: () => void } } | null>(null);
   const [editorMode, setEditorMode] = useState<EditorMode>(settings.defaultMode);
   const [editorKey, setEditorKey] = useState(0);
   const [wordCount, setWordCount] = useState(0);
@@ -160,6 +164,7 @@ export function App() {
     try {
       const note = await fetchNote(id);
       setActiveNote(note);
+      setShowTrash(false);
       setSaveStatus("saved");
       pendingContentRef.current = null;
       currentContentRef.current = note.content;
@@ -250,13 +255,24 @@ export function App() {
 
   const handleDeleteNote = useCallback(
     async (id: string) => {
+      const noteTitle = notes.find((n) => n.id === id)?.title || "Note";
       await remove(id);
       if (activeNote?.id === id) {
         setActiveNote(null);
         window.history.replaceState(null, "", window.location.pathname);
       }
+      setToast({
+        message: `"${noteTitle}" moved to trash`,
+        action: {
+          label: "Undo",
+          onClick: async () => {
+            await restoreNote(id);
+            await refresh();
+          },
+        },
+      });
     },
-    [remove, activeNote],
+    [remove, activeNote, notes, refresh],
   );
 
   const paletteActions: PaletteAction[] = useMemo(
@@ -270,6 +286,7 @@ export function App() {
       { id: "mode-split", label: "Split view", icon: <Columns2 size={15} />, category: "action", onSelect: () => setModeTo("split") },
       { id: "focus-mode", label: "Focus mode", icon: <Maximize size={15} />, category: "action", onSelect: () => setFocusMode(true) },
       { id: "toggle-sidebar", label: "Toggle sidebar", icon: <PanelLeftClose size={15} />, category: "action", onSelect: () => setSidebarOpen((o) => !o) },
+      { id: "trash", label: "Trash", icon: <Trash2 size={15} />, category: "action", onSelect: () => { setActiveNote(null); setShowTrash(true); window.history.replaceState(null, "", window.location.pathname); } },
       { id: "settings", label: "Settings", icon: <Settings size={15} />, category: "action", onSelect: () => setSettingsOpen(true) },
       ...(taskStats && taskStats.done > 0
         ? [{ id: "clear-done", label: `Clear ${taskStats.done} done tasks`, icon: <ListChecks size={15} />, category: "action" as const, onSelect: handleClearDoneTasks }]
@@ -310,8 +327,9 @@ export function App() {
           onCreateNote={handleCreateNote}
           onDeleteNote={handleDeleteNote}
           onCollapse={() => setSidebarOpen(false)}
-          onHome={() => { setActiveNote(null); setSelectedTag(null); window.history.replaceState(null, "", window.location.pathname); }}
+          onHome={() => { setActiveNote(null); setSelectedTag(null); setShowTrash(false); window.history.replaceState(null, "", window.location.pathname); }}
           onOpenSettings={() => setSettingsOpen(true)}
+          onOpenTrash={() => { setActiveNote(null); setShowTrash(true); window.history.replaceState(null, "", window.location.pathname); }}
           userEmail={user?.email ?? null}
           open={sidebarOpen && !focusMode}
           saveStatus={saveStatus}
@@ -388,6 +406,8 @@ export function App() {
             mode={editorMode}
             smartTypography={settings.smartTypography}
           />
+        ) : showTrash ? (
+          <TrashView onNoteRestored={refresh} />
         ) : (
           <HomePage
             notes={notes}
@@ -429,6 +449,7 @@ export function App() {
           e.target.value = "";
         }}
       />
+      {toast && <Toast message={toast.message} action={toast.action} onDismiss={() => setToast(null)} />}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import type { Env } from "../types";
-import { listNotes, getNote, createNote, updateNote, deleteNote } from "../db/queries";
+import { listNotes, getNote, createNote, updateNote, deleteNote, restoreNote, listDeletedNotes, permanentlyDeleteNote, purgeOldDeletedNotes } from "../db/queries";
 
 type AuthVars = { userId: string; userEmail: string };
 
@@ -20,6 +20,13 @@ notesRoutes.post("/", async (c) => {
   return c.json({ note }, 201);
 });
 
+// Trash list — must be before /:id to avoid matching "trash" as an id
+notesRoutes.get("/trash/list", async (c) => {
+  await purgeOldDeletedNotes(c.env.DB, c.get("userId"));
+  const notes = await listDeletedNotes(c.env.DB, c.get("userId"));
+  return c.json({ notes });
+});
+
 notesRoutes.get("/:id", async (c) => {
   const note = await getNote(c.env.DB, c.get("userId"), c.req.param("id"));
   if (!note) return c.json({ error: "Not found" }, 404);
@@ -37,6 +44,18 @@ notesRoutes.put("/:id", async (c) => {
 
 notesRoutes.delete("/:id", async (c) => {
   const deleted = await deleteNote(c.env.DB, c.get("userId"), c.req.param("id"));
+  if (!deleted) return c.json({ error: "Not found" }, 404);
+  return c.json({ success: true });
+});
+
+notesRoutes.post("/:id/restore", async (c) => {
+  const restored = await restoreNote(c.env.DB, c.get("userId"), c.req.param("id"));
+  if (!restored) return c.json({ error: "Not found" }, 404);
+  return c.json({ success: true });
+});
+
+notesRoutes.delete("/:id/permanent", async (c) => {
+  const deleted = await permanentlyDeleteNote(c.env.DB, c.get("userId"), c.req.param("id"));
   if (!deleted) return c.json({ error: "Not found" }, 404);
   return c.json({ success: true });
 });

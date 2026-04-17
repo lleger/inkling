@@ -19,25 +19,25 @@ function createMockD1(): D1Database {
       rows.set(id as string, {
         id, user_id, title, content, preview,
         word_count, task_done, task_total, tags,
-        created_at: now, updated_at: now,
+        deleted_at: null, created_at: now, updated_at: now,
       });
       return { results: [], meta: { changes: 1 } };
     }
 
-    // SELECT * WHERE id = ? AND user_id = ?
+    // SELECT * WHERE id = ? AND user_id = ? AND deleted_at IS NULL
     if (/SELECT \* FROM notes WHERE id = \? AND user_id = \?/i.test(trimmed)) {
       const [id, uid] = bindings as string[];
       const row = rows.get(id);
-      if (row && row.user_id === uid) return { results: [row], meta: { changes: 0 } };
+      if (row && row.user_id === uid && !row.deleted_at) return { results: [row], meta: { changes: 0 } };
       return { results: [], meta: { changes: 0 } };
     }
 
     // SELECT list with search
-    if (/SELECT id, title, preview.*FROM notes WHERE user_id = \? AND/i.test(trimmed)) {
+    if (/SELECT id, title, preview.*FROM notes WHERE.*LIKE/i.test(trimmed)) {
       const [uid, pattern] = bindings as string[];
       const searchTerm = (pattern as string).replace(/%/g, "").toLowerCase();
       const results = [...rows.values()]
-        .filter((r) => r.user_id === uid && (
+        .filter((r) => r.user_id === uid && !r.deleted_at && (
           (r.title as string).toLowerCase().includes(searchTerm) ||
           (r.content as string).toLowerCase().includes(searchTerm)
         ))
@@ -52,7 +52,7 @@ function createMockD1(): D1Database {
     if (/SELECT id, title, preview.*FROM notes WHERE user_id = \?/i.test(trimmed)) {
       const [uid] = bindings as string[];
       const results = [...rows.values()]
-        .filter((r) => r.user_id === uid)
+        .filter((r) => r.user_id === uid && !r.deleted_at)
         .map(({ id, title, preview, word_count, task_done, task_total, tags, created_at, updated_at }) => ({
           id, title, preview, word_count, task_done, task_total, tags, created_at, updated_at,
         }))
@@ -60,8 +60,30 @@ function createMockD1(): D1Database {
       return { results, meta: { changes: 0 } };
     }
 
-    // UPDATE with 9 bindings
-    if (/UPDATE notes SET/i.test(trimmed)) {
+    // Restore (UPDATE SET deleted_at = NULL) — must be before general UPDATE
+    if (/UPDATE notes SET deleted_at = NULL/i.test(trimmed)) {
+      const [id, uid] = bindings as string[];
+      const row = rows.get(id);
+      if (row && row.user_id === uid && row.deleted_at) {
+        row.deleted_at = null;
+        return { results: [], meta: { changes: 1 } };
+      }
+      return { results: [], meta: { changes: 0 } };
+    }
+
+    // Soft delete (UPDATE SET deleted_at) — must be before general UPDATE
+    if (/UPDATE notes SET deleted_at = /i.test(trimmed)) {
+      const [id, uid] = bindings as string[];
+      const row = rows.get(id);
+      if (row && row.user_id === uid && !row.deleted_at) {
+        row.deleted_at = new Date().toISOString();
+        return { results: [], meta: { changes: 1 } };
+      }
+      return { results: [], meta: { changes: 0 } };
+    }
+
+    // UPDATE with 9 bindings (content update)
+    if (/UPDATE notes SET title/i.test(trimmed)) {
       const [title, content, preview, word_count, task_done, task_total, tags, id, uid] = bindings;
       const row = rows.get(id as string);
       if (row && row.user_id === uid) {
@@ -71,7 +93,17 @@ function createMockD1(): D1Database {
       return { results: [], meta: { changes: 0 } };
     }
 
-    // DELETE
+    // List deleted notes
+    if (/SELECT id, title, deleted_at, created_at FROM notes WHERE user_id = \? AND deleted_at IS NOT NULL/i.test(trimmed)) {
+      const [uid] = bindings as string[];
+      const results = [...rows.values()]
+        .filter((r) => r.user_id === uid && r.deleted_at)
+        .map(({ id, title, deleted_at, created_at }) => ({ id, title, deleted_at, created_at }))
+        .sort((a, b) => (b.deleted_at as string).localeCompare(a.deleted_at as string));
+      return { results, meta: { changes: 0 } };
+    }
+
+    // Permanent delete
     if (/DELETE FROM notes WHERE id = \? AND user_id = \?/i.test(trimmed)) {
       const [id, uid] = bindings as string[];
       const row = rows.get(id);
@@ -79,6 +111,11 @@ function createMockD1(): D1Database {
         rows.delete(id);
         return { results: [], meta: { changes: 1 } };
       }
+      return { results: [], meta: { changes: 0 } };
+    }
+
+    // Purge old deleted notes (in mock, don't actually purge — tests use fresh data)
+    if (/DELETE FROM notes WHERE user_id = \? AND deleted_at IS NOT NULL AND deleted_at </i.test(trimmed)) {
       return { results: [], meta: { changes: 0 } };
     }
 
@@ -252,6 +289,61 @@ describe("API", () => {
 
       const getRes = await req(`/api/notes/${note.id}`, { headers: authHeaders() });
       expect(getRes.status).toBe(404);
+    });
+
+    it("soft-deleted note can be restored", async () => {
+      const createRes = await req("/api/notes", {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ content: "restore me" }),
+      });
+      const { note } = (await createRes.json()) as { note: { id: string } };
+
+      // Delete
+      await req(`/api/notes/${note.id}`, { method: "DELETE", headers: authHeaders() });
+      const listRes = await req("/api/notes", { headers: authHeaders() });
+      expect(((await listRes.json()) as { notes: unknown[] }).notes).toHaveLength(0);
+
+      // Restore
+      const restoreRes = await req(`/api/notes/${note.id}/restore`, { method: "POST", headers: authHeaders() });
+      expect(restoreRes.status).toBe(200);
+
+      // Should be back
+      const getRes = await req(`/api/notes/${note.id}`, { headers: authHeaders() });
+      expect(getRes.status).toBe(200);
+    });
+
+    it("lists deleted notes in trash", async () => {
+      const createRes = await req("/api/notes", {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ content: "trash me" }),
+      });
+      const { note } = (await createRes.json()) as { note: { id: string } };
+      await req(`/api/notes/${note.id}`, { method: "DELETE", headers: authHeaders() });
+
+      const trashRes = await req("/api/notes/trash/list", { headers: authHeaders() });
+      expect(trashRes.status).toBe(200);
+      const body = (await trashRes.json()) as { notes: { id: string }[] };
+      expect(body.notes).toHaveLength(1);
+      expect(body.notes[0].id).toBe(note.id);
+    });
+
+    it("permanently deletes a note", async () => {
+      const createRes = await req("/api/notes", {
+        method: "POST",
+        headers: authHeaders(),
+        body: "{}",
+      });
+      const { note } = (await createRes.json()) as { note: { id: string } };
+      await req(`/api/notes/${note.id}`, { method: "DELETE", headers: authHeaders() });
+
+      const permRes = await req(`/api/notes/${note.id}/permanent`, { method: "DELETE", headers: authHeaders() });
+      expect(permRes.status).toBe(200);
+
+      // Can't restore anymore
+      const restoreRes = await req(`/api/notes/${note.id}/restore`, { method: "POST", headers: authHeaders() });
+      expect(restoreRes.status).toBe(404);
     });
 
     it("isolates notes between users", async () => {

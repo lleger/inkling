@@ -8,6 +8,7 @@ export interface NoteRow {
   task_done: number;
   task_total: number;
   tags: string;
+  deleted_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -22,6 +23,13 @@ export interface NoteMeta {
   tags: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface DeletedNoteMeta {
+  id: string;
+  title: string;
+  deleted_at: string;
+  created_at: string;
 }
 
 const TAG_RE = /^#([a-zA-Z0-9_-]+)$/;
@@ -44,10 +52,9 @@ function computeTags(content: string): string[] {
       if (/^#{1,6}\s+/.test(trimmed)) headingFound = true;
       continue;
     }
-    // Skip blank lines between heading and tag zone
     if (trimmed.length === 0) {
-      if (foundFirstTag) break; // blank after tags ends the zone
-      continue; // blank before tags, keep looking
+      if (foundFirstTag) break;
+      continue;
     }
     if (isTagZoneLine(trimmed)) {
       foundFirstTag = true;
@@ -57,7 +64,7 @@ function computeTags(content: string): string[] {
       }
       continue;
     }
-    break; // non-tag, non-blank line ends the search
+    break;
   }
 
   return [...new Set(tags)];
@@ -95,7 +102,6 @@ function extractPreview(content: string): string {
       continue;
     }
 
-    // Skip tag zone lines
     if (!pastTagZone) {
       if (isTagZoneLine(trimmed)) continue;
       pastTagZone = true;
@@ -119,13 +125,14 @@ function extractPreview(content: string): string {
 }
 
 const LIST_COLS = "id, title, preview, word_count, task_done, task_total, tags, created_at, updated_at";
+const NOT_DELETED = "deleted_at IS NULL";
 
 export async function listNotes(db: D1Database, userId: string, query?: string): Promise<NoteMeta[]> {
   if (query && query.trim()) {
     const pattern = `%${query.trim()}%`;
     const result = await db
       .prepare(
-        `SELECT ${LIST_COLS} FROM notes WHERE user_id = ? AND (title LIKE ? OR content LIKE ?) ORDER BY updated_at DESC`,
+        `SELECT ${LIST_COLS} FROM notes WHERE user_id = ? AND ${NOT_DELETED} AND (title LIKE ? OR content LIKE ?) ORDER BY updated_at DESC`,
       )
       .bind(userId, pattern, pattern)
       .all<NoteMeta>();
@@ -133,7 +140,7 @@ export async function listNotes(db: D1Database, userId: string, query?: string):
   }
 
   const result = await db
-    .prepare(`SELECT ${LIST_COLS} FROM notes WHERE user_id = ? ORDER BY updated_at DESC`)
+    .prepare(`SELECT ${LIST_COLS} FROM notes WHERE user_id = ? AND ${NOT_DELETED} ORDER BY updated_at DESC`)
     .bind(userId)
     .all<NoteMeta>();
   return result.results;
@@ -141,7 +148,7 @@ export async function listNotes(db: D1Database, userId: string, query?: string):
 
 export async function getNote(db: D1Database, userId: string, noteId: string): Promise<NoteRow | null> {
   return db
-    .prepare("SELECT * FROM notes WHERE id = ? AND user_id = ?")
+    .prepare(`SELECT * FROM notes WHERE id = ? AND user_id = ? AND ${NOT_DELETED}`)
     .bind(noteId, userId)
     .first<NoteRow>();
 }
@@ -190,10 +197,51 @@ export async function updateNote(
   return getNote(db, userId, noteId);
 }
 
+// Soft delete — sets deleted_at timestamp
 export async function deleteNote(db: D1Database, userId: string, noteId: string): Promise<boolean> {
+  const result = await db
+    .prepare(
+      `UPDATE notes SET deleted_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ? AND user_id = ? AND ${NOT_DELETED}`,
+    )
+    .bind(noteId, userId)
+    .run();
+  return result.meta.changes > 0;
+}
+
+// Restore a soft-deleted note
+export async function restoreNote(db: D1Database, userId: string, noteId: string): Promise<boolean> {
+  const result = await db
+    .prepare("UPDATE notes SET deleted_at = NULL WHERE id = ? AND user_id = ? AND deleted_at IS NOT NULL")
+    .bind(noteId, userId)
+    .run();
+  return result.meta.changes > 0;
+}
+
+// List soft-deleted notes
+export async function listDeletedNotes(db: D1Database, userId: string): Promise<DeletedNoteMeta[]> {
+  const result = await db
+    .prepare("SELECT id, title, deleted_at, created_at FROM notes WHERE user_id = ? AND deleted_at IS NOT NULL ORDER BY deleted_at DESC")
+    .bind(userId)
+    .all<DeletedNoteMeta>();
+  return result.results;
+}
+
+// Permanently delete a note
+export async function permanentlyDeleteNote(db: D1Database, userId: string, noteId: string): Promise<boolean> {
   const result = await db
     .prepare("DELETE FROM notes WHERE id = ? AND user_id = ?")
     .bind(noteId, userId)
     .run();
   return result.meta.changes > 0;
+}
+
+// Purge notes deleted more than N days ago
+export async function purgeOldDeletedNotes(db: D1Database, userId: string, daysOld = 30): Promise<number> {
+  const result = await db
+    .prepare(
+      `DELETE FROM notes WHERE user_id = ? AND deleted_at IS NOT NULL AND deleted_at < strftime('%Y-%m-%dT%H:%M:%SZ', 'now', '-${daysOld} days')`,
+    )
+    .bind(userId)
+    .run();
+  return result.meta.changes;
 }

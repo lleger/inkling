@@ -1,4 +1,4 @@
-import { Plus, PanelLeftClose, X, Home, Settings } from "lucide-react";
+import { Plus, PanelLeftClose, X, Home, Settings, Trash2 } from "lucide-react";
 import type { NoteMeta, SaveStatus } from "../types";
 
 function timeAgo(dateStr: string): string {
@@ -21,6 +21,7 @@ interface SidebarProps {
   onCollapse: () => void;
   onHome: () => void;
   onOpenSettings: () => void;
+  onOpenTrash: () => void;
   userEmail: string | null;
   open: boolean;
   saveStatus: SaveStatus;
@@ -38,6 +39,7 @@ export function Sidebar({
   onCollapse,
   onHome,
   onOpenSettings,
+  onOpenTrash,
   userEmail,
   open,
   allTags,
@@ -149,13 +151,22 @@ export function Sidebar({
         ) : (
           <span />
         )}
-        <button
-          className="flex size-7 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary"
-          onClick={onOpenSettings}
-          title="Settings"
-        >
-          <Settings size={14} />
-        </button>
+        <div className="flex items-center gap-0.5">
+          <button
+            className="flex size-7 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary"
+            onClick={onOpenTrash}
+            title="Trash"
+          >
+            <Trash2 size={14} />
+          </button>
+          <button
+            className="flex size-7 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary"
+            onClick={onOpenSettings}
+            title="Settings"
+          >
+            <Settings size={14} />
+          </button>
+        </div>
       </div>
     </aside>
   );
