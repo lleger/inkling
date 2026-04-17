@@ -103,10 +103,11 @@ const NOT_DELETED = "deleted_at IS NULL";
 
 export async function listNotes(db: D1Database, userId: string, query?: string): Promise<NoteMeta[]> {
   if (query && query.trim()) {
-    const pattern = `%${query.trim()}%`;
+    const escaped = query.trim().replace(/%/g, "\\%").replace(/_/g, "\\_");
+    const pattern = `%${escaped}%`;
     const result = await db
       .prepare(
-        `SELECT ${LIST_COLS} FROM notes WHERE user_id = ? AND ${NOT_DELETED} AND (title LIKE ? OR content LIKE ?) ORDER BY pinned DESC, updated_at DESC`,
+        `SELECT ${LIST_COLS} FROM notes WHERE user_id = ? AND ${NOT_DELETED} AND (title LIKE ? ESCAPE '\\' OR content LIKE ? ESCAPE '\\') ORDER BY pinned DESC, updated_at DESC`,
       )
       .bind(userId, pattern, pattern)
       .all<NoteMeta>();
