@@ -1,36 +1,34 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 interface FocusOverlayProps {
   onExit: () => void;
 }
 
 export function FocusOverlay({ onExit }: FocusOverlayProps) {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(true);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const showBriefly = useCallback(() => {
+    setVisible(true);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setVisible(false), 2000);
+  }, []);
+
   useEffect(() => {
+    // Show on mount, then fade out
+    showBriefly();
+
+    // Re-show when mouse moves near the top
     const handler = (e: MouseEvent) => {
-      if (e.clientY < 50) {
-        setVisible(true);
-        if (timerRef.current) clearTimeout(timerRef.current);
-        timerRef.current = setTimeout(() => setVisible(false), 2000);
-      }
+      if (e.clientY < 50) showBriefly();
     };
     document.addEventListener("mousemove", handler);
+
     return () => {
       document.removeEventListener("mousemove", handler);
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, []);
-
-  // Show briefly on mount so the user knows how to exit
-  useEffect(() => {
-    setVisible(true);
-    timerRef.current = setTimeout(() => setVisible(false), 2000);
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
+  }, [showBriefly]);
 
   return (
     <div
