@@ -16,6 +16,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@hono/zod-validator": "^0.7.6",
     "@lexical/code": "^0.22.0",
     "@lexical/history": "^0.22.0",
     "@lexical/link": "^0.22.0",
@@ -29,7 +30,8 @@
     "lexical": "^0.22.0",
     "lucide-react": "^1.8.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.0.0",
