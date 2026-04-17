@@ -253,13 +253,11 @@ export function App() {
     [create],
   );
 
-  const handleTogglePin = useCallback(
-    async (id: string) => {
-      const note = notes.find((n) => n.id === id);
-      if (!note) return;
-      await pin(id, !note.pinned);
+  const handlePinNote = useCallback(
+    async (id: string, pinned: boolean) => {
+      await pin(id, pinned);
     },
-    [notes, pin],
+    [pin],
   );
 
   const handleDeleteNote = useCallback(
@@ -290,7 +288,9 @@ export function App() {
       { id: "new-note", label: "New note", icon: <FilePlus size={15} />, category: "action", onSelect: handleCreateNote },
       { id: "duplicate-note", label: "Duplicate note", icon: <Copy size={15} />, category: "action", onSelect: handleDuplicateNote },
       ...(activeNote ? [
-        { id: "toggle-pin", label: activeNote && notes.find((n) => n.id === activeNote.id)?.pinned ? "Unpin note" : "Pin note", icon: <Pin size={15} />, category: "action" as const, onSelect: () => handleTogglePin(activeNote.id) },
+        ...(notes.find((n) => n.id === activeNote.id)?.pinned
+          ? [{ id: "unpin-note", label: "Unpin note", icon: <Pin size={15} />, category: "action" as const, onSelect: () => handlePinNote(activeNote.id, false) }]
+          : [{ id: "pin-note", label: "Pin note", icon: <Pin size={15} />, category: "action" as const, onSelect: () => handlePinNote(activeNote.id, true) }]),
         { id: "delete-note", label: "Delete note", icon: <Trash2 size={15} />, category: "action" as const, onSelect: () => handleDeleteNote(activeNote.id) },
       ] : []),
       { id: "import-md", label: "Import markdown", icon: <Upload size={15} />, category: "action", onSelect: () => fileInputRef.current?.click() },
@@ -306,7 +306,7 @@ export function App() {
         ? [{ id: "clear-done", label: `Clear ${taskStats.done} done tasks`, icon: <ListChecks size={15} />, category: "action" as const, onSelect: handleClearDoneTasks }]
         : []),
     ],
-    [handleCreateNote, handleDuplicateNote, handleClearDoneTasks, taskStats, setModeTo],
+    [handleCreateNote, handleDuplicateNote, handleClearDoneTasks, handlePinNote, handleDeleteNote, taskStats, activeNote, notes, setModeTo],
   );
 
   const modeBtn = (mode: EditorMode, icon: React.ReactNode, title: string) => (
@@ -344,7 +344,10 @@ export function App() {
           onHome={() => { setActiveNote(null); setSelectedTag(null); setShowTrash(false); window.history.replaceState(null, "", window.location.pathname); }}
           onOpenSettings={() => setSettingsOpen(true)}
           onOpenTrash={() => { setActiveNote(null); setShowTrash(true); window.history.replaceState(null, "", window.location.pathname); }}
-          onTogglePin={handleTogglePin}
+          onTogglePin={(id) => {
+            const note = notes.find((n) => n.id === id);
+            if (note) handlePinNote(id, !note.pinned);
+          }}
           userEmail={user?.email ?? null}
           open={sidebarOpen && !focusMode}
           saveStatus={saveStatus}
