@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Trash2, RotateCcw, X } from "lucide-react";
-import { fetchTrash, restoreNote, permanentlyDeleteNote, type DeletedNoteMeta } from "../lib/api";
+import { fetchTrash, restoreNote, permanentlyDeleteNote } from "../lib/api";
+import type { DeletedNoteMeta } from "../types";
 
 function timeAgo(dateStr: string): string {
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);

@@ -1,38 +1,10 @@
-export interface NoteRow {
-  id: string;
-  user_id: string;
-  title: string;
-  content: string;
-  preview: string;
-  word_count: number;
-  task_done: number;
-  task_total: number;
-  tags: string;
-  pinned: number;
-  deleted_at: string | null;
-  created_at: string;
-  updated_at: string;
-}
+import type { Note, NoteMeta, DeletedNoteMeta } from "../../shared/types";
 
-export interface NoteMeta {
-  id: string;
-  title: string;
-  preview: string;
-  word_count: number;
-  task_done: number;
-  task_total: number;
-  tags: string;
-  pinned: number;
-  created_at: string;
-  updated_at: string;
-}
+// Re-export for consumers that import from queries
+export type { NoteMeta, DeletedNoteMeta };
 
-export interface DeletedNoteMeta {
-  id: string;
-  title: string;
-  deleted_at: string;
-  created_at: string;
-}
+// Server uses the full Note type as the row type
+export type NoteRow = Note;
 
 const TAG_RE = /^#([a-zA-Z0-9_-]+)$/;
 

@@ -1,4 +1,4 @@
-import type { Note, NoteMeta, User } from "../types";
+import type { Note, NoteMeta, User, DeletedNoteMeta } from "../types";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -62,13 +62,6 @@ export async function pinNote(id: string, pinned: boolean): Promise<void> {
 
 export async function restoreNote(id: string): Promise<void> {
   await request(`/api/notes/${id}/restore`, { method: "POST" });
-}
-
-export interface DeletedNoteMeta {
-  id: string;
-  title: string;
-  deleted_at: string;
-  created_at: string;
 }
 
 export async function fetchTrash(): Promise<DeletedNoteMeta[]> {
