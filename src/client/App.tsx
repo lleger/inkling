@@ -78,6 +78,8 @@ export function App() {
   const pendingContentRef = useRef<string | null>(null);
   // Always holds the latest editor content, whether saved or not
   const currentContentRef = useRef<string>("");
+  // Tracks last content that was successfully saved — prevents no-op saves
+  const lastSavedContentRef = useRef<string>("");
 
   const retryCountRef = useRef(0);
   const MAX_RETRIES = 3;
@@ -87,6 +89,7 @@ export function App() {
     try {
       await updateNote(noteId, { content });
       setSaveStatus("saved");
+      lastSavedContentRef.current = content;
       retryCountRef.current = 0;
       refresh();
     } catch {
@@ -117,8 +120,12 @@ export function App() {
   const handleContentChange = useCallback(
     (content: string) => {
       currentContentRef.current = content;
-      pendingContentRef.current = content;
       updateStats(content);
+
+      // Skip save if content hasn't changed (e.g. editor init fires onChange)
+      if (content === lastSavedContentRef.current) return;
+
+      pendingContentRef.current = content;
       setSaveStatus("unsaved");
 
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -175,6 +182,7 @@ export function App() {
       setSaveStatus("saved");
       pendingContentRef.current = null;
       currentContentRef.current = note.content;
+      lastSavedContentRef.current = note.content;
       updateStats(note.content);
       window.history.replaceState(null, "", `#${id}`);
     } catch (err) {
@@ -200,6 +208,7 @@ export function App() {
       setSaveStatus("saved");
       pendingContentRef.current = null;
       currentContentRef.current = note.content;
+      lastSavedContentRef.current = note.content;
       updateStats(note.content);
       window.history.replaceState(null, "", `#${note.id}`);
     } catch (err) {
@@ -215,6 +224,7 @@ export function App() {
         setSaveStatus("saved");
         pendingContentRef.current = null;
         currentContentRef.current = note.content;
+        lastSavedContentRef.current = note.content;
         updateStats(note.content);
         window.history.replaceState(null, "", `#${note.id}`);
       } catch (err) {
