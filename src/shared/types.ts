@@ -44,3 +44,11 @@ export interface User {
 
 export type SaveStatus = "saved" | "saving" | "unsaved";
 export type EditorMode = "markdown" | "richtext" | "split";
+export type AccentColor = "green" | "blue" | "purple" | "orange" | "rose" | "teal";
+
+export interface Settings {
+  theme: "light" | "dark" | "system";
+  accent: AccentColor;
+  defaultMode: EditorMode;
+  smartTypography: boolean;
+}

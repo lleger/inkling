@@ -1,15 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { fetchSettings, saveSettings } from "../lib/api";
-import type { EditorMode } from "../types";
+import type { Settings } from "../types";
 
-export type AccentColor = "green" | "blue" | "purple" | "orange" | "rose" | "teal";
-
-export interface Settings {
-  theme: "light" | "dark" | "system";
-  accent: AccentColor;
-  defaultMode: EditorMode;
-  smartTypography: boolean;
-}
+export type { Settings, AccentColor } from "../types";
 
 const STORAGE_KEY = "writer-settings";
 

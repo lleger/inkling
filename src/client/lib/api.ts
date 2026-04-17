@@ -1,4 +1,4 @@
-import type { Note, NoteMeta, User, DeletedNoteMeta } from "../types";
+import type { Note, NoteMeta, User, DeletedNoteMeta, Settings } from "../types";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -73,12 +73,12 @@ export async function permanentlyDeleteNote(id: string): Promise<void> {
   await request(`/api/notes/${id}/permanent`, { method: "DELETE" });
 }
 
-export async function fetchSettings(): Promise<Record<string, unknown>> {
-  const data = await request<{ settings: Record<string, unknown> }>("/api/settings");
+export async function fetchSettings(): Promise<Partial<Settings>> {
+  const data = await request<{ settings: Partial<Settings> }>("/api/settings");
   return data.settings;
 }
 
-export async function saveSettings(settings: Record<string, unknown>): Promise<void> {
+export async function saveSettings(settings: Settings): Promise<void> {
   await request("/api/settings", {
     method: "PUT",
     body: JSON.stringify(settings),
