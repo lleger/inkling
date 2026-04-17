@@ -262,12 +262,13 @@ export function App() {
         window.history.replaceState(null, "", window.location.pathname);
       }
       setToast({
-        message: `"${noteTitle}" moved to trash`,
+        message: `"${noteTitle}" moved to Trash`,
         action: {
           label: "Undo",
           onClick: async () => {
             await restoreNote(id);
             await refresh();
+            handleSelectNote(id);
           },
         },
       });
@@ -279,6 +280,7 @@ export function App() {
     () => [
       { id: "new-note", label: "New note", icon: <FilePlus size={15} />, category: "action", onSelect: handleCreateNote },
       { id: "duplicate-note", label: "Duplicate note", icon: <Copy size={15} />, category: "action", onSelect: handleDuplicateNote },
+      ...(activeNote ? [{ id: "delete-note", label: "Delete note", icon: <Trash2 size={15} />, category: "action" as const, onSelect: () => handleDeleteNote(activeNote.id) }] : []),
       { id: "import-md", label: "Import markdown", icon: <Upload size={15} />, category: "action", onSelect: () => fileInputRef.current?.click() },
       { id: "go-home", label: "Go home", icon: <Home size={15} />, category: "action", onSelect: () => { setActiveNote(null); window.history.replaceState(null, "", window.location.pathname); } },
       { id: "mode-richtext", label: "Rich text mode", icon: <Type size={15} />, category: "action", onSelect: () => setModeTo("richtext") },

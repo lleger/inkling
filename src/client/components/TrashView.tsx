@@ -49,6 +49,7 @@ export function TrashView({ onNoteRestored }: TrashViewProps) {
 
   const handlePermanentDelete = useCallback(
     async (id: string) => {
+      if (!window.confirm("Permanently delete this note? This cannot be undone.")) return;
       await permanentlyDeleteNote(id);
       await load();
     },
