@@ -9,7 +9,7 @@ import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { CheckListPlugin } from "@lexical/react/LexicalCheckListPlugin";
 import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
 import { HorizontalRulePlugin } from "@lexical/react/LexicalHorizontalRulePlugin";
-import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
+import { INDENT_CONTENT_COMMAND, OUTDENT_CONTENT_COMMAND } from "lexical";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $convertFromMarkdownString, $convertToMarkdownString } from "@lexical/markdown";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
@@ -138,6 +138,39 @@ function convertHashtagsToText(node: LexicalNode) {
       child.replace(textNode);
     }
   }
+}
+
+function ListIndentPlugin() {
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    return editor.registerCommand(
+      KEY_DOWN_COMMAND,
+      (event: KeyboardEvent) => {
+        if (event.key !== "Tab") return false;
+
+        const selection = $getSelection();
+        if (!$isRangeSelection(selection)) return false;
+
+        const node = selection.anchor.getNode();
+        const listItem = $isListItemNode(node) ? node : node.getParent();
+        if (!listItem || !$isListItemNode(listItem)) return false;
+
+        event.preventDefault();
+
+        if (event.shiftKey) {
+          editor.dispatchCommand(OUTDENT_CONTENT_COMMAND, undefined);
+        } else {
+          editor.dispatchCommand(INDENT_CONTENT_COMMAND, undefined);
+        }
+
+        return true;
+      },
+      COMMAND_PRIORITY_HIGH,
+    );
+  }, [editor]);
+
+  return null;
 }
 
 function ChecklistShortcutPlugin() {
@@ -313,7 +346,7 @@ export function RichTextEditor({ initialContent, onChange, autoFocus = true, sma
         <HistoryPlugin />
         <ListPlugin />
         <CheckListPlugin />
-        <TabIndentationPlugin />
+        <ListIndentPlugin />
         <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
         <TablePlugin />
         <HorizontalRulePlugin />
