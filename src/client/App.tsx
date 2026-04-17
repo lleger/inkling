@@ -129,13 +129,6 @@ export function App() {
 
 
   // Load note from URL hash on startup
-  useEffect(() => {
-    if (loading) return;
-    const hash = window.location.hash.slice(1);
-    if (hash && !activeNote) {
-      handleSelectNote(hash);
-    }
-  }, [loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const handler = () => {
@@ -174,6 +167,17 @@ export function App() {
       console.error("Failed to load note:", err);
     }
   }, []);
+
+  // Load note from URL hash on startup
+  const initialLoadDone = useRef(false);
+  useEffect(() => {
+    if (loading || initialLoadDone.current) return;
+    initialLoadDone.current = true;
+    const hash = window.location.hash.slice(1);
+    if (hash) {
+      handleSelectNote(hash);
+    }
+  }, [loading, handleSelectNote]);
 
   const handleCreateNote = useCallback(async () => {
     try {

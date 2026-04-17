@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { PlainTextPlugin } from "@lexical/react/LexicalPlainTextPlugin";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
@@ -28,8 +28,11 @@ import { plainifyTypography } from "../lib/plain-typography";
 
 function InitPlugin({ content }: { content: string }) {
   const [editor] = useLexicalComposerContext();
+  const initialized = useRef(false);
 
   useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
     editor.update(() => {
       const root = $getRoot();
       root.clear();
@@ -41,10 +44,9 @@ function InitPlugin({ content }: { content: string }) {
         }
         root.append(paragraph);
       }
-      // Place cursor at end
       root.selectEnd();
     });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [editor, content]);
 
   return null;
 }
