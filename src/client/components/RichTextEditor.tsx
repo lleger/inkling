@@ -9,6 +9,7 @@ import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { CheckListPlugin } from "@lexical/react/LexicalCheckListPlugin";
 import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
 import { HorizontalRulePlugin } from "@lexical/react/LexicalHorizontalRulePlugin";
+import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $convertFromMarkdownString, $convertToMarkdownString } from "@lexical/markdown";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
@@ -312,6 +313,7 @@ export function RichTextEditor({ initialContent, onChange, autoFocus = true, sma
         <HistoryPlugin />
         <ListPlugin />
         <CheckListPlugin />
+        <TabIndentationPlugin />
         <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
         <TablePlugin />
         <HorizontalRulePlugin />
