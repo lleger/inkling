@@ -283,14 +283,13 @@ export function App() {
     [remove, activeNote, notes, refresh],
   );
 
-  const paletteActions: PaletteAction[] = useMemo(
-    () => [
+  const isPinned = activeNote ? !!notes.find((n) => n.id === activeNote.id)?.pinned : false;
+
+  const paletteActions: PaletteAction[] = [
       { id: "new-note", label: "New note", icon: <FilePlus size={15} />, category: "action", onSelect: handleCreateNote },
       { id: "duplicate-note", label: "Duplicate note", icon: <Copy size={15} />, category: "action", onSelect: handleDuplicateNote },
       ...(activeNote ? [
-        ...(notes.find((n) => n.id === activeNote.id)?.pinned
-          ? [{ id: "unpin-note", label: "Unpin note", icon: <Pin size={15} />, category: "action" as const, onSelect: () => handlePinNote(activeNote.id, false) }]
-          : [{ id: "pin-note", label: "Pin note", icon: <Pin size={15} />, category: "action" as const, onSelect: () => handlePinNote(activeNote.id, true) }]),
+        { id: "toggle-pin", label: isPinned ? "Unpin note" : "Pin note", icon: <Pin size={15} />, category: "action" as const, onSelect: () => handlePinNote(activeNote.id, !isPinned) },
         { id: "delete-note", label: "Delete note", icon: <Trash2 size={15} />, category: "action" as const, onSelect: () => handleDeleteNote(activeNote.id) },
       ] : []),
       { id: "import-md", label: "Import markdown", icon: <Upload size={15} />, category: "action", onSelect: () => fileInputRef.current?.click() },
@@ -305,9 +304,7 @@ export function App() {
       ...(taskStats && taskStats.done > 0
         ? [{ id: "clear-done", label: `Clear ${taskStats.done} done tasks`, icon: <ListChecks size={15} />, category: "action" as const, onSelect: handleClearDoneTasks }]
         : []),
-    ],
-    [handleCreateNote, handleDuplicateNote, handleClearDoneTasks, handlePinNote, handleDeleteNote, taskStats, activeNote, notes, setModeTo],
-  );
+  ];
 
   const modeBtn = (mode: EditorMode, icon: React.ReactNode, title: string) => (
     <button
