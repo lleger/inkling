@@ -129,10 +129,17 @@ export function CommandPalette({ open, onClose, notes, actions, onSelectNote, on
 
   if (!open) return null;
 
-  // Group results by category for display
-  const actionResults = results.filter((r) => r.category === "action");
-  const noteResults = results.filter((r) => r.category === "note");
-  let flatIndex = 0;
+  // Build render list: items with section headers inserted
+  const renderItems: ({ type: "header"; label: string } | { type: "item"; item: PaletteAction; index: number })[] = [];
+  let lastCategory: string | null = null;
+  for (let i = 0; i < results.length; i++) {
+    const item = results[i];
+    if (item.category !== lastCategory) {
+      renderItems.push({ type: "header", label: item.category === "action" ? "Actions" : "Notes" });
+      lastCategory = item.category;
+    }
+    renderItems.push({ type: "item", item, index: i });
+  }
 
   return (
     <div
@@ -168,61 +175,33 @@ export function CommandPalette({ open, onClose, notes, actions, onSelectNote, on
             </div>
           )}
 
-          {actionResults.length > 0 && (
-            <>
-              <div className="px-3 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-widest text-text-muted">
-                Actions
-              </div>
-              {actionResults.map((item) => {
-                const idx = flatIndex++;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      item.onSelect();
-                      onClose();
-                    }}
-                    className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors ${
-                      idx === selectedIndex
-                        ? "bg-surface-hover text-text"
-                        : "text-text-secondary hover:bg-surface-hover hover:text-text"
-                    }`}
-                  >
-                    <span className="shrink-0 text-text-muted">{item.icon}</span>
-                    {item.label}
-                  </button>
-                );
-              })}
-            </>
-          )}
-
-          {noteResults.length > 0 && (
-            <>
-              <div className="px-3 pt-2.5 pb-1 text-[10px] font-medium uppercase tracking-widest text-text-muted">
-                Notes
-              </div>
-              {noteResults.map((item) => {
-                const idx = flatIndex++;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      item.onSelect();
-                      onClose();
-                    }}
-                    className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors ${
-                      idx === selectedIndex
-                        ? "bg-surface-hover text-text"
-                        : "text-text-secondary hover:bg-surface-hover hover:text-text"
-                    }`}
-                  >
-                    <span className="shrink-0 text-text-muted">{item.icon}</span>
-                    {item.label}
-                  </button>
-                );
-              })}
-            </>
-          )}
+          {renderItems.map((entry, i) => {
+            if (entry.type === "header") {
+              return (
+                <div key={`header-${i}`} className={`px-3 ${i === 0 ? "pt-1.5" : "pt-2.5"} pb-1 text-[10px] font-medium uppercase tracking-widest text-text-muted`}>
+                  {entry.label}
+                </div>
+              );
+            }
+            const { item, index } = entry;
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  item.onSelect();
+                  onClose();
+                }}
+                className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors ${
+                  index === selectedIndex
+                    ? "bg-surface-hover text-text"
+                    : "text-text-secondary hover:bg-surface-hover hover:text-text"
+                }`}
+              >
+                <span className="shrink-0 text-text-muted">{item.icon}</span>
+                {item.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* Footer hint */}
