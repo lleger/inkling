@@ -79,19 +79,40 @@ export function App() {
   // Always holds the latest editor content, whether saved or not
   const currentContentRef = useRef<string>("");
 
+  const retryCountRef = useRef(0);
+  const MAX_RETRIES = 3;
+
+  const saveContent = useCallback(async (noteId: string, content: string) => {
+    setSaveStatus("saving");
+    try {
+      await updateNote(noteId, { content });
+      setSaveStatus("saved");
+      retryCountRef.current = 0;
+      refresh();
+    } catch {
+      retryCountRef.current++;
+      if (retryCountRef.current < MAX_RETRIES) {
+        // Exponential backoff: 2s, 4s, 8s
+        const delay = 2000 * Math.pow(2, retryCountRef.current - 1);
+        setSaveStatus("unsaved");
+        setTimeout(() => {
+          if (pendingContentRef.current !== null) return; // newer edit supersedes
+          saveContent(noteId, content);
+        }, delay);
+      } else {
+        setSaveStatus("unsaved");
+        retryCountRef.current = 0;
+        setToast({ message: "Failed to save. Check your connection." });
+      }
+    }
+  }, [refresh]);
+
   const flushSave = useCallback(async () => {
     if (!activeNote || pendingContentRef.current === null) return;
     const content = pendingContentRef.current;
     pendingContentRef.current = null;
-    setSaveStatus("saving");
-    try {
-      await updateNote(activeNote.id, { content });
-      setSaveStatus("saved");
-      refresh();
-    } catch {
-      setSaveStatus("unsaved");
-    }
-  }, [activeNote, refresh]);
+    await saveContent(activeNote.id, content);
+  }, [activeNote, saveContent]);
 
   const handleContentChange = useCallback(
     (content: string) => {
@@ -105,17 +126,10 @@ export function App() {
         if (!activeNote || pendingContentRef.current === null) return;
         const c = pendingContentRef.current;
         pendingContentRef.current = null;
-        setSaveStatus("saving");
-        try {
-          await updateNote(activeNote.id, { content: c });
-          setSaveStatus("saved");
-          refresh();
-        } catch {
-          setSaveStatus("unsaved");
-        }
+        await saveContent(activeNote.id, c);
       }, 1500);
     },
-    [activeNote, refresh],
+    [activeNote, saveContent],
   );
 
   const setModeTo = useCallback((next: EditorMode) => {
