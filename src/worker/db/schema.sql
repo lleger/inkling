@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS notes (
   task_done INTEGER NOT NULL DEFAULT 0,
   task_total INTEGER NOT NULL DEFAULT 0,
   tags TEXT NOT NULL DEFAULT '[]',
+  pinned INTEGER NOT NULL DEFAULT 0,
   deleted_at TEXT DEFAULT NULL,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))

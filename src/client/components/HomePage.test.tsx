@@ -5,8 +5,8 @@ import { HomePage } from "./HomePage";
 afterEach(cleanup);
 
 const notes = [
-  { id: "1", title: "First Note", preview: "Some preview text", word_count: 150, task_done: 2, task_total: 5, tags: '["project"]', created_at: "2026-04-11T10:00:00Z", updated_at: "2026-04-11T12:00:00Z" },
-  { id: "2", title: "Second Note", preview: "Another preview", word_count: 80, task_done: 0, task_total: 0, tags: "[]", created_at: "2026-04-11T09:00:00Z", updated_at: "2026-04-11T11:00:00Z" },
+  { id: "1", title: "First Note", preview: "Some preview text", word_count: 150, task_done: 2, task_total: 5, tags: '["project"]', pinned: 0, created_at: "2026-04-11T10:00:00Z", updated_at: "2026-04-11T12:00:00Z" },
+  { id: "2", title: "Second Note", preview: "Another preview", word_count: 80, task_done: 0, task_total: 0, tags: "[]", pinned: 0, created_at: "2026-04-11T09:00:00Z", updated_at: "2026-04-11T11:00:00Z" },
 ];
 
 const baseProps = {

@@ -35,5 +35,13 @@ export function useNotes() {
     [refresh],
   );
 
-  return { notes, loading, refresh, create, remove };
+  const pin = useCallback(
+    async (id: string, pinned: boolean) => {
+      await api.pinNote(id, pinned);
+      await refresh();
+    },
+    [refresh],
+  );
+
+  return { notes, loading, refresh, create, remove, pin };
 }

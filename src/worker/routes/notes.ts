@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import type { Env } from "../types";
-import { listNotes, getNote, createNote, updateNote, deleteNote, restoreNote, listDeletedNotes, permanentlyDeleteNote, purgeOldDeletedNotes } from "../db/queries";
+import { listNotes, getNote, createNote, updateNote, deleteNote, restoreNote, listDeletedNotes, permanentlyDeleteNote, purgeOldDeletedNotes, togglePinNote } from "../db/queries";
 
 type AuthVars = { userId: string; userEmail: string };
 
@@ -45,6 +45,13 @@ notesRoutes.put("/:id", async (c) => {
 notesRoutes.delete("/:id", async (c) => {
   const deleted = await deleteNote(c.env.DB, c.get("userId"), c.req.param("id"));
   if (!deleted) return c.json({ error: "Not found" }, 404);
+  return c.json({ success: true });
+});
+
+notesRoutes.put("/:id/pin", async (c) => {
+  const body = await c.req.json<{ pinned: boolean }>().catch(() => ({ pinned: true }));
+  const updated = await togglePinNote(c.env.DB, c.get("userId"), c.req.param("id"), body.pinned);
+  if (!updated) return c.json({ error: "Not found" }, 404);
   return c.json({ success: true });
 });
 

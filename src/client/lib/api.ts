@@ -53,6 +53,13 @@ export async function deleteNote(id: string): Promise<void> {
   await request(`/api/notes/${id}`, { method: "DELETE" });
 }
 
+export async function pinNote(id: string, pinned: boolean): Promise<void> {
+  await request(`/api/notes/${id}/pin`, {
+    method: "PUT",
+    body: JSON.stringify({ pinned }),
+  });
+}
+
 export async function restoreNote(id: string): Promise<void> {
   await request(`/api/notes/${id}/restore`, { method: "POST" });
 }

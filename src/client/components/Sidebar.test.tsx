@@ -12,6 +12,7 @@ const baseProps = {
   onHome: vi.fn(),
   onOpenSettings: vi.fn(),
   onOpenTrash: vi.fn(),
+  onTogglePin: vi.fn(),
   allTags: [],
   selectedTag: null,
   onSelectTag: vi.fn(),
@@ -21,8 +22,8 @@ const baseProps = {
 };
 
 const notes = [
-  { id: "1", title: "First Note", preview: "Some preview", word_count: 10, task_done: 0, task_total: 0, tags: "[]", created_at: "2026-04-11T10:00:00Z", updated_at: "2026-04-11T12:00:00Z" },
-  { id: "2", title: "Second Note", preview: "Another preview", word_count: 5, task_done: 1, task_total: 2, tags: "[]", created_at: "2026-04-11T09:00:00Z", updated_at: "2026-04-11T11:00:00Z" },
+  { id: "1", title: "First Note", preview: "Some preview", word_count: 10, task_done: 0, task_total: 0, tags: "[]", pinned: 0, created_at: "2026-04-11T10:00:00Z", updated_at: "2026-04-11T12:00:00Z" },
+  { id: "2", title: "Second Note", preview: "Another preview", word_count: 5, task_done: 1, task_total: 2, tags: "[]", pinned: 0, created_at: "2026-04-11T09:00:00Z", updated_at: "2026-04-11T11:00:00Z" },
 ];
 
 describe("Sidebar", () => {
@@ -79,7 +80,7 @@ describe("Sidebar", () => {
   });
 
   it("shows Untitled for notes without a title", () => {
-    const untitled = [{ id: "1", title: "", preview: "", word_count: 0, task_done: 0, task_total: 0, tags: "[]", created_at: "2026-04-11T10:00:00Z", updated_at: "2026-04-11T12:00:00Z" }];
+    const untitled = [{ id: "1", title: "", preview: "", word_count: 0, task_done: 0, task_total: 0, tags: "[]", pinned: 0, created_at: "2026-04-11T10:00:00Z", updated_at: "2026-04-11T12:00:00Z" }];
     render(<Sidebar {...baseProps} notes={untitled} activeNoteId={null} />);
     expect(screen.getByText("Untitled")).toBeTruthy();
   });

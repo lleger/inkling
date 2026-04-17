@@ -7,6 +7,7 @@ export interface Note {
   task_done: number;
   task_total: number;
   tags: string;
+  pinned: number;
   created_at: string;
   updated_at: string;
 }
@@ -19,6 +20,7 @@ export interface NoteMeta {
   task_done: number;
   task_total: number;
   tags: string;
+  pinned: number;
   created_at: string;
   updated_at: string;
 }

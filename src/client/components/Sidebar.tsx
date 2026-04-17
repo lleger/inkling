@@ -1,4 +1,4 @@
-import { Plus, PanelLeftClose, X, Home, Settings, Trash2 } from "lucide-react";
+import { Plus, PanelLeftClose, X, Home, Settings, Trash2, Pin } from "lucide-react";
 import type { NoteMeta, SaveStatus } from "../types";
 
 function timeAgo(dateStr: string): string {
@@ -22,6 +22,7 @@ interface SidebarProps {
   onHome: () => void;
   onOpenSettings: () => void;
   onOpenTrash: () => void;
+  onTogglePin: (id: string) => void;
   userEmail: string | null;
   open: boolean;
   saveStatus: SaveStatus;
@@ -40,6 +41,7 @@ export function Sidebar({
   onHome,
   onOpenSettings,
   onOpenTrash,
+  onTogglePin,
   userEmail,
   open,
   allTags,
@@ -98,45 +100,63 @@ export function Sidebar({
       )}
 
       <div className="flex-1 overflow-y-auto px-1.5 py-1 flex flex-col gap-0.5">
-        {notes.map((note) => {
+        {notes.map((note, index) => {
           const isActive = note.id === activeNoteId;
+          const showSeparator = note.pinned === 0 && index > 0 && notes[index - 1].pinned === 1;
           return (
-            <div
-              key={note.id}
-              className={`group relative flex items-center gap-2 cursor-pointer rounded-md px-2 py-2.5 transition-colors ${
-                isActive
-                  ? "bg-surface-active text-text"
-                  : "text-text-secondary hover:bg-surface-hover hover:text-text"
-              }`}
-              onClick={() => onSelectNote(note.id)}
-            >
-              {isActive && (
-                <div className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-accent" />
-              )}
-              {isActive && saveStatus !== "saved" && (
-                <div
-                  className={`shrink-0 size-1.5 rounded-full ${
-                    saveStatus === "saving" ? "bg-accent animate-pulse" : "bg-text-muted animate-pulse"
-                  }`}
-                  title={saveStatus === "saving" ? "Saving..." : "Unsaved changes"}
-                />
-              )}
-              <span className="flex-1 truncate text-sm">
-                {note.title || "Untitled"}
-              </span>
-              <span className="shrink-0 text-[11px] text-text-muted transition-opacity group-hover:opacity-0">
-                {timeAgo(note.updated_at)}
-              </span>
-              <button
-                className="absolute right-1.5 shrink-0 flex size-6 items-center justify-center rounded-md text-text-muted opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-hover:pointer-events-auto hover:bg-surface-active hover:text-text"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteNote(note.id);
-                }}
-                title="Delete"
+            <div key={note.id}>
+              {showSeparator && <div className="mx-2 my-1 h-px bg-border" />}
+              <div
+                className={`group relative flex items-center gap-2 cursor-pointer rounded-md px-2 py-2.5 transition-colors ${
+                  isActive
+                    ? "bg-surface-active text-text"
+                    : "text-text-secondary hover:bg-surface-hover hover:text-text"
+                }`}
+                onClick={() => onSelectNote(note.id)}
               >
-                <X size={13} />
-              </button>
+                {isActive && (
+                  <div className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-accent" />
+                )}
+                {isActive && saveStatus !== "saved" && (
+                  <div
+                    className={`shrink-0 size-1.5 rounded-full ${
+                      saveStatus === "saving" ? "bg-accent animate-pulse" : "bg-text-muted animate-pulse"
+                    }`}
+                    title={saveStatus === "saving" ? "Saving..." : "Unsaved changes"}
+                  />
+                )}
+                {note.pinned === 1 && (
+                  <Pin size={12} className="shrink-0 text-text-muted" />
+                )}
+                <span className="flex-1 truncate text-sm">
+                  {note.title || "Untitled"}
+                </span>
+                <span className="shrink-0 text-[11px] text-text-muted transition-opacity group-hover:opacity-0">
+                  {timeAgo(note.updated_at)}
+                </span>
+                <div className="absolute right-1.5 flex items-center gap-0.5 opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-hover:pointer-events-auto">
+                  <button
+                    className="flex size-6 items-center justify-center rounded-md text-text-muted hover:bg-surface-active hover:text-text"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onTogglePin(note.id);
+                    }}
+                    title={note.pinned ? "Unpin" : "Pin"}
+                  >
+                    <Pin size={12} className={note.pinned ? "text-accent" : ""} />
+                  </button>
+                  <button
+                    className="flex size-6 items-center justify-center rounded-md text-text-muted hover:bg-surface-active hover:text-text"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteNote(note.id);
+                    }}
+                    title="Delete"
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+              </div>
             </div>
           );
         })}

@@ -7,7 +7,7 @@ import { FocusOverlay } from "./components/FocusOverlay";
 import { Toast } from "./components/Toast";
 import { TrashView } from "./components/TrashView";
 import { CommandPalette, type PaletteAction } from "./components/CommandPalette";
-import { PanelLeftOpen, Type, Code, Columns2, Maximize, FilePlus, Copy, PanelLeftClose, Settings, Home, Upload, ListChecks, Trash2 } from "lucide-react";
+import { PanelLeftOpen, Type, Code, Columns2, Maximize, FilePlus, Copy, PanelLeftClose, Settings, Home, Upload, ListChecks, Trash2, Pin } from "lucide-react";
 import { useNotes } from "./hooks/useNotes";
 import { useUser } from "./hooks/useUser";
 import { useTheme } from "./hooks/useTheme";
@@ -20,7 +20,7 @@ import type { Note, SaveStatus, EditorMode } from "./types";
 
 
 export function App() {
-  const { notes, loading, create, remove, refresh } = useNotes();
+  const { notes, loading, create, remove, refresh, pin } = useNotes();
   const user = useUser();
   const { settings, update: updateSettings } = useSettings();
   const theme = useTheme(settings.theme);
@@ -253,6 +253,15 @@ export function App() {
     [create],
   );
 
+  const handleTogglePin = useCallback(
+    async (id: string) => {
+      const note = notes.find((n) => n.id === id);
+      if (!note) return;
+      await pin(id, !note.pinned);
+    },
+    [notes, pin],
+  );
+
   const handleDeleteNote = useCallback(
     async (id: string) => {
       const noteTitle = notes.find((n) => n.id === id)?.title || "Note";
@@ -280,7 +289,10 @@ export function App() {
     () => [
       { id: "new-note", label: "New note", icon: <FilePlus size={15} />, category: "action", onSelect: handleCreateNote },
       { id: "duplicate-note", label: "Duplicate note", icon: <Copy size={15} />, category: "action", onSelect: handleDuplicateNote },
-      ...(activeNote ? [{ id: "delete-note", label: "Delete note", icon: <Trash2 size={15} />, category: "action" as const, onSelect: () => handleDeleteNote(activeNote.id) }] : []),
+      ...(activeNote ? [
+        { id: "toggle-pin", label: activeNote && notes.find((n) => n.id === activeNote.id)?.pinned ? "Unpin note" : "Pin note", icon: <Pin size={15} />, category: "action" as const, onSelect: () => handleTogglePin(activeNote.id) },
+        { id: "delete-note", label: "Delete note", icon: <Trash2 size={15} />, category: "action" as const, onSelect: () => handleDeleteNote(activeNote.id) },
+      ] : []),
       { id: "import-md", label: "Import markdown", icon: <Upload size={15} />, category: "action", onSelect: () => fileInputRef.current?.click() },
       { id: "go-home", label: "Go home", icon: <Home size={15} />, category: "action", onSelect: () => { setActiveNote(null); window.history.replaceState(null, "", window.location.pathname); } },
       { id: "mode-richtext", label: "Rich text mode", icon: <Type size={15} />, category: "action", onSelect: () => setModeTo("richtext") },
@@ -332,6 +344,7 @@ export function App() {
           onHome={() => { setActiveNote(null); setSelectedTag(null); setShowTrash(false); window.history.replaceState(null, "", window.location.pathname); }}
           onOpenSettings={() => setSettingsOpen(true)}
           onOpenTrash={() => { setActiveNote(null); setShowTrash(true); window.history.replaceState(null, "", window.location.pathname); }}
+          onTogglePin={handleTogglePin}
           userEmail={user?.email ?? null}
           open={sidebarOpen && !focusMode}
           saveStatus={saveStatus}

@@ -19,7 +19,7 @@ function createMockD1(): D1Database {
       rows.set(id as string, {
         id, user_id, title, content, preview,
         word_count, task_done, task_total, tags,
-        deleted_at: null, created_at: now, updated_at: now,
+        pinned: 0, deleted_at: null, created_at: now, updated_at: now,
       });
       return { results: [], meta: { changes: 1 } };
     }
@@ -41,8 +41,8 @@ function createMockD1(): D1Database {
           (r.title as string).toLowerCase().includes(searchTerm) ||
           (r.content as string).toLowerCase().includes(searchTerm)
         ))
-        .map(({ id, title, preview, word_count, task_done, task_total, tags, created_at, updated_at }) => ({
-          id, title, preview, word_count, task_done, task_total, tags, created_at, updated_at,
+        .map(({ id, title, preview, word_count, task_done, task_total, tags, pinned, created_at, updated_at }) => ({
+          id, title, preview, word_count, task_done, task_total, tags, pinned, created_at, updated_at,
         }))
         .sort((a, b) => (b.updated_at as string).localeCompare(a.updated_at as string));
       return { results, meta: { changes: 0 } };
@@ -53,11 +53,22 @@ function createMockD1(): D1Database {
       const [uid] = bindings as string[];
       const results = [...rows.values()]
         .filter((r) => r.user_id === uid && !r.deleted_at)
-        .map(({ id, title, preview, word_count, task_done, task_total, tags, created_at, updated_at }) => ({
-          id, title, preview, word_count, task_done, task_total, tags, created_at, updated_at,
+        .map(({ id, title, preview, word_count, task_done, task_total, tags, pinned, created_at, updated_at }) => ({
+          id, title, preview, word_count, task_done, task_total, tags, pinned, created_at, updated_at,
         }))
         .sort((a, b) => (b.updated_at as string).localeCompare(a.updated_at as string));
       return { results, meta: { changes: 0 } };
+    }
+
+    // Pin toggle
+    if (/UPDATE notes SET pinned/i.test(trimmed)) {
+      const [pinned, id, uid] = bindings;
+      const row = rows.get(id as string);
+      if (row && row.user_id === uid) {
+        row.pinned = pinned;
+        return { results: [], meta: { changes: 1 } };
+      }
+      return { results: [], meta: { changes: 0 } };
     }
 
     // Restore (UPDATE SET deleted_at = NULL) — must be before general UPDATE

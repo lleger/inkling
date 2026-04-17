@@ -8,6 +8,7 @@ export interface NoteRow {
   task_done: number;
   task_total: number;
   tags: string;
+  pinned: number;
   deleted_at: string | null;
   created_at: string;
   updated_at: string;
@@ -21,6 +22,7 @@ export interface NoteMeta {
   task_done: number;
   task_total: number;
   tags: string;
+  pinned: number;
   created_at: string;
   updated_at: string;
 }
@@ -124,7 +126,7 @@ function extractPreview(content: string): string {
   return parts.join(" ").slice(0, 120);
 }
 
-const LIST_COLS = "id, title, preview, word_count, task_done, task_total, tags, created_at, updated_at";
+const LIST_COLS = "id, title, preview, word_count, task_done, task_total, tags, pinned, created_at, updated_at";
 const NOT_DELETED = "deleted_at IS NULL";
 
 export async function listNotes(db: D1Database, userId: string, query?: string): Promise<NoteMeta[]> {
@@ -132,7 +134,7 @@ export async function listNotes(db: D1Database, userId: string, query?: string):
     const pattern = `%${query.trim()}%`;
     const result = await db
       .prepare(
-        `SELECT ${LIST_COLS} FROM notes WHERE user_id = ? AND ${NOT_DELETED} AND (title LIKE ? OR content LIKE ?) ORDER BY updated_at DESC`,
+        `SELECT ${LIST_COLS} FROM notes WHERE user_id = ? AND ${NOT_DELETED} AND (title LIKE ? OR content LIKE ?) ORDER BY pinned DESC, updated_at DESC`,
       )
       .bind(userId, pattern, pattern)
       .all<NoteMeta>();
@@ -140,7 +142,7 @@ export async function listNotes(db: D1Database, userId: string, query?: string):
   }
 
   const result = await db
-    .prepare(`SELECT ${LIST_COLS} FROM notes WHERE user_id = ? AND ${NOT_DELETED} ORDER BY updated_at DESC`)
+    .prepare(`SELECT ${LIST_COLS} FROM notes WHERE user_id = ? AND ${NOT_DELETED} ORDER BY pinned DESC, updated_at DESC`)
     .bind(userId)
     .all<NoteMeta>();
   return result.results;
@@ -244,4 +246,12 @@ export async function purgeOldDeletedNotes(db: D1Database, userId: string, daysO
     .bind(userId)
     .run();
   return result.meta.changes;
+}
+
+export async function togglePinNote(db: D1Database, userId: string, noteId: string, pinned: boolean): Promise<boolean> {
+  const result = await db
+    .prepare("UPDATE notes SET pinned = ? WHERE id = ? AND user_id = ?")
+    .bind(pinned ? 1 : 0, noteId, userId)
+    .run();
+  return result.meta.changes > 0;
 }
