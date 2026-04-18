@@ -239,6 +239,13 @@ button:focus-visible {
 }
 .editor-nested-listitem {
   list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.editor-nested-listitem > ul,
+.editor-nested-listitem > ol {
+  margin: 0;
+  padding-left: 24px;
 }
 
 /* Checklists */
