@@ -248,9 +248,9 @@ button:focus-visible {
   padding-left: 24px;
 }
 
-/* Checklists */
-.editor-listitem-checked,
-.editor-listitem-unchecked {
+/* Checklists — exclude nested wrappers that also get checked/unchecked classes */
+.editor-listitem-checked:not(.editor-nested-listitem),
+.editor-listitem-unchecked:not(.editor-nested-listitem) {
   position: relative;
   list-style: none;
   margin-left: -24px;
@@ -258,8 +258,8 @@ button:focus-visible {
   cursor: pointer;
   outline: none;
 }
-.editor-listitem-checked::before,
-.editor-listitem-unchecked::before {
+.editor-listitem-checked:not(.editor-nested-listitem)::before,
+.editor-listitem-unchecked:not(.editor-nested-listitem)::before {
   content: "";
   display: inline-block;
   width: 16px;
@@ -274,7 +274,7 @@ button:focus-visible {
   top: -1px;
   transition: all 0.15s ease;
 }
-.editor-listitem-checked::before {
+.editor-listitem-checked:not(.editor-nested-listitem)::before {
   background: var(--color-accent);
   border-color: var(--color-accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent), transparent 80%);
@@ -283,7 +283,7 @@ button:focus-visible {
   background-position: center;
   background-size: 12px;
 }
-.editor-listitem-checked {
+.editor-listitem-checked:not(.editor-nested-listitem) {
   text-decoration: line-through;
   color: var(--color-text-muted);
 }
