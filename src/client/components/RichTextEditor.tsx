@@ -36,6 +36,7 @@ import {
 import { $isHeadingNode } from "@lexical/rich-text";
 import { $isListItemNode, $isListNode } from "@lexical/list";
 import { ScrollIntoViewPlugin } from "./ScrollIntoViewPlugin";
+import { FloatingToolbar } from "./FloatingToolbar";
 import { richTextTheme } from "../lib/editor-theme";
 import { TRANSFORMERS } from "../lib/markdown-transformers";
 import { getSmartReplacement } from "../lib/smart-typography";
@@ -354,6 +355,7 @@ export function RichTextEditor({ initialContent, onChange, autoFocus = true, sma
         {smartTypography && <SmartTypographyPlugin />}
         <TagZonePlugin />
         <ChecklistShortcutPlugin />
+        <FloatingToolbar />
         <ScrollIntoViewPlugin />
         <ClickableLinkPlugin />
         {autoFocus && <AutoFocusPlugin />}
