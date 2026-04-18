@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import type { Env } from "../types";
-import { listNotes, getNote, createNote, updateNote, deleteNote, restoreNote, listDeletedNotes, permanentlyDeleteNote, purgeOldDeletedNotes, togglePinNote } from "../db/queries";
+import { listNotes, getNote, createNote, updateNote, deleteNote, restoreNote, listDeletedNotes, permanentlyDeleteNote, purgeOldDeletedNotes, togglePinNote, listNoteVersions, getNoteVersion } from "../db/queries";
 
 type AuthVars = { userId: string; userEmail: string };
 
@@ -84,4 +84,24 @@ notesRoutes.delete("/:id/permanent", async (c) => {
   const deleted = await permanentlyDeleteNote(c.env.DB, c.get("userId"), c.req.param("id"));
   if (!deleted) return c.json({ error: "Not found" }, 404);
   return c.json({ success: true });
+});
+
+// Version history
+notesRoutes.get("/:id/versions", async (c) => {
+  const versions = await listNoteVersions(c.env.DB, c.get("userId"), c.req.param("id"));
+  return c.json({ versions });
+});
+
+notesRoutes.get("/:id/versions/:vid", async (c) => {
+  const version = await getNoteVersion(c.env.DB, c.get("userId"), c.req.param("vid"));
+  if (!version) return c.json({ error: "Not found" }, 404);
+  return c.json({ version });
+});
+
+notesRoutes.post("/:id/versions/:vid/restore", async (c) => {
+  const version = await getNoteVersion(c.env.DB, c.get("userId"), c.req.param("vid"));
+  if (!version) return c.json({ error: "Version not found" }, 404);
+  const note = await updateNote(c.env.DB, c.get("userId"), c.req.param("id"), { content: version.content });
+  if (!note) return c.json({ error: "Note not found" }, 404);
+  return c.json({ note });
 });

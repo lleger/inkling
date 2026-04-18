@@ -1,7 +1,7 @@
-import type { Note, NoteMeta, DeletedNoteMeta } from "../../shared/types";
+import type { Note, NoteMeta, DeletedNoteMeta, NoteVersionMeta, NoteVersion } from "../../shared/types";
 
 // Re-export for consumers that import from queries
-export type { NoteMeta, DeletedNoteMeta };
+export type { NoteMeta, DeletedNoteMeta, NoteVersionMeta, NoteVersion };
 
 // Server uses the full Note type as the row type
 export type NoteRow = Note;
@@ -169,6 +169,11 @@ export async function updateNote(
     .bind(title, content, stats.preview, stats.wordCount, stats.taskDone, stats.taskTotal, JSON.stringify(stats.tags), noteId, userId)
     .run();
 
+  // Snapshot the pre-edit state if 5+ minutes since last version
+  if (existing.content.trim().length > 0) {
+    await createVersionSnapshot(db, userId, noteId, existing);
+  }
+
   return getNote(db, userId, noteId);
 }
 
@@ -203,6 +208,8 @@ export async function listDeletedNotes(db: D1Database, userId: string): Promise<
 
 // Permanently delete a note
 export async function permanentlyDeleteNote(db: D1Database, userId: string, noteId: string): Promise<boolean> {
+  // Cascade delete versions
+  await db.prepare("DELETE FROM note_versions WHERE note_id = ? AND user_id = ?").bind(noteId, userId).run();
   const result = await db
     .prepare("DELETE FROM notes WHERE id = ? AND user_id = ?")
     .bind(noteId, userId)
@@ -227,4 +234,72 @@ export async function togglePinNote(db: D1Database, userId: string, noteId: stri
     .bind(pinned ? 1 : 0, noteId, userId)
     .run();
   return result.meta.changes > 0;
+}
+
+// --- Version History ---
+
+const VERSION_THROTTLE_MS = 5 * 60 * 1000; // 5 minutes
+const VERSION_MAX_AGE_DAYS = 30;
+const VERSION_MAX_COUNT = 100;
+
+async function createVersionSnapshot(db: D1Database, userId: string, noteId: string, note: NoteRow): Promise<void> {
+  // Check time since last version
+  const lastVersion = await db
+    .prepare("SELECT created_at FROM note_versions WHERE note_id = ? AND user_id = ? ORDER BY created_at DESC LIMIT 1")
+    .bind(noteId, userId)
+    .first<{ created_at: string }>();
+
+  if (lastVersion) {
+    const elapsed = Date.now() - new Date(lastVersion.created_at).getTime();
+    if (elapsed < VERSION_THROTTLE_MS) return;
+  }
+
+  const stats = computeStats(note.content);
+  await db
+    .prepare("INSERT INTO note_versions (id, note_id, user_id, content, title, preview, word_count) VALUES (?, ?, ?, ?, ?, ?, ?)")
+    .bind(
+      crypto.randomUUID().replace(/-/g, ""),
+      noteId,
+      userId,
+      note.content,
+      note.title,
+      stats.preview,
+      stats.wordCount,
+    )
+    .run();
+}
+
+export async function listNoteVersions(db: D1Database, userId: string, noteId: string): Promise<NoteVersionMeta[]> {
+  // Lazy cleanup
+  await db
+    .prepare(`DELETE FROM note_versions WHERE note_id = ? AND user_id = ? AND created_at < strftime('%Y-%m-%dT%H:%M:%SZ', 'now', '-${VERSION_MAX_AGE_DAYS} days')`)
+    .bind(noteId, userId)
+    .run();
+
+  // Trim to max count
+  const countResult = await db
+    .prepare("SELECT COUNT(*) as cnt FROM note_versions WHERE note_id = ? AND user_id = ?")
+    .bind(noteId, userId)
+    .first<{ cnt: number }>();
+
+  if (countResult && countResult.cnt > VERSION_MAX_COUNT) {
+    const excess = countResult.cnt - VERSION_MAX_COUNT;
+    await db
+      .prepare("DELETE FROM note_versions WHERE id IN (SELECT id FROM note_versions WHERE note_id = ? AND user_id = ? ORDER BY created_at ASC LIMIT ?)")
+      .bind(noteId, userId, excess)
+      .run();
+  }
+
+  const result = await db
+    .prepare("SELECT id, note_id, title, preview, word_count, created_at FROM note_versions WHERE note_id = ? AND user_id = ? ORDER BY created_at DESC")
+    .bind(noteId, userId)
+    .all<NoteVersionMeta>();
+  return result.results;
+}
+
+export async function getNoteVersion(db: D1Database, userId: string, versionId: string): Promise<NoteVersion | null> {
+  return db
+    .prepare("SELECT * FROM note_versions WHERE id = ? AND user_id = ?")
+    .bind(versionId, userId)
+    .first<NoteVersion>();
 }

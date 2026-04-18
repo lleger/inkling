@@ -46,6 +46,26 @@ export type SaveStatus = "saved" | "saving" | "unsaved";
 export type EditorMode = "markdown" | "richtext" | "split";
 export type AccentColor = "green" | "blue" | "purple" | "orange" | "rose" | "teal";
 
+export interface NoteVersionMeta {
+  id: string;
+  note_id: string;
+  title: string;
+  preview: string;
+  word_count: number;
+  created_at: string;
+}
+
+export interface NoteVersion {
+  id: string;
+  note_id: string;
+  user_id: string;
+  content: string;
+  title: string;
+  preview: string;
+  word_count: number;
+  created_at: string;
+}
+
 export interface Settings {
   theme: "light" | "dark" | "system";
   accent: AccentColor;

@@ -1,4 +1,4 @@
-import type { Note, NoteMeta, User, DeletedNoteMeta, Settings } from "../types";
+import type { Note, NoteMeta, User, DeletedNoteMeta, NoteVersionMeta, NoteVersion, Settings } from "../types";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -71,6 +71,21 @@ export async function fetchTrash(): Promise<DeletedNoteMeta[]> {
 
 export async function permanentlyDeleteNote(id: string): Promise<void> {
   await request(`/api/notes/${id}/permanent`, { method: "DELETE" });
+}
+
+export async function fetchVersions(noteId: string): Promise<NoteVersionMeta[]> {
+  const data = await request<{ versions: NoteVersionMeta[] }>(`/api/notes/${noteId}/versions`);
+  return data.versions;
+}
+
+export async function fetchVersion(noteId: string, versionId: string): Promise<NoteVersion> {
+  const data = await request<{ version: NoteVersion }>(`/api/notes/${noteId}/versions/${versionId}`);
+  return data.version;
+}
+
+export async function restoreVersion(noteId: string, versionId: string): Promise<Note> {
+  const data = await request<{ note: Note }>(`/api/notes/${noteId}/versions/${versionId}/restore`, { method: "POST" });
+  return data.note;
 }
 
 export async function fetchSettings(): Promise<Partial<Settings>> {

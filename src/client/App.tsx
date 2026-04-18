@@ -6,8 +6,9 @@ import { SettingsModal } from "./components/SettingsModal";
 import { FocusOverlay } from "./components/FocusOverlay";
 import { Toast } from "./components/Toast";
 import { TrashView } from "./components/TrashView";
+import { VersionHistoryView } from "./components/VersionHistoryView";
 import { CommandPalette, type PaletteAction } from "./components/CommandPalette";
-import { PanelLeftOpen, Type, Code, Columns2, Maximize, FilePlus, Copy, PanelLeftClose, Settings, Home, Upload, ListChecks, Trash2, Pin } from "lucide-react";
+import { PanelLeftOpen, Type, Code, Columns2, Maximize, FilePlus, Copy, PanelLeftClose, Settings, Home, Upload, ListChecks, Trash2, Pin, History } from "lucide-react";
 import { useNotes } from "./hooks/useNotes";
 import { useUser } from "./hooks/useUser";
 import { useTheme } from "./hooks/useTheme";
@@ -36,6 +37,7 @@ export function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [showTrash, setShowTrash] = useState(false);
+  const [showVersionHistory, setShowVersionHistory] = useState<{ noteId: string; noteTitle: string } | null>(null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; action?: { label: string; onClick: () => void } } | null>(null);
@@ -179,6 +181,7 @@ export function App() {
       const note = await fetchNote(id);
       setActiveNote(note);
       setShowTrash(false);
+      setShowVersionHistory(null);
       setSaveStatus("saved");
       pendingContentRef.current = null;
       currentContentRef.current = note.content;
@@ -318,6 +321,7 @@ export function App() {
       { id: "duplicate-note", label: "Duplicate note", icon: <Copy size={15} />, category: "action", onSelect: handleDuplicateNote },
       ...(activeNote ? [
         { id: "toggle-pin", label: isPinned ? "Unpin note" : "Pin note", icon: <Pin size={15} />, category: "action" as const, onSelect: () => handlePinNote(activeNote.id, !isPinned) },
+        { id: "version-history", label: "Version history", icon: <History size={15} />, category: "action" as const, onSelect: () => { setShowVersionHistory({ noteId: activeNote.id, noteTitle: activeNote.title }); setActiveNote(null); } },
         { id: "delete-note", label: "Delete note", icon: <Trash2 size={15} />, category: "action" as const, onSelect: () => handleDeleteNote(activeNote.id) },
       ] : []),
       { id: "import-md", label: "Import markdown", icon: <Upload size={15} />, category: "action", onSelect: () => fileInputRef.current?.click() },
@@ -366,7 +370,7 @@ export function App() {
           onCreateNote={handleCreateNote}
           onDeleteNote={handleDeleteNote}
           onCollapse={() => setSidebarOpen(false)}
-          onHome={() => { setActiveNote(null); setSelectedTag(null); setShowTrash(false); window.history.replaceState(null, "", window.location.pathname); }}
+          onHome={() => { setActiveNote(null); setSelectedTag(null); setShowTrash(false); setShowVersionHistory(null); window.history.replaceState(null, "", window.location.pathname); }}
           onOpenSettings={() => setSettingsOpen(true)}
           onOpenTrash={() => { setActiveNote(null); setShowTrash(true); window.history.replaceState(null, "", window.location.pathname); }}
           onTogglePin={(id) => {
@@ -448,6 +452,20 @@ export function App() {
             onChange={handleContentChange}
             mode={editorMode}
             smartTypography={settings.smartTypography}
+          />
+        ) : showVersionHistory ? (
+          <VersionHistoryView
+            noteId={showVersionHistory.noteId}
+            noteTitle={showVersionHistory.noteTitle}
+            onClose={() => {
+              setShowVersionHistory(null);
+              handleSelectNote(showVersionHistory.noteId);
+            }}
+            onRestore={(note) => {
+              setShowVersionHistory(null);
+              handleSelectNote(note.id);
+              setToast({ message: "Version restored" });
+            }}
           />
         ) : showTrash ? (
           <TrashView onNoteRestored={refresh} />

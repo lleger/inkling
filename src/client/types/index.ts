@@ -1,1 +1,1 @@
-export type { Note, NoteMeta, DeletedNoteMeta, User, SaveStatus, EditorMode, AccentColor, Settings } from "../../shared/types";
+export type { Note, NoteMeta, DeletedNoteMeta, NoteVersionMeta, NoteVersion, User, SaveStatus, EditorMode, AccentColor, Settings } from "../../shared/types";
