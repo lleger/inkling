@@ -305,9 +305,10 @@ export function App() {
     [create],
   );
 
-  const handleMoveToFolder = useCallback((folder: string | null) => {
+  const handleMoveToFolder = useCallback(async (folder: string | null) => {
     if (!activeNote) return;
-    move(activeNote.id, folder);
+    await move(activeNote.id, folder);
+    setActiveNote((prev) => prev ? { ...prev, folder } : prev);
   }, [activeNote, move]);
 
   const handlePinNote = useCallback(
