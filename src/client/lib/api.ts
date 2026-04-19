@@ -73,6 +73,13 @@ export async function permanentlyDeleteNote(id: string): Promise<void> {
   await request(`/api/notes/${id}/permanent`, { method: "DELETE" });
 }
 
+export async function moveNoteToFolder(id: string, folder: string | null): Promise<void> {
+  await request(`/api/notes/${id}/folder`, {
+    method: "PUT",
+    body: JSON.stringify({ folder }),
+  });
+}
+
 export async function fetchVersions(noteId: string): Promise<NoteVersionMeta[]> {
   const data = await request<{ versions: NoteVersionMeta[] }>(`/api/notes/${noteId}/versions`);
   return data.versions;

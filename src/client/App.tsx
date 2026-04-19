@@ -8,7 +8,7 @@ import { Toast } from "./components/Toast";
 import { TrashView } from "./components/TrashView";
 import { VersionHistoryView } from "./components/VersionHistoryView";
 import { CommandPalette, type PaletteAction } from "./components/CommandPalette";
-import { PanelLeftOpen, Type, Code, Columns2, Maximize, FilePlus, Copy, PanelLeftClose, Settings, Home, Upload, ListChecks, Trash2, Pin, History } from "lucide-react";
+import { PanelLeftOpen, Type, Code, Columns2, Maximize, FilePlus, Copy, PanelLeftClose, Settings, Home, Upload, ListChecks, Trash2, Pin, History, FolderInput } from "lucide-react";
 import { useNotes } from "./hooks/useNotes";
 import { useUser } from "./hooks/useUser";
 import { useTheme } from "./hooks/useTheme";
@@ -21,7 +21,7 @@ import type { Note, SaveStatus, EditorMode } from "./types";
 
 
 export function App() {
-  const { notes, loading, create, remove, refresh, pin } = useNotes();
+  const { notes, loading, create, remove, refresh, pin, move } = useNotes();
   const user = useUser();
   const { settings, update: updateSettings } = useSettings();
   const theme = useTheme(settings.theme);
@@ -40,6 +40,7 @@ export function App() {
   const [showVersionHistory, setShowVersionHistory] = useState<{ noteId: string; noteTitle: string } | null>(null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; action?: { label: string; onClick: () => void } } | null>(null);
   const [editorMode, setEditorMode] = useState<EditorMode>(settings.defaultMode);
   const [editorKey, setEditorKey] = useState(0);
@@ -57,16 +58,34 @@ export function App() {
     return [...tagSet].sort();
   }, [notes]);
 
+  const allFolders = useMemo(() => {
+    const folderSet = new Set<string>();
+    for (const note of notes) {
+      if (note.folder) folderSet.add(note.folder);
+    }
+    return [...folderSet].sort();
+  }, [notes]);
+
   const filteredNotes = useMemo(() => {
-    if (!selectedTag) return notes;
-    return notes.filter((n) => {
-      try {
-        return (JSON.parse(n.tags) as string[]).includes(selectedTag);
-      } catch {
-        return false;
-      }
-    });
-  }, [notes, selectedTag]);
+    let result = notes;
+    if (selectedFolder !== null) {
+      result = result.filter((n) =>
+        selectedFolder === ""
+          ? !n.folder
+          : n.folder === selectedFolder || n.folder?.startsWith(selectedFolder + "/"),
+      );
+    }
+    if (selectedTag) {
+      result = result.filter((n) => {
+        try {
+          return (JSON.parse(n.tags) as string[]).includes(selectedTag);
+        } catch {
+          return false;
+        }
+      });
+    }
+    return result;
+  }, [notes, selectedTag, selectedFolder]);
 
   const updateStats = useCallback((content: string) => {
     setWordCount(content.trim().split(/\s+/).filter(Boolean).length);
@@ -284,6 +303,14 @@ export function App() {
     [create],
   );
 
+  const handleMoveToFolder = useCallback(() => {
+    if (!activeNote) return;
+    const input = window.prompt("Folder path (e.g. work/projects). Leave empty to move to root:", activeNote.folder || "");
+    if (input === null) return; // cancelled
+    const folder = input.trim() || null;
+    move(activeNote.id, folder);
+  }, [activeNote, move]);
+
   const handlePinNote = useCallback(
     async (id: string, pinned: boolean) => {
       await pin(id, pinned);
@@ -321,6 +348,7 @@ export function App() {
       { id: "duplicate-note", label: "Duplicate note", icon: <Copy size={15} />, category: "action", onSelect: handleDuplicateNote },
       ...(activeNote ? [
         { id: "toggle-pin", label: isPinned ? "Unpin note" : "Pin note", icon: <Pin size={15} />, category: "action" as const, onSelect: () => handlePinNote(activeNote.id, !isPinned) },
+        { id: "move-to-folder", label: "Move to folder", icon: <FolderInput size={15} />, category: "action" as const, onSelect: handleMoveToFolder },
         { id: "version-history", label: "Version history", icon: <History size={15} />, category: "action" as const, onSelect: () => { setShowVersionHistory({ noteId: activeNote.id, noteTitle: activeNote.title }); setActiveNote(null); } },
         { id: "delete-note", label: "Delete note", icon: <Trash2 size={15} />, category: "action" as const, onSelect: () => handleDeleteNote(activeNote.id) },
       ] : []),
@@ -370,7 +398,7 @@ export function App() {
           onCreateNote={handleCreateNote}
           onDeleteNote={handleDeleteNote}
           onCollapse={() => setSidebarOpen(false)}
-          onHome={() => { setActiveNote(null); setSelectedTag(null); setShowTrash(false); setShowVersionHistory(null); window.history.replaceState(null, "", window.location.pathname); }}
+          onHome={() => { setActiveNote(null); setSelectedTag(null); setSelectedFolder(null); setShowTrash(false); setShowVersionHistory(null); window.history.replaceState(null, "", window.location.pathname); }}
           onOpenSettings={() => setSettingsOpen(true)}
           onOpenTrash={() => { setActiveNote(null); setShowTrash(true); window.history.replaceState(null, "", window.location.pathname); }}
           onTogglePin={(id) => {
@@ -383,6 +411,9 @@ export function App() {
           allTags={allTags}
           selectedTag={selectedTag}
           onSelectTag={setSelectedTag}
+          allFolders={allFolders}
+          selectedFolder={selectedFolder}
+          onSelectFolder={setSelectedFolder}
         />
       </div>
 

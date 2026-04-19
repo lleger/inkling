@@ -98,7 +98,7 @@ function extractPreview(content: string): string {
   return parts.join(" ").slice(0, 120);
 }
 
-const LIST_COLS = "id, title, preview, word_count, task_done, task_total, tags, pinned, created_at, updated_at";
+const LIST_COLS = "id, title, preview, word_count, task_done, task_total, tags, pinned, folder, created_at, updated_at";
 const NOT_DELETED = "deleted_at IS NULL";
 
 export async function listNotes(db: D1Database, userId: string, query?: string): Promise<NoteMeta[]> {
@@ -234,6 +234,32 @@ export async function togglePinNote(db: D1Database, userId: string, noteId: stri
     .bind(pinned ? 1 : 0, noteId, userId)
     .run();
   return result.meta.changes > 0;
+}
+
+// --- Folders ---
+
+export async function moveToFolder(db: D1Database, userId: string, noteId: string, folder: string | null): Promise<boolean> {
+  const result = await db
+    .prepare("UPDATE notes SET folder = ? WHERE id = ? AND user_id = ?")
+    .bind(folder, noteId, userId)
+    .run();
+  return result.meta.changes > 0;
+}
+
+export async function renameFolder(db: D1Database, userId: string, oldPath: string, newPath: string): Promise<number> {
+  // Rename exact matches
+  const exact = await db
+    .prepare(`UPDATE notes SET folder = ? WHERE user_id = ? AND folder = ? AND ${NOT_DELETED}`)
+    .bind(newPath, userId, oldPath)
+    .run();
+
+  // Rename children (old/child → new/child)
+  const children = await db
+    .prepare(`UPDATE notes SET folder = ? || substr(folder, ?) WHERE user_id = ? AND folder LIKE ? AND ${NOT_DELETED}`)
+    .bind(newPath, oldPath.length + 1, userId, oldPath + "/%")
+    .run();
+
+  return exact.meta.changes + children.meta.changes;
 }
 
 // --- Version History ---

@@ -1,4 +1,4 @@
-import { Plus, PanelLeftClose, X, Home, Settings, Trash2, Pin } from "lucide-react";
+import { Plus, PanelLeftClose, X, Home, Settings, Trash2, Pin, Folder, FolderOpen } from "lucide-react";
 import type { NoteMeta, SaveStatus } from "../types";
 
 function timeAgo(dateStr: string): string {
@@ -23,6 +23,9 @@ interface SidebarProps {
   onOpenSettings: () => void;
   onOpenTrash: () => void;
   onTogglePin: (id: string) => void;
+  allFolders: string[];
+  selectedFolder: string | null;
+  onSelectFolder: (folder: string | null) => void;
   userEmail: string | null;
   open: boolean;
   saveStatus: SaveStatus;
@@ -42,6 +45,9 @@ export function Sidebar({
   onOpenSettings,
   onOpenTrash,
   onTogglePin,
+  allFolders,
+  selectedFolder,
+  onSelectFolder,
   userEmail,
   open,
   allTags,
@@ -81,21 +87,49 @@ export function Sidebar({
         </div>
       </div>
 
-      {allTags.length > 0 && (
-        <div className="flex flex-wrap gap-1 px-3 py-2 border-b border-border">
-          {allTags.map((tag) => (
-            <button
-              key={tag}
-              onClick={() => onSelectTag(selectedTag === tag ? null : tag)}
-              className={`rounded-full px-2 py-0.5 text-[11px] font-medium transition-colors ${
-                selectedTag === tag
-                  ? "bg-accent text-white"
-                  : "bg-surface-tertiary text-text-secondary hover:text-text"
-              }`}
-            >
-              #{tag}
-            </button>
-          ))}
+      {(allFolders.length > 0 || allTags.length > 0) && (
+        <div className="flex flex-col gap-1.5 px-3 py-2 border-b border-border">
+          {allFolders.length > 0 && (
+            <div className="flex flex-col gap-0.5">
+              {allFolders.map((folder) => {
+                const name = folder.split("/").pop() || folder;
+                const depth = folder.split("/").length - 1;
+                const isSelected = selectedFolder === folder;
+                return (
+                  <button
+                    key={folder}
+                    onClick={() => onSelectFolder(isSelected ? null : folder)}
+                    className={`flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[12px] transition-colors ${
+                      isSelected
+                        ? "bg-accent/10 text-accent"
+                        : "text-text-secondary hover:bg-surface-hover hover:text-text"
+                    }`}
+                    style={{ paddingLeft: `${6 + depth * 12}px` }}
+                  >
+                    {isSelected ? <FolderOpen size={13} /> : <Folder size={13} />}
+                    {name}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          {allTags.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {allTags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => onSelectTag(selectedTag === tag ? null : tag)}
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium transition-colors ${
+                    selectedTag === tag
+                      ? "bg-accent text-white"
+                      : "bg-surface-tertiary text-text-secondary hover:text-text"
+                  }`}
+                >
+                  #{tag}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

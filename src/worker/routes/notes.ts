@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import type { Env } from "../types";
-import { listNotes, getNote, createNote, updateNote, deleteNote, restoreNote, listDeletedNotes, permanentlyDeleteNote, purgeOldDeletedNotes, togglePinNote, listNoteVersions, getNoteVersion } from "../db/queries";
+import { listNotes, getNote, createNote, updateNote, deleteNote, restoreNote, listDeletedNotes, permanentlyDeleteNote, purgeOldDeletedNotes, togglePinNote, moveToFolder, listNoteVersions, getNoteVersion } from "../db/queries";
 
 type AuthVars = { userId: string; userEmail: string };
 
@@ -15,6 +15,10 @@ const noteBodySchema = z.object({
 
 const pinSchema = z.object({
   pinned: z.boolean(),
+});
+
+const folderSchema = z.object({
+  folder: z.string().nullable(),
 });
 
 notesRoutes.get("/", async (c) => {
@@ -69,6 +73,17 @@ notesRoutes.put(
   async (c) => {
     const { pinned } = c.req.valid("json");
     const updated = await togglePinNote(c.env.DB, c.get("userId"), c.req.param("id"), pinned);
+    if (!updated) return c.json({ error: "Not found" }, 404);
+    return c.json({ success: true });
+  },
+);
+
+notesRoutes.put(
+  "/:id/folder",
+  zValidator("json", folderSchema),
+  async (c) => {
+    const { folder } = c.req.valid("json");
+    const updated = await moveToFolder(c.env.DB, c.get("userId"), c.req.param("id"), folder);
     if (!updated) return c.json({ error: "Not found" }, 404);
     return c.json({ success: true });
   },

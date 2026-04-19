@@ -6,8 +6,8 @@ import { FileText } from "lucide-react";
 afterEach(cleanup);
 
 const notes = [
-  { id: "1", title: "First Note", preview: "hello world", word_count: 10, task_done: 0, task_total: 0, tags: "[]", pinned: 0, created_at: "2026-04-11T10:00:00Z", updated_at: "2026-04-11T12:00:00Z" },
-  { id: "2", title: "Second Note", preview: "foo bar", word_count: 5, task_done: 0, task_total: 0, tags: "[]", pinned: 0, created_at: "2026-04-11T09:00:00Z", updated_at: "2026-04-11T11:00:00Z" },
+  { id: "1", title: "First Note", preview: "hello world", word_count: 10, task_done: 0, task_total: 0, tags: "[]", pinned: 0, folder: null, created_at: "2026-04-11T10:00:00Z", updated_at: "2026-04-11T12:00:00Z" },
+  { id: "2", title: "Second Note", preview: "foo bar", word_count: 5, task_done: 0, task_total: 0, tags: "[]", pinned: 0, folder: null, created_at: "2026-04-11T09:00:00Z", updated_at: "2026-04-11T11:00:00Z" },
 ];
 
 const actions: PaletteAction[] = [

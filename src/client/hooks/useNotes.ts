@@ -43,5 +43,13 @@ export function useNotes() {
     [refresh],
   );
 
-  return { notes, loading, refresh, create, remove, pin };
+  const move = useCallback(
+    async (id: string, folder: string | null) => {
+      await api.moveNoteToFolder(id, folder);
+      await refresh();
+    },
+    [refresh],
+  );
+
+  return { notes, loading, refresh, create, remove, pin, move };
 }
