@@ -17,8 +17,12 @@ import {
   Heading2,
   Heading3,
   Quote,
+  List,
+  ListOrdered,
+  ListChecks,
 } from "lucide-react";
 import { $isLinkNode, TOGGLE_LINK_COMMAND } from "@lexical/link";
+import { $isListNode, INSERT_UNORDERED_LIST_COMMAND, INSERT_ORDERED_LIST_COMMAND, INSERT_CHECK_LIST_COMMAND, REMOVE_LIST_COMMAND } from "@lexical/list";
 import { $setBlocksType } from "@lexical/selection";
 import { $createHeadingNode, $createQuoteNode } from "@lexical/rich-text";
 import { $createParagraphNode } from "lexical";
@@ -66,8 +70,16 @@ export function FloatingToolbar() {
       : anchorNode.getTopLevelElementOrThrow();
     if ($isHeadingNode(topLevelElement)) {
       setBlockType(topLevelElement.getTag());
+    } else if ($isListNode(topLevelElement)) {
+      setBlockType(topLevelElement.getListType());
     } else {
-      setBlockType(topLevelElement.getType());
+      // Check if parent is a list (cursor is in a list item)
+      const parentList = topLevelElement.getParent();
+      if (parentList && $isListNode(parentList)) {
+        setBlockType(parentList.getListType());
+      } else {
+        setBlockType(topLevelElement.getType());
+      }
     }
 
     // Position the toolbar
@@ -140,6 +152,21 @@ export function FloatingToolbar() {
     });
   }, [editor, blockType]);
 
+  const toggleList = useCallback(
+    (type: "bullet" | "number" | "check") => {
+      if (blockType === type) {
+        editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
+      } else if (type === "bullet") {
+        editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
+      } else if (type === "number") {
+        editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
+      } else {
+        editor.dispatchCommand(INSERT_CHECK_LIST_COMMAND, undefined);
+      }
+    },
+    [editor, blockType],
+  );
+
   if (!show) return null;
 
   const buttons: ToolbarButton[] = [
@@ -152,6 +179,9 @@ export function FloatingToolbar() {
     { icon: <Heading2 size={14} />, title: "Heading 2", action: () => setHeading("h2"), isActive: blockType === "h2" },
     { icon: <Heading3 size={14} />, title: "Heading 3", action: () => setHeading("h3"), isActive: blockType === "h3" },
     { icon: <Quote size={14} />, title: "Quote", action: setQuote, isActive: blockType === "quote" },
+    { icon: <List size={14} />, title: "Bullet list", action: () => toggleList("bullet"), isActive: blockType === "bullet" },
+    { icon: <ListOrdered size={14} />, title: "Numbered list", action: () => toggleList("number"), isActive: blockType === "number" },
+    { icon: <ListChecks size={14} />, title: "Task list", action: () => toggleList("check"), isActive: blockType === "check" },
   ];
 
   return (
@@ -167,7 +197,7 @@ export function FloatingToolbar() {
     >
       {buttons.map((btn, i) => (
         <span key={btn.title} className="contents">
-          {i === 5 && <div className="mx-0.5 h-4 w-px bg-border" />}
+          {(i === 5 || i === 9) && <div className="mx-0.5 h-4 w-px bg-border" />}
           <button
             onClick={btn.action}
             title={btn.title}
