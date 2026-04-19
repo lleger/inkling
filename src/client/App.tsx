@@ -6,6 +6,7 @@ import { SettingsModal } from "./components/SettingsModal";
 import { FocusOverlay } from "./components/FocusOverlay";
 import { Toast } from "./components/Toast";
 import { TrashView } from "./components/TrashView";
+import { MoveToFolderModal } from "./components/MoveToFolderModal";
 import { VersionHistoryView } from "./components/VersionHistoryView";
 import { CommandPalette, type PaletteAction } from "./components/CommandPalette";
 import { PanelLeftOpen, Type, Code, Columns2, Maximize, FilePlus, Copy, PanelLeftClose, Settings, Home, Upload, ListChecks, Trash2, Pin, History, FolderInput } from "lucide-react";
@@ -38,6 +39,7 @@ export function App() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [showTrash, setShowTrash] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState<{ noteId: string; noteTitle: string } | null>(null);
+  const [folderModalOpen, setFolderModalOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
@@ -303,11 +305,8 @@ export function App() {
     [create],
   );
 
-  const handleMoveToFolder = useCallback(() => {
+  const handleMoveToFolder = useCallback((folder: string | null) => {
     if (!activeNote) return;
-    const input = window.prompt("Folder path (e.g. work/projects). Leave empty to move to root:", activeNote.folder || "");
-    if (input === null) return; // cancelled
-    const folder = input.trim() || null;
     move(activeNote.id, folder);
   }, [activeNote, move]);
 
@@ -348,7 +347,7 @@ export function App() {
       { id: "duplicate-note", label: "Duplicate note", icon: <Copy size={15} />, category: "action", onSelect: handleDuplicateNote },
       ...(activeNote ? [
         { id: "toggle-pin", label: isPinned ? "Unpin note" : "Pin note", icon: <Pin size={15} />, category: "action" as const, onSelect: () => handlePinNote(activeNote.id, !isPinned) },
-        { id: "move-to-folder", label: "Move to folder", icon: <FolderInput size={15} />, category: "action" as const, onSelect: handleMoveToFolder },
+        { id: "move-to-folder", label: "Move to folder", icon: <FolderInput size={15} />, category: "action" as const, onSelect: () => setFolderModalOpen(true) },
         { id: "version-history", label: "Version history", icon: <History size={15} />, category: "action" as const, onSelect: () => { setShowVersionHistory({ noteId: activeNote.id, noteTitle: activeNote.title }); setActiveNote(null); } },
         { id: "delete-note", label: "Delete note", icon: <Trash2 size={15} />, category: "action" as const, onSelect: () => handleDeleteNote(activeNote.id) },
       ] : []),
@@ -526,6 +525,13 @@ export function App() {
         settings={settings}
         onUpdateSettings={updateSettings}
         userEmail={user?.email ?? null}
+      />
+      <MoveToFolderModal
+        open={folderModalOpen}
+        onClose={() => setFolderModalOpen(false)}
+        onSelect={handleMoveToFolder}
+        currentFolder={activeNote?.folder ?? null}
+        allFolders={allFolders}
       />
       <input
         ref={fileInputRef}
