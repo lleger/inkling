@@ -411,9 +411,6 @@ export function App() {
           allTags={allTags}
           selectedTag={selectedTag}
           onSelectTag={setSelectedTag}
-          allFolders={allFolders}
-          selectedFolder={selectedFolder}
-          onSelectFolder={setSelectedFolder}
         />
       </div>
 
