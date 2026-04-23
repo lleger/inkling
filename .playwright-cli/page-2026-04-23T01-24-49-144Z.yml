@@ -1,0 +1,92 @@
+- generic [ref=e3]:
+  - complementary [ref=e5]:
+    - generic [ref=e6]:
+      - button "Home" [ref=e7] [cursor=pointer]:
+        - img [ref=e8]
+      - generic [ref=e11]:
+        - button "New note" [ref=e12] [cursor=pointer]:
+          - img [ref=e13]
+        - button "Collapse sidebar" [ref=e14] [cursor=pointer]:
+          - img [ref=e15]
+    - generic [ref=e18]:
+      - button "#blog" [ref=e19] [cursor=pointer]
+      - button "#writer" [ref=e20] [cursor=pointer]
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img [ref=e23]
+        - generic [ref=e25]: TODO
+        - generic [ref=e26]: 1h
+        - generic:
+          - button "Unpin":
+            - img
+          - button "Delete":
+            - img
+      - button "Blog 3" [ref=e29] [cursor=pointer]:
+        - img [ref=e30]
+        - img [ref=e32]
+        - generic [ref=e34]: Blog
+        - generic [ref=e35]: "3"
+      - generic [ref=e36] [cursor=pointer]:
+        - generic [ref=e37]: Kitchen Sink Markdown Example
+        - generic [ref=e38]: 3d
+        - generic:
+          - button "Pin":
+            - img
+          - button "Delete":
+            - img
+      - generic [ref=e39] [cursor=pointer]:
+        - generic [ref=e40]: Axioms
+        - generic [ref=e41]: 9d
+        - generic:
+          - button "Pin":
+            - img
+          - button "Delete":
+            - img
+    - generic [ref=e42]:
+      - generic [ref=e43]: dev@localhost
+      - generic [ref=e44]:
+        - button "Trash" [ref=e45] [cursor=pointer]:
+          - img [ref=e46]
+        - button "Settings" [ref=e49] [cursor=pointer]:
+          - img [ref=e50]
+  - main [ref=e53]:
+    - generic:
+      - generic [ref=e150]:
+        - button "5/19 tasks" [ref=e151] [cursor=pointer]
+        - generic [ref=e152]: ·
+        - generic [ref=e153]: 129 words
+      - generic [ref=e154]:
+        - generic [ref=e155]:
+          - button "Rich Text" [ref=e156] [cursor=pointer]:
+            - img [ref=e157]
+          - button "Markdown" [ref=e159] [cursor=pointer]:
+            - img [ref=e160]
+          - button "Split View" [ref=e163] [cursor=pointer]:
+            - img [ref=e164]
+        - button "Focus mode" [ref=e167] [cursor=pointer]:
+          - img [ref=e168]
+    - textbox [active] [ref=e176]:
+      - heading "TODO" [level=1] [ref=e177]
+      - paragraph [ref=e178]: "#writer"
+      - list [ref=e179]:
+        - checkbox "split view real time" [ref=e180] [cursor=pointer]
+        - checkbox "how to auth" [ref=e181] [cursor=pointer]
+        - checkbox "rich text formatting bar?" [checked] [ref=e182] [cursor=pointer]
+        - listitem [ref=e183]:
+          - list [ref=e184]:
+            - checkbox "it’s broken!" [ref=e185] [cursor=pointer]
+        - checkbox "export as md (txt? rtf?) export all?" [ref=e186] [cursor=pointer]
+        - checkbox "import as md? (txt? rtf?) import a bunch? drag to import?" [ref=e187] [cursor=pointer]
+        - checkbox "share" [ref=e188] [cursor=pointer]
+        - checkbox "Can we PWA this?" [ref=e189] [cursor=pointer]
+        - checkbox "vim mode?" [ref=e190] [cursor=pointer]
+        - checkbox "frontend — switch to svelte or solid (or just wouter + Zustand)" [ref=e191] [cursor=pointer]
+        - checkbox "jwt validation" [ref=e192] [cursor=pointer]
+        - checkbox "do we have lint/format" [ref=e193] [cursor=pointer]
+        - checkbox "i may want folders tbh" [checked] [ref=e194] [cursor=pointer]
+        - checkbox "ui skill improv" [ref=e195] [cursor=pointer]
+        - checkbox "sub bullets" [checked] [ref=e196] [cursor=pointer]
+        - checkbox "attachments" [ref=e197] [cursor=pointer]
+        - checkbox "versioning" [checked] [ref=e198] [cursor=pointer]
+        - checkbox "tiptap?" [checked] [ref=e199] [cursor=pointer]
+        - checkbox "Copy should copy the markdown" [ref=e200] [cursor=pointer]

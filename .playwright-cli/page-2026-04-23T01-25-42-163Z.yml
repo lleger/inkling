@@ -1,0 +1,171 @@
+- generic [ref=e3]:
+  - complementary [ref=e5]:
+    - generic [ref=e6]:
+      - button "Home" [ref=e7] [cursor=pointer]:
+        - img [ref=e8]
+      - generic [ref=e11]:
+        - button "New note" [ref=e12] [cursor=pointer]:
+          - img [ref=e13]
+        - button "Collapse sidebar" [ref=e14] [cursor=pointer]:
+          - img [ref=e15]
+    - generic [ref=e18]:
+      - button "#blog" [ref=e19] [cursor=pointer]
+      - button "#writer" [ref=e20] [cursor=pointer]
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img [ref=e23]
+        - generic [ref=e25]: TODO
+        - generic [ref=e26]: just now
+        - generic:
+          - button "Unpin":
+            - img
+          - button "Delete":
+            - img
+      - button "Blog 3" [ref=e29] [cursor=pointer]:
+        - img [ref=e30]
+        - img [ref=e32]
+        - generic [ref=e34]: Blog
+        - generic [ref=e35]: "3"
+      - generic [ref=e36] [cursor=pointer]:
+        - generic [ref=e37]: Kitchen Sink Markdown Example
+        - generic [ref=e38]: 3d
+        - generic:
+          - button "Pin":
+            - img
+          - button "Delete":
+            - img
+      - generic [ref=e39] [cursor=pointer]:
+        - generic [ref=e40]: Axioms
+        - generic [ref=e41]: 9d
+        - generic:
+          - button "Pin":
+            - img
+          - button "Delete":
+            - img
+    - generic [ref=e42]:
+      - generic [ref=e43]: dev@localhost
+      - generic [ref=e44]:
+        - button "Trash" [ref=e45] [cursor=pointer]:
+          - img [ref=e46]
+        - button "Settings" [ref=e49] [cursor=pointer]:
+          - img [ref=e50]
+  - main [ref=e53]:
+    - generic:
+      - generic [ref=e150]:
+        - button "5/19 tasks" [ref=e151] [cursor=pointer]
+        - generic [ref=e152]: ·
+        - generic [ref=e153]: 129 words
+      - generic [ref=e154]:
+        - generic [ref=e155]:
+          - button "Rich Text" [ref=e156] [cursor=pointer]:
+            - img [ref=e157]
+          - button "Markdown" [ref=e159] [cursor=pointer]:
+            - img [ref=e160]
+          - button "Split View" [ref=e163] [cursor=pointer]:
+            - img [ref=e164]
+        - button "Focus mode" [ref=e167] [cursor=pointer]:
+          - img [ref=e168]
+    - textbox [ref=e204]:
+      - paragraph [ref=e205]: "# TODO"
+      - paragraph [ref=e206]: "#writer"
+      - paragraph [ref=e207]
+      - paragraph [ref=e208]: "- [ ] split view real time"
+      - paragraph [ref=e209]: "- [ ] how to auth"
+      - paragraph [ref=e210]: "- [x] rich text formatting bar?"
+      - paragraph [ref=e211]: "- [ ] it's broken!"
+      - paragraph [ref=e212]: "- [ ] export as md (txt? rtf?) export all?"
+      - paragraph [ref=e213]: "- [ ] import as md? (txt? rtf?) import a bunch? drag to import?"
+      - paragraph [ref=e214]: "- [ ] share"
+      - paragraph [ref=e215]: "- [ ] Can we PWA this?"
+      - paragraph [ref=e216]: "- [ ] ~~vim mode?~~"
+      - paragraph [ref=e217]: "- [ ] frontend -- switch to svelte or solid (or just wouter + Zustand)"
+      - paragraph [ref=e218]: "- [ ] jwt validation"
+      - paragraph [ref=e219]: "- [ ] do we have lint/format"
+      - paragraph [ref=e220]: "- [x] i may want folders tbh"
+      - paragraph [ref=e221]: "- [ ] ui skill improv"
+      - paragraph [ref=e222]: "- [x] sub bullets"
+      - paragraph [ref=e223]: "- [ ] attachments"
+      - paragraph [ref=e224]: "- [x] versioning"
+      - paragraph [ref=e225]: "- [x] tiptap?"
+      - paragraph [ref=e226]: "- [ ] Copy should copy the markdown[](url)"
+  - generic [ref=e229]:
+    - generic [ref=e230]:
+      - img [ref=e231]
+      - textbox "Search notes and actions..." [active] [ref=e234]
+      - generic [ref=e235]: Esc
+    - generic [ref=e236]:
+      - generic [ref=e237]: Actions
+      - button "New note" [ref=e238] [cursor=pointer]:
+        - img [ref=e240]
+        - text: New note
+      - button "Duplicate note" [ref=e243] [cursor=pointer]:
+        - img [ref=e245]
+        - text: Duplicate note
+      - button "Unpin note" [ref=e248] [cursor=pointer]:
+        - img [ref=e250]
+        - text: Unpin note
+      - button "Move to folder" [ref=e252] [cursor=pointer]:
+        - img [ref=e254]
+        - text: Move to folder
+      - button "Version history" [ref=e257] [cursor=pointer]:
+        - img [ref=e259]
+        - text: Version history
+      - button "Delete note" [ref=e263] [cursor=pointer]:
+        - img [ref=e265]
+        - text: Delete note
+      - button "Import markdown" [ref=e268] [cursor=pointer]:
+        - img [ref=e270]
+        - text: Import markdown
+      - button "Go home" [ref=e273] [cursor=pointer]:
+        - img [ref=e275]
+        - text: Go home
+      - button "Rich text mode" [ref=e278] [cursor=pointer]:
+        - img [ref=e280]
+        - text: Rich text mode
+      - button "Markdown mode" [ref=e282] [cursor=pointer]:
+        - img [ref=e284]
+        - text: Markdown mode
+      - button "Split view" [ref=e287] [cursor=pointer]:
+        - img [ref=e289]
+        - text: Split view
+      - button "Focus mode" [ref=e291] [cursor=pointer]:
+        - img [ref=e293]
+        - text: Focus mode
+      - button "Toggle sidebar" [ref=e298] [cursor=pointer]:
+        - img [ref=e300]
+        - text: Toggle sidebar
+      - button "Trash" [ref=e303] [cursor=pointer]:
+        - img [ref=e305]
+        - text: Trash
+      - button "Settings" [ref=e308] [cursor=pointer]:
+        - img [ref=e310]
+        - text: Settings
+      - button "Clear 5 done tasks" [ref=e313] [cursor=pointer]:
+        - img [ref=e315]
+        - text: Clear 5 done tasks
+      - generic [ref=e318]: Notes
+      - button "TODO" [ref=e319] [cursor=pointer]:
+        - img [ref=e321]
+        - text: TODO
+      - button "Cloudflare Workers is OTP" [ref=e324] [cursor=pointer]:
+        - img [ref=e326]
+        - text: Cloudflare Workers is OTP
+      - button "Kitchen Sink Markdown Example" [ref=e329] [cursor=pointer]:
+        - img [ref=e331]
+        - text: Kitchen Sink Markdown Example
+      - button "Blog post ideas" [ref=e334] [cursor=pointer]:
+        - img [ref=e336]
+        - text: Blog post ideas
+      - button "Axioms" [ref=e339] [cursor=pointer]:
+        - img [ref=e341]
+        - text: Axioms
+      - button "Agentic Team Sizes" [ref=e344] [cursor=pointer]:
+        - img [ref=e346]
+        - text: Agentic Team Sizes
+    - generic [ref=e349]:
+      - generic [ref=e350]:
+        - generic [ref=e351]: ↑↓
+        - text: navigate
+      - generic [ref=e352]:
+        - generic [ref=e353]: ↵
+        - text: select

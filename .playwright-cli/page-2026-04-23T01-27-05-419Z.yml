@@ -1,0 +1,93 @@
+- generic [ref=e3]:
+  - generic:
+    - complementary:
+      - generic:
+        - button "Home":
+          - img
+        - generic:
+          - button "New note":
+            - img
+          - button "Collapse sidebar":
+            - img
+      - generic:
+        - button "#blog"
+        - button "#writer"
+      - generic:
+        - generic:
+          - img
+          - generic: TODO
+          - generic: 1m
+          - generic:
+            - button "Unpin":
+              - img
+            - button "Delete":
+              - img
+        - generic:
+          - button "Blog 3":
+            - img
+            - img
+            - generic: Blog
+            - generic: "3"
+        - generic:
+          - generic: Kitchen Sink Markdown Example
+          - generic: 4d
+          - generic:
+            - button "Pin":
+              - img
+            - button "Delete":
+              - img
+        - generic:
+          - generic: Axioms
+          - generic: 9d
+          - generic:
+            - button "Pin":
+              - img
+            - button "Delete":
+              - img
+      - generic:
+        - generic: dev@localhost
+        - generic:
+          - button "Trash":
+            - img
+          - button "Settings":
+            - img
+  - main [ref=e53]:
+    - generic:
+      - generic:
+        - button "5/19 tasks"
+        - generic: ·
+        - generic: 129 words
+      - generic:
+        - generic:
+          - button "Rich Text":
+            - img
+          - button "Markdown":
+            - img
+          - button "Split View":
+            - img
+        - button "Focus mode" [active]:
+          - img
+    - button "Esc to exit focus mode" [ref=e403] [cursor=pointer]
+    - textbox [ref=e204]:
+      - paragraph [ref=e205]: "# TODO"
+      - paragraph [ref=e206]: "#writer"
+      - paragraph [ref=e207]
+      - paragraph [ref=e208]: "- [ ] split view real time"
+      - paragraph [ref=e209]: "- [ ] how to auth"
+      - paragraph [ref=e210]: "- [x] rich text formatting bar?"
+      - paragraph [ref=e211]: "- [ ] it's broken!"
+      - paragraph [ref=e212]: "- [ ] export as md (txt? rtf?) export all?"
+      - paragraph [ref=e213]: "- [ ] import as md? (txt? rtf?) import a bunch? drag to import?"
+      - paragraph [ref=e214]: "- [ ] share"
+      - paragraph [ref=e215]: "- [ ] Can we PWA this?"
+      - paragraph [ref=e216]: "- [ ] ~~vim mode?~~"
+      - paragraph [ref=e217]: "- [ ] frontend -- switch to svelte or solid (or just wouter + Zustand)"
+      - paragraph [ref=e218]: "- [ ] jwt validation"
+      - paragraph [ref=e219]: "- [ ] do we have lint/format"
+      - paragraph [ref=e220]: "- [x] i may want folders tbh"
+      - paragraph [ref=e221]: "- [ ] ui skill improv"
+      - paragraph [ref=e222]: "- [x] sub bullets"
+      - paragraph [ref=e223]: "- [ ] attachments"
+      - paragraph [ref=e224]: "- [x] versioning"
+      - paragraph [ref=e225]: "- [x] tiptap?"
+      - paragraph [ref=e226]: "- [ ] Copy should copy the markdown[](url)"

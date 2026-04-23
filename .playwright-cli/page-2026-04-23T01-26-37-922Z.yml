@@ -1,0 +1,131 @@
+- generic [ref=e3]:
+  - complementary [ref=e5]:
+    - generic [ref=e6]:
+      - button "Home" [ref=e7] [cursor=pointer]:
+        - img [ref=e8]
+      - generic [ref=e11]:
+        - button "New note" [ref=e12] [cursor=pointer]:
+          - img [ref=e13]
+        - button "Collapse sidebar" [ref=e14] [cursor=pointer]:
+          - img [ref=e15]
+    - generic [ref=e18]:
+      - button "#blog" [ref=e19] [cursor=pointer]
+      - button "#writer" [ref=e20] [cursor=pointer]
+    - generic [ref=e21]:
+      - generic [ref=e22] [cursor=pointer]:
+        - img [ref=e23]
+        - generic [ref=e25]: TODO
+        - generic [ref=e26]: just now
+        - generic:
+          - button "Unpin":
+            - img
+          - button "Delete":
+            - img
+      - button "Blog 3" [ref=e29] [cursor=pointer]:
+        - img [ref=e30]
+        - img [ref=e32]
+        - generic [ref=e34]: Blog
+        - generic [ref=e35]: "3"
+      - generic [ref=e36] [cursor=pointer]:
+        - generic [ref=e37]: Kitchen Sink Markdown Example
+        - generic [ref=e38]: 4d
+        - generic:
+          - button "Pin":
+            - img
+          - button "Delete":
+            - img
+      - generic [ref=e39] [cursor=pointer]:
+        - generic [ref=e40]: Axioms
+        - generic [ref=e41]: 9d
+        - generic:
+          - button "Pin":
+            - img
+          - button "Delete":
+            - img
+    - generic [ref=e42]:
+      - generic [ref=e43]: dev@localhost
+      - generic [ref=e44]:
+        - button "Trash" [ref=e45] [cursor=pointer]:
+          - img [ref=e46]
+        - button "Settings" [active] [ref=e49] [cursor=pointer]:
+          - img [ref=e50]
+  - main [ref=e53]:
+    - generic:
+      - generic [ref=e150]:
+        - button "5/19 tasks" [ref=e151] [cursor=pointer]
+        - generic [ref=e152]: ·
+        - generic [ref=e153]: 129 words
+      - generic [ref=e154]:
+        - generic [ref=e155]:
+          - button "Rich Text" [ref=e156] [cursor=pointer]:
+            - img [ref=e157]
+          - button "Markdown" [ref=e159] [cursor=pointer]:
+            - img [ref=e160]
+          - button "Split View" [ref=e163] [cursor=pointer]:
+            - img [ref=e164]
+        - button "Focus mode" [ref=e167] [cursor=pointer]:
+          - img [ref=e168]
+    - textbox [ref=e204]:
+      - paragraph [ref=e205]: "# TODO"
+      - paragraph [ref=e206]: "#writer"
+      - paragraph [ref=e207]
+      - paragraph [ref=e208]: "- [ ] split view real time"
+      - paragraph [ref=e209]: "- [ ] how to auth"
+      - paragraph [ref=e210]: "- [x] rich text formatting bar?"
+      - paragraph [ref=e211]: "- [ ] it's broken!"
+      - paragraph [ref=e212]: "- [ ] export as md (txt? rtf?) export all?"
+      - paragraph [ref=e213]: "- [ ] import as md? (txt? rtf?) import a bunch? drag to import?"
+      - paragraph [ref=e214]: "- [ ] share"
+      - paragraph [ref=e215]: "- [ ] Can we PWA this?"
+      - paragraph [ref=e216]: "- [ ] ~~vim mode?~~"
+      - paragraph [ref=e217]: "- [ ] frontend -- switch to svelte or solid (or just wouter + Zustand)"
+      - paragraph [ref=e218]: "- [ ] jwt validation"
+      - paragraph [ref=e219]: "- [ ] do we have lint/format"
+      - paragraph [ref=e220]: "- [x] i may want folders tbh"
+      - paragraph [ref=e221]: "- [ ] ui skill improv"
+      - paragraph [ref=e222]: "- [x] sub bullets"
+      - paragraph [ref=e223]: "- [ ] attachments"
+      - paragraph [ref=e224]: "- [x] versioning"
+      - paragraph [ref=e225]: "- [x] tiptap?"
+      - paragraph [ref=e226]: "- [ ] Copy should copy the markdown[](url)"
+  - generic [ref=e355]:
+    - generic [ref=e356]:
+      - generic [ref=e357]: Settings
+      - button [ref=e358] [cursor=pointer]:
+        - img [ref=e359]
+    - generic [ref=e362]:
+      - generic [ref=e363]:
+        - generic [ref=e364]: Theme
+        - generic [ref=e365]:
+          - button "System" [ref=e366] [cursor=pointer]:
+            - img [ref=e367]
+            - text: System
+          - button "Light" [ref=e369] [cursor=pointer]:
+            - img [ref=e370]
+            - text: Light
+          - button "Dark" [ref=e376] [cursor=pointer]:
+            - img [ref=e377]
+            - text: Dark
+      - generic [ref=e379]:
+        - generic [ref=e380]: Accent color
+        - generic [ref=e381]:
+          - button "Green" [ref=e382] [cursor=pointer]
+          - button "Blue" [ref=e383] [cursor=pointer]
+          - button "Purple" [ref=e384] [cursor=pointer]
+          - button "Orange" [ref=e385] [cursor=pointer]:
+            - img [ref=e386]
+          - button "Rose" [ref=e388] [cursor=pointer]
+          - button "Teal" [ref=e389] [cursor=pointer]
+      - generic [ref=e390]:
+        - generic [ref=e391]: Default editor
+        - generic [ref=e392]:
+          - button "Rich Text" [ref=e393] [cursor=pointer]
+          - button "Markdown" [ref=e394] [cursor=pointer]
+      - generic [ref=e395]:
+        - generic [ref=e396]:
+          - generic [ref=e397]: Smart typography
+          - text: Curly quotes, em-dashes, ellipsis
+        - button [ref=e398] [cursor=pointer]
+      - generic [ref=e400]:
+        - generic [ref=e401]: Account
+        - text: dev@localhost
