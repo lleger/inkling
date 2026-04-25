@@ -122,6 +122,19 @@ export function SettingsModal({
             </div>
           </div>
 
+          {/* Daily note folder */}
+          <div>
+            <label className="block text-[12px] font-medium text-text-secondary mb-2">Daily note folder</label>
+            <input
+              type="text"
+              value={settings.dailyNoteFolder}
+              onChange={(e) => onUpdateSettings({ dailyNoteFolder: e.target.value })}
+              placeholder="Daily"
+              className="w-full rounded-md border border-border bg-surface-secondary px-2.5 py-1.5 text-[12px] text-text outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20"
+            />
+            <span className="mt-1 block text-[11px] text-text-muted">Where Cmd+Shift+D notes are filed</span>
+          </div>
+
           {/* Smart typography */}
           <div className="flex items-center justify-between">
             <div>
