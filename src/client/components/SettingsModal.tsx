@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { X, Monitor, Sun, Moon, Check } from "lucide-react";
+import { X, Monitor, Sun, Moon, Check, LogOut } from "lucide-react";
+import { signOut } from "../lib/auth-client";
 import type { Settings, AccentColor } from "../hooks/useSettings";
 import { ACCENT_COLORS, ACCENT_NAMES } from "../lib/accent-colors";
 import type { EditorMode } from "../types";
@@ -159,7 +160,19 @@ export function SettingsModal({
           {userEmail && (
             <div className="border-t border-border pt-4">
               <label className="block text-[12px] font-medium text-text-secondary mb-1">Account</label>
-              <span className="text-[12px] text-text-muted">{userEmail}</span>
+              <div className="flex items-center justify-between">
+                <span className="text-[12px] text-text-muted">{userEmail}</span>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await signOut();
+                    window.location.href = "/login";
+                  }}
+                  className="flex items-center gap-1 text-[12px] text-text-muted hover:text-text-secondary"
+                >
+                  <LogOut size={12} /> Sign out
+                </button>
+              </div>
             </div>
           )}
         </div>

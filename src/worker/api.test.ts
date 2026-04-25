@@ -180,15 +180,13 @@ function createMockD1(): D1Database {
   } as unknown as D1Database;
 }
 
-function makeJwt(payload: Record<string, unknown>): string {
-  return `header.${btoa(JSON.stringify(payload))}.signature`;
-}
+// In tests we use the worker's DEV_MODE fallback to populate userId/email.
+// Real auth (better-auth sessions) is exercised by acceptance tests.
+const TEST_USER_ID = "dev-user";
+const TEST_USER_EMAIL = "dev@localhost";
 
-function authHeaders(sub = "user-1", email = "a@b.com") {
-  return {
-    "Cf-Access-Jwt-Assertion": makeJwt({ sub, email }),
-    "Content-Type": "application/json",
-  };
+function authHeaders() {
+  return { "Content-Type": "application/json" };
 }
 
 describe("API", () => {
@@ -199,7 +197,8 @@ describe("API", () => {
   });
 
   function req(path: string, init?: RequestInit) {
-    return app.request(path, init, { DB: db });
+    // DEV_MODE=true so the auth middleware injects a deterministic dev user
+    return app.request(path, init, { DB: db, DEV_MODE: "true" });
   }
 
   describe("GET /api/health", () => {
@@ -211,30 +210,16 @@ describe("API", () => {
   });
 
   describe("auth middleware", () => {
-    it("returns 401 without JWT and without dev mode", async () => {
-      const res = await req("/api/user");
+    it("returns 401 without a session and without dev mode", async () => {
+      const res = await app.request("/api/user", {}, { DB: db });
       expect(res.status).toBe(401);
     });
 
     it("allows dev mode fallback", async () => {
-      const res = await app.request("/api/user", {}, { DB: db, DEV_MODE: "true" });
+      const res = await req("/api/user");
       expect(res.status).toBe(200);
       const body = await res.json();
-      expect(body).toEqual({ sub: "dev-user", email: "dev@localhost" });
-    });
-
-    it("returns 401 for JWT missing sub", async () => {
-      const res = await req("/api/user", {
-        headers: { "Cf-Access-Jwt-Assertion": makeJwt({ email: "test@test.com" }) },
-      });
-      expect(res.status).toBe(401);
-    });
-
-    it("extracts identity from valid JWT", async () => {
-      const res = await req("/api/user", { headers: authHeaders("user-123", "test@example.com") });
-      expect(res.status).toBe(200);
-      const body = await res.json();
-      expect(body).toEqual({ sub: "user-123", email: "test@example.com" });
+      expect(body).toEqual({ sub: TEST_USER_ID, email: TEST_USER_EMAIL });
     });
   });
 
@@ -371,11 +356,13 @@ describe("API", () => {
     it("isolates notes between users", async () => {
       await req("/api/notes", {
         method: "POST",
-        headers: authHeaders("user-1"),
+        headers: { ...authHeaders(), "X-Test-User-Id": "user-1" },
         body: JSON.stringify({ content: "user1 note" }),
       });
 
-      const res = await req("/api/notes", { headers: authHeaders("user-2") });
+      const res = await req("/api/notes", {
+        headers: { ...authHeaders(), "X-Test-User-Id": "user-2" },
+      });
       const body = (await res.json()) as { notes: unknown[] };
       expect(body.notes).toEqual([]);
     });

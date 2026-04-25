@@ -7,3 +7,4 @@ tests/acceptance/screenshots/
 .playwright-cli/
 *.png
 src/client/routeTree.gen.ts
+.tanstack/

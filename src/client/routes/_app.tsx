@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, useNavigate, useLocation, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useNavigate, useLocation, useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef } from "react";
 import { Sidebar } from "../components/Sidebar";
 import { SettingsModal } from "../components/SettingsModal";
@@ -18,8 +18,18 @@ import { useSettings } from "../hooks/useSettings";
 import { useDailyNote } from "../hooks/useDailyNote";
 import { applyAccent } from "../lib/accent-colors";
 import { useUI } from "../context/UIContext";
+import { authClient } from "../lib/auth-client";
 
 export const Route = createFileRoute("/_app")({
+  beforeLoad: async ({ location }) => {
+    const session = await authClient.getSession();
+    if (!session.data?.user) {
+      throw redirect({
+        to: "/login",
+        search: { mode: "signin" as const, redirect: location.pathname },
+      });
+    }
+  },
   component: AppLayout,
 });
 

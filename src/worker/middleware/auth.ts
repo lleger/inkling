@@ -1,5 +1,6 @@
 import { createMiddleware } from "hono/factory";
 import type { Env } from "../types";
+import { getAuth } from "../auth";
 
 type AuthVars = {
   userId: string;
@@ -10,43 +11,23 @@ export const authMiddleware = createMiddleware<{
   Bindings: Env;
   Variables: AuthVars;
 }>(async (c, next) => {
-  const jwt = c.req.header("Cf-Access-Jwt-Assertion");
+  const auth = getAuth(c.env, c.req.url);
+  const session = await auth.api.getSession({ headers: c.req.raw.headers });
 
-  if (!jwt) {
-    // Dev mode fallback
-    if (c.env.DEV_MODE === "true") {
-      c.set("userId", "dev-user");
-      c.set("userEmail", "dev@localhost");
-      return next();
-    }
-    return c.json({ error: "Unauthorized" }, 401);
-  }
-
-  try {
-    const parts = jwt.split(".");
-    if (parts.length !== 3) {
-      return c.json({ error: "Invalid token" }, 401);
-    }
-
-    // Decode the payload (middle segment)
-    const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
-
-    // Basic expiry check
-    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
-      return c.json({ error: "Token expired" }, 401);
-    }
-
-    const sub = payload.sub;
-    const email = payload.email;
-
-    if (!sub) {
-      return c.json({ error: "Missing user identity" }, 401);
-    }
-
-    c.set("userId", sub);
-    c.set("userEmail", email || "unknown");
+  if (session?.user) {
+    c.set("userId", session.user.id);
+    c.set("userEmail", session.user.email);
     return next();
-  } catch {
-    return c.json({ error: "Invalid token" }, 401);
   }
+
+  // Dev fallback — only when DEV_MODE is on AND no session.
+  // Tests may pass X-Test-User-Id to impersonate a specific user.
+  if (c.env.DEV_MODE === "true") {
+    const testUserId = c.req.header("X-Test-User-Id");
+    c.set("userId", testUserId || "dev-user");
+    c.set("userEmail", testUserId ? `${testUserId}@test.local` : "dev@localhost");
+    return next();
+  }
+
+  return c.json({ error: "Unauthorized" }, 401);
 });
