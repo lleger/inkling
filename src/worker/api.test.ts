@@ -1,184 +1,52 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, beforeAll } from "vitest";
 import app from "./index";
+import { createTestD1 } from "./db/test-d1";
 
-// Minimal D1-compatible in-memory mock
-function createMockD1(): D1Database {
-  const rows = new Map<string, Record<string, unknown>>();
+// In-memory D1-compatible database backed by better-sqlite3. Drizzle queries
+// run unmodified through it; the surface implements just enough of D1 for
+// our routes and Drizzle's d1 driver.
+const SCHEMA_SQL = `
+  CREATE TABLE IF NOT EXISTS notes (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    user_id TEXT NOT NULL,
+    title TEXT NOT NULL DEFAULT 'Untitled',
+    content TEXT NOT NULL DEFAULT '',
+    preview TEXT NOT NULL DEFAULT '',
+    word_count INTEGER NOT NULL DEFAULT 0,
+    task_done INTEGER NOT NULL DEFAULT 0,
+    task_total INTEGER NOT NULL DEFAULT 0,
+    tags TEXT NOT NULL DEFAULT '[]',
+    pinned INTEGER NOT NULL DEFAULT 0,
+    folder TEXT DEFAULT NULL,
+    deleted_at TEXT DEFAULT NULL,
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+    updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+  );
+  CREATE TABLE IF NOT EXISTS note_versions (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    note_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    content TEXT NOT NULL,
+    title TEXT NOT NULL,
+    preview TEXT NOT NULL DEFAULT '',
+    word_count INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+  );
+  CREATE TABLE IF NOT EXISTS user_settings (
+    user_id TEXT PRIMARY KEY,
+    settings TEXT NOT NULL DEFAULT '{}'
+  );
+`;
 
-  function exec(sql: string, bindings: unknown[] = []): { results: Record<string, unknown>[]; meta: { changes: number } } {
-    const trimmed = sql.trim();
+let db: D1Database;
 
-    if (/^CREATE\b/i.test(trimmed)) {
-      return { results: [], meta: { changes: 0 } };
-    }
-
-    // INSERT with 8 fields
-    if (/INSERT INTO notes/i.test(trimmed)) {
-      const [id, user_id, title, content, preview, word_count, task_done, task_total, tags] = bindings;
-      const now = new Date().toISOString();
-      rows.set(id as string, {
-        id, user_id, title, content, preview,
-        word_count, task_done, task_total, tags,
-        pinned: 0, folder: null, deleted_at: null, created_at: now, updated_at: now,
-      });
-      return { results: [], meta: { changes: 1 } };
-    }
-
-    // SELECT * WHERE id = ? AND user_id = ? AND deleted_at IS NULL
-    if (/SELECT \* FROM notes WHERE id = \? AND user_id = \?/i.test(trimmed)) {
-      const [id, uid] = bindings as string[];
-      const row = rows.get(id);
-      if (row && row.user_id === uid && !row.deleted_at) return { results: [row], meta: { changes: 0 } };
-      return { results: [], meta: { changes: 0 } };
-    }
-
-    // SELECT list with search
-    if (/SELECT id, title, preview.*FROM notes WHERE.*LIKE/i.test(trimmed)) {
-      const [uid, pattern] = bindings as string[];
-      const searchTerm = (pattern as string).replace(/%/g, "").toLowerCase();
-      const results = [...rows.values()]
-        .filter((r) => r.user_id === uid && !r.deleted_at && (
-          (r.title as string).toLowerCase().includes(searchTerm) ||
-          (r.content as string).toLowerCase().includes(searchTerm)
-        ))
-        .map(({ id, title, preview, word_count, task_done, task_total, tags, pinned, folder, created_at, updated_at }) => ({
-          id, title, preview, word_count, task_done, task_total, tags, pinned, folder, created_at, updated_at,
-        }))
-        .sort((a, b) => (b.updated_at as string).localeCompare(a.updated_at as string));
-      return { results, meta: { changes: 0 } };
-    }
-
-    // SELECT list (no search)
-    if (/SELECT id, title, preview.*FROM notes WHERE user_id = \?/i.test(trimmed)) {
-      const [uid] = bindings as string[];
-      const results = [...rows.values()]
-        .filter((r) => r.user_id === uid && !r.deleted_at)
-        .map(({ id, title, preview, word_count, task_done, task_total, tags, pinned, folder, created_at, updated_at }) => ({
-          id, title, preview, word_count, task_done, task_total, tags, pinned, folder, created_at, updated_at,
-        }))
-        .sort((a, b) => (b.updated_at as string).localeCompare(a.updated_at as string));
-      return { results, meta: { changes: 0 } };
-    }
-
-    // Move to folder
-    if (/UPDATE notes SET folder/i.test(trimmed)) {
-      const [folder, id, uid] = bindings;
-      const row = rows.get(id as string);
-      if (row && row.user_id === uid) {
-        row.folder = folder;
-        return { results: [], meta: { changes: 1 } };
-      }
-      return { results: [], meta: { changes: 0 } };
-    }
-
-    // Pin toggle
-    if (/UPDATE notes SET pinned/i.test(trimmed)) {
-      const [pinned, id, uid] = bindings;
-      const row = rows.get(id as string);
-      if (row && row.user_id === uid) {
-        row.pinned = pinned;
-        return { results: [], meta: { changes: 1 } };
-      }
-      return { results: [], meta: { changes: 0 } };
-    }
-
-    // Restore (UPDATE SET deleted_at = NULL) — must be before general UPDATE
-    if (/UPDATE notes SET deleted_at = NULL/i.test(trimmed)) {
-      const [id, uid] = bindings as string[];
-      const row = rows.get(id);
-      if (row && row.user_id === uid && row.deleted_at) {
-        row.deleted_at = null;
-        return { results: [], meta: { changes: 1 } };
-      }
-      return { results: [], meta: { changes: 0 } };
-    }
-
-    // Soft delete (UPDATE SET deleted_at) — must be before general UPDATE
-    if (/UPDATE notes SET deleted_at = /i.test(trimmed)) {
-      const [id, uid] = bindings as string[];
-      const row = rows.get(id);
-      if (row && row.user_id === uid && !row.deleted_at) {
-        row.deleted_at = new Date().toISOString();
-        return { results: [], meta: { changes: 1 } };
-      }
-      return { results: [], meta: { changes: 0 } };
-    }
-
-    // UPDATE with 9 bindings (content update)
-    if (/UPDATE notes SET title/i.test(trimmed)) {
-      const [title, content, preview, word_count, task_done, task_total, tags, id, uid] = bindings;
-      const row = rows.get(id as string);
-      if (row && row.user_id === uid) {
-        Object.assign(row, { title, content, preview, word_count, task_done, task_total, tags, updated_at: new Date().toISOString() });
-        return { results: [], meta: { changes: 1 } };
-      }
-      return { results: [], meta: { changes: 0 } };
-    }
-
-    // List deleted notes
-    if (/SELECT id, title, deleted_at, created_at FROM notes WHERE user_id = \? AND deleted_at IS NOT NULL/i.test(trimmed)) {
-      const [uid] = bindings as string[];
-      const results = [...rows.values()]
-        .filter((r) => r.user_id === uid && r.deleted_at)
-        .map(({ id, title, deleted_at, created_at }) => ({ id, title, deleted_at, created_at }))
-        .sort((a, b) => (b.deleted_at as string).localeCompare(a.deleted_at as string));
-      return { results, meta: { changes: 0 } };
-    }
-
-    // Permanent delete
-    if (/DELETE FROM notes WHERE id = \? AND user_id = \?/i.test(trimmed)) {
-      const [id, uid] = bindings as string[];
-      const row = rows.get(id);
-      if (row && row.user_id === uid) {
-        rows.delete(id);
-        return { results: [], meta: { changes: 1 } };
-      }
-      return { results: [], meta: { changes: 0 } };
-    }
-
-    // Purge old deleted notes (in mock, don't actually purge — tests use fresh data)
-    if (/DELETE FROM notes WHERE user_id = \? AND deleted_at IS NOT NULL AND deleted_at </i.test(trimmed)) {
-      return { results: [], meta: { changes: 0 } };
-    }
-
-    if (/DROP TABLE/i.test(trimmed)) {
-      rows.clear();
-      return { results: [], meta: { changes: 0 } };
-    }
-
-    return { results: [], meta: { changes: 0 } };
+beforeAll(async () => {
+  db = createTestD1();
+  for (const stmt of SCHEMA_SQL.split(";").map((s) => s.trim()).filter(Boolean)) {
+    await db.prepare(stmt).run();
   }
+});
 
-  return {
-    prepare(sql: string) {
-      let boundValues: unknown[] = [];
-      return {
-        bind(...values: unknown[]) {
-          boundValues = values;
-          return this;
-        },
-        async first<T>(): Promise<T | null> {
-          const { results } = exec(sql, boundValues);
-          return (results[0] as T) ?? null;
-        },
-        async all<T>(): Promise<{ results: T[] }> {
-          const { results } = exec(sql, boundValues);
-          return { results: results as T[] };
-        },
-        async run() {
-          const result = exec(sql, boundValues);
-          return { meta: result.meta };
-        },
-      };
-    },
-    async exec(sql: string) {
-      for (const stmt of sql.split(";").filter((s) => s.trim())) {
-        exec(stmt);
-      }
-      return { count: 0, duration: 0 };
-    },
-  } as unknown as D1Database;
-}
 
 // In tests we use the worker's DEV_MODE fallback to populate userId/email.
 // Real auth (better-auth sessions) is exercised by acceptance tests.
@@ -190,10 +58,13 @@ function authHeaders() {
 }
 
 describe("API", () => {
-  let db: D1Database;
-
-  beforeEach(() => {
-    db = createMockD1();
+  beforeEach(async () => {
+    // Reset data between tests; schema is created once in beforeAll
+    await db.batch([
+      db.prepare("DELETE FROM notes"),
+      db.prepare("DELETE FROM note_versions"),
+      db.prepare("DELETE FROM user_settings"),
+    ]);
   });
 
   function req(path: string, init?: RequestInit) {

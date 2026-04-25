@@ -1,7 +1,10 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
+import { eq, sql } from "drizzle-orm";
 import type { Env } from "../types";
+import { makeDb } from "../db/client";
+import { userSettings } from "../db/schema";
 
 type AuthVars = { userId: string; userEmail: string };
 
@@ -15,12 +18,13 @@ const settingsSchema = z.object({
 }).passthrough();
 
 settingsRoutes.get("/", async (c) => {
-  const row = await c.env.DB.prepare("SELECT settings FROM user_settings WHERE user_id = ?")
-    .bind(c.get("userId"))
-    .first<{ settings: string }>();
-
+  const db = makeDb(c.env.DB);
+  const [row] = await db
+    .select({ settings: userSettings.settings })
+    .from(userSettings)
+    .where(eq(userSettings.userId, c.get("userId")))
+    .limit(1);
   if (!row) return c.json({ settings: {} });
-
   try {
     return c.json({ settings: JSON.parse(row.settings) });
   } catch {
@@ -35,12 +39,15 @@ settingsRoutes.put(
     const body = c.req.valid("json");
     const json = JSON.stringify(body);
     const userId = c.get("userId");
+    const db = makeDb(c.env.DB);
 
-    await c.env.DB.prepare(
-      "INSERT INTO user_settings (user_id, settings) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET settings = ?",
-    )
-      .bind(userId, json, json)
-      .run();
+    await db
+      .insert(userSettings)
+      .values({ userId, settings: json })
+      .onConflictDoUpdate({
+        target: userSettings.userId,
+        set: { settings: sql`excluded.settings` },
+      });
 
     return c.json({ settings: body });
   },

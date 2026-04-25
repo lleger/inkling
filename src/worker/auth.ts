@@ -1,7 +1,8 @@
 import { betterAuth } from "better-auth";
 import { APIError } from "better-auth/api";
-import { Kysely } from "kysely";
-import { D1Dialect } from "./d1-dialect";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { makeDb } from "./db/client";
+import * as schema from "./db/schema";
 import type { Env } from "./types";
 
 /** Parse the comma-separated ALLOWED_EMAILS env var into a lowercased set. */
@@ -26,15 +27,18 @@ export function getAuth(env: Env, requestUrl: string) {
   const allowlist = parseAllowlist(env);
   return betterAuth({
     baseURL: url.origin,
-    database: {
-      db: new Kysely({ dialect: new D1Dialect({ database: env.DB }) }),
-      type: "sqlite",
-    },
+    database: drizzleAdapter(makeDb(env.DB), {
+      provider: "sqlite",
+      schema: {
+        user: schema.user,
+        session: schema.session,
+        account: schema.account,
+        verification: schema.verification,
+      },
+    }),
     secret: env.BETTER_AUTH_SECRET || "dev-only-change-me",
     emailAndPassword: {
       enabled: true,
-      // Skip email verification in dev — turn this on for production once you
-      // wire up an email sender.
       requireEmailVerification: false,
       autoSignIn: true,
     },
@@ -64,7 +68,6 @@ export function getAuth(env: Env, requestUrl: string) {
         }
       : undefined,
     advanced: {
-      // Cookie attrs that work for SPA dev on http://localhost:5173
       defaultCookieAttributes: {
         sameSite: "lax",
         secure: url.protocol === "https:",

@@ -15,7 +15,12 @@ React 18 + TanStack Router + TanStack Query frontend, Hono API on Cloudflare Wor
 - **Hooks**: `src/client/hooks/` — `useNotes`, `useUser`, `useSettings`, `useTheme`. Built on TanStack Query.
 - **Queries**: `src/client/lib/queries.ts` — central query keys and `queryOptions` factories
 - **UI Context**: `src/client/context/UIContext.tsx` — ephemeral UI state shared across routes (sidebar/focus/palette/settings/folder modal toggles, toast)
-- **Backend**: `src/worker/` — Hono API, D1 queries, auth middleware
+- **Backend**: `src/worker/` — Hono API + Drizzle ORM, auth middleware
+  - `src/worker/db/schema.ts` — Drizzle table definitions (notes, versions, settings, better-auth tables)
+  - `src/worker/db/queries.ts` — query functions, all Drizzle
+  - `src/worker/db/client.ts` — `makeDb(env.DB)` builds a Drizzle client per request
+  - `src/worker/db/test-d1.ts` — better-sqlite3-backed D1 shim for unit tests
+  - `src/worker/db/migrate-*.sql` — historical SQL migrations applied by hand. New schema changes go in `schema.ts` then `npx drizzle-kit generate` produces a migration in `src/worker/db/migrations/`.
 - **Shared types**: `src/shared/types.ts`
 - **Pure lib**: `src/client/lib/` — framework-agnostic utilities
 

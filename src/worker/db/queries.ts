@@ -1,10 +1,13 @@
+import { and, eq, isNull, isNotNull, like, lt, or, sql, asc, desc, inArray } from "drizzle-orm";
+import { makeDb } from "./client";
+import { notes, noteVersions } from "./schema";
 import type { Note, NoteMeta, DeletedNoteMeta, NoteVersionMeta, NoteVersion } from "../../shared/types";
 
 // Re-export for consumers that import from queries
 export type { NoteMeta, DeletedNoteMeta, NoteVersionMeta, NoteVersion };
-
-// Server uses the full Note type as the row type
 export type NoteRow = Note;
+
+// --- Stats / parsing helpers (pure) ---
 
 const TAG_RE = /^#([a-zA-Z0-9_-]+)$/;
 
@@ -19,7 +22,6 @@ function computeTags(content: string): string[] {
   let headingFound = false;
   let foundFirstTag = false;
   const tags: string[] = [];
-
   for (const line of lines) {
     const trimmed = line.trim();
     if (!headingFound) {
@@ -40,18 +42,7 @@ function computeTags(content: string): string[] {
     }
     break;
   }
-
   return [...new Set(tags)];
-}
-
-function computeStats(content: string) {
-  const title = extractTitle(content);
-  const preview = extractPreview(content);
-  const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
-  const taskDone = (content.match(/- \[x\]/gi) || []).length;
-  const taskUndone = (content.match(/- \[ \]/g) || []).length;
-  const tags = computeTags(content);
-  return { title, preview, wordCount, taskDone, taskTotal: taskDone + taskUndone, tags };
 }
 
 function extractTitle(content: string): string {
@@ -67,22 +58,17 @@ function extractPreview(content: string): string {
   let afterHeading = false;
   let pastTagZone = false;
   const parts: string[] = [];
-
   for (const line of lines) {
     const trimmed = line.trim();
-
     if (!afterHeading) {
       if (/^#{1,6}\s+/.test(trimmed)) afterHeading = true;
       continue;
     }
-
     if (!pastTagZone) {
       if (isTagZoneLine(trimmed)) continue;
       pastTagZone = true;
     }
-
     if (trimmed.length === 0) continue;
-
     const clean = trimmed
       .replace(/^#{1,6}\s+/, "")
       .replace(/^[-*+]\s+(\[.\]\s+)?/, "")
@@ -94,238 +80,347 @@ function extractPreview(content: string): string {
     parts.push(clean);
     if (parts.join(" ").length >= 120) break;
   }
-
   return parts.join(" ").slice(0, 120);
 }
 
-const LIST_COLS = "id, title, preview, word_count, task_done, task_total, tags, pinned, folder, created_at, updated_at";
-const NOT_DELETED = "deleted_at IS NULL";
-
-export async function listNotes(db: D1Database, userId: string, query?: string): Promise<NoteMeta[]> {
-  if (query && query.trim()) {
-    const escaped = query.trim().replace(/%/g, "\\%").replace(/_/g, "\\_");
-    const pattern = `%${escaped}%`;
-    const result = await db
-      .prepare(
-        `SELECT ${LIST_COLS} FROM notes WHERE user_id = ? AND ${NOT_DELETED} AND (title LIKE ? ESCAPE '\\' OR content LIKE ? ESCAPE '\\') ORDER BY pinned DESC, updated_at DESC`,
-      )
-      .bind(userId, pattern, pattern)
-      .all<NoteMeta>();
-    return result.results;
-  }
-
-  const result = await db
-    .prepare(`SELECT ${LIST_COLS} FROM notes WHERE user_id = ? AND ${NOT_DELETED} ORDER BY pinned DESC, updated_at DESC`)
-    .bind(userId)
-    .all<NoteMeta>();
-  return result.results;
+function computeStats(content: string) {
+  const title = extractTitle(content);
+  const preview = extractPreview(content);
+  const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
+  const taskDone = (content.match(/- \[x\]/gi) || []).length;
+  const taskUndone = (content.match(/- \[ \]/g) || []).length;
+  const tags = computeTags(content);
+  return { title, preview, wordCount, taskDone, taskTotal: taskDone + taskUndone, tags };
 }
 
-export async function getNote(db: D1Database, userId: string, noteId: string): Promise<NoteRow | null> {
-  return db
-    .prepare(`SELECT * FROM notes WHERE id = ? AND user_id = ? AND ${NOT_DELETED}`)
-    .bind(noteId, userId)
-    .first<NoteRow>();
+// --- Row → wire shape mappers ---
+// Drizzle returns column names as the JS field names from the schema
+// (camelCase). The wire types we ship to the client (NoteMeta etc.) use
+// snake_case to match the existing JSON contract on the API.
+
+function mapMeta(row: typeof notes.$inferSelect): NoteMeta {
+  return {
+    id: row.id,
+    title: row.title,
+    preview: row.preview,
+    word_count: row.wordCount,
+    task_done: row.taskDone,
+    task_total: row.taskTotal,
+    tags: row.tags,
+    pinned: row.pinned,
+    folder: row.folder,
+    created_at: row.createdAt,
+    updated_at: row.updatedAt,
+  };
+}
+
+function mapNote(row: typeof notes.$inferSelect): Note {
+  return {
+    id: row.id,
+    user_id: row.userId,
+    title: row.title,
+    content: row.content,
+    preview: row.preview,
+    word_count: row.wordCount,
+    task_done: row.taskDone,
+    task_total: row.taskTotal,
+    tags: row.tags,
+    pinned: row.pinned,
+    folder: row.folder,
+    deleted_at: row.deletedAt,
+    created_at: row.createdAt,
+    updated_at: row.updatedAt,
+  };
+}
+
+function mapVersionMeta(row: typeof noteVersions.$inferSelect): NoteVersionMeta {
+  return {
+    id: row.id,
+    note_id: row.noteId,
+    title: row.title,
+    preview: row.preview,
+    word_count: row.wordCount,
+    created_at: row.createdAt,
+  };
+}
+
+function mapVersion(row: typeof noteVersions.$inferSelect): NoteVersion {
+  return {
+    id: row.id,
+    note_id: row.noteId,
+    user_id: row.userId,
+    content: row.content,
+    title: row.title,
+    preview: row.preview,
+    word_count: row.wordCount,
+    created_at: row.createdAt,
+  };
+}
+
+// --- Notes ---
+
+export async function listNotes(d1: D1Database, userId: string, query?: string): Promise<NoteMeta[]> {
+  const db = makeDb(d1);
+  let where = and(eq(notes.userId, userId), isNull(notes.deletedAt));
+  if (query && query.trim()) {
+    const pattern = `%${query.trim().replace(/%/g, "\\%").replace(/_/g, "\\_")}%`;
+    where = and(where, or(like(notes.title, pattern), like(notes.content, pattern)));
+  }
+  const rows = await db
+    .select()
+    .from(notes)
+    .where(where)
+    .orderBy(desc(notes.pinned), desc(notes.updatedAt));
+  return rows.map(mapMeta);
+}
+
+export async function getNote(d1: D1Database, userId: string, noteId: string): Promise<NoteRow | null> {
+  const db = makeDb(d1);
+  const [row] = await db
+    .select()
+    .from(notes)
+    .where(and(eq(notes.id, noteId), eq(notes.userId, userId), isNull(notes.deletedAt)))
+    .limit(1);
+  return row ? mapNote(row) : null;
 }
 
 export async function createNote(
-  db: D1Database,
+  d1: D1Database,
   userId: string,
   title?: string,
   content?: string,
 ): Promise<NoteRow> {
+  const db = makeDb(d1);
   const id = crypto.randomUUID().replace(/-/g, "");
   const c = content || "";
   const stats = computeStats(c);
   const t = title || stats.title;
 
-  await db
-    .prepare(
-      "INSERT INTO notes (id, user_id, title, content, preview, word_count, task_done, task_total, tags) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    )
-    .bind(id, userId, t, c, stats.preview, stats.wordCount, stats.taskDone, stats.taskTotal, JSON.stringify(stats.tags))
-    .run();
+  await db.insert(notes).values({
+    id,
+    userId,
+    title: t,
+    content: c,
+    preview: stats.preview,
+    wordCount: stats.wordCount,
+    taskDone: stats.taskDone,
+    taskTotal: stats.taskTotal,
+    tags: JSON.stringify(stats.tags),
+  });
 
-  return (await getNote(db, userId, id))!;
+  return (await getNote(d1, userId, id))!;
 }
 
 export async function updateNote(
-  db: D1Database,
+  d1: D1Database,
   userId: string,
   noteId: string,
   updates: { title?: string; content?: string },
 ): Promise<NoteRow | null> {
-  const existing = await getNote(db, userId, noteId);
+  const existing = await getNote(d1, userId, noteId);
   if (!existing) return null;
 
   const content = updates.content ?? existing.content;
   const stats = computeStats(content);
   const title = updates.title ?? stats.title;
 
+  const db = makeDb(d1);
   await db
-    .prepare(
-      "UPDATE notes SET title = ?, content = ?, preview = ?, word_count = ?, task_done = ?, task_total = ?, tags = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ? AND user_id = ?",
-    )
-    .bind(title, content, stats.preview, stats.wordCount, stats.taskDone, stats.taskTotal, JSON.stringify(stats.tags), noteId, userId)
-    .run();
+    .update(notes)
+    .set({
+      title,
+      content,
+      preview: stats.preview,
+      wordCount: stats.wordCount,
+      taskDone: stats.taskDone,
+      taskTotal: stats.taskTotal,
+      tags: JSON.stringify(stats.tags),
+      updatedAt: sql`(strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))`,
+    })
+    .where(and(eq(notes.id, noteId), eq(notes.userId, userId)));
 
-  // Snapshot the pre-edit state if 5+ minutes since last version
   if (existing.content.trim().length > 0) {
-    await createVersionSnapshot(db, userId, noteId, existing);
+    await createVersionSnapshot(d1, userId, noteId, existing);
   }
 
-  return getNote(db, userId, noteId);
+  return getNote(d1, userId, noteId);
 }
 
-// Soft delete — sets deleted_at timestamp
-export async function deleteNote(db: D1Database, userId: string, noteId: string): Promise<boolean> {
+export async function deleteNote(d1: D1Database, userId: string, noteId: string): Promise<boolean> {
+  const db = makeDb(d1);
   const result = await db
-    .prepare(
-      `UPDATE notes SET deleted_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ? AND user_id = ? AND ${NOT_DELETED}`,
-    )
-    .bind(noteId, userId)
-    .run();
-  return result.meta.changes > 0;
+    .update(notes)
+    .set({ deletedAt: sql`(strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))` })
+    .where(and(eq(notes.id, noteId), eq(notes.userId, userId), isNull(notes.deletedAt)));
+  return (result.meta?.changes ?? 0) > 0;
 }
 
-// Restore a soft-deleted note
-export async function restoreNote(db: D1Database, userId: string, noteId: string): Promise<boolean> {
+export async function restoreNote(d1: D1Database, userId: string, noteId: string): Promise<boolean> {
+  const db = makeDb(d1);
   const result = await db
-    .prepare("UPDATE notes SET deleted_at = NULL WHERE id = ? AND user_id = ? AND deleted_at IS NOT NULL")
-    .bind(noteId, userId)
-    .run();
-  return result.meta.changes > 0;
+    .update(notes)
+    .set({ deletedAt: null })
+    .where(and(eq(notes.id, noteId), eq(notes.userId, userId), isNotNull(notes.deletedAt)));
+  return (result.meta?.changes ?? 0) > 0;
 }
 
-// List soft-deleted notes
-export async function listDeletedNotes(db: D1Database, userId: string): Promise<DeletedNoteMeta[]> {
-  const result = await db
-    .prepare("SELECT id, title, deleted_at, created_at FROM notes WHERE user_id = ? AND deleted_at IS NOT NULL ORDER BY deleted_at DESC")
-    .bind(userId)
-    .all<DeletedNoteMeta>();
-  return result.results;
+export async function listDeletedNotes(d1: D1Database, userId: string): Promise<DeletedNoteMeta[]> {
+  const db = makeDb(d1);
+  const rows = await db
+    .select({
+      id: notes.id,
+      title: notes.title,
+      deletedAt: notes.deletedAt,
+      createdAt: notes.createdAt,
+    })
+    .from(notes)
+    .where(and(eq(notes.userId, userId), isNotNull(notes.deletedAt)))
+    .orderBy(desc(notes.deletedAt));
+  return rows.map((r) => ({
+    id: r.id,
+    title: r.title,
+    deleted_at: r.deletedAt!,
+    created_at: r.createdAt,
+  }));
 }
 
-// Permanently delete a note
-export async function permanentlyDeleteNote(db: D1Database, userId: string, noteId: string): Promise<boolean> {
-  // Cascade delete versions
-  await db.prepare("DELETE FROM note_versions WHERE note_id = ? AND user_id = ?").bind(noteId, userId).run();
+export async function permanentlyDeleteNote(d1: D1Database, userId: string, noteId: string): Promise<boolean> {
+  const db = makeDb(d1);
+  await db
+    .delete(noteVersions)
+    .where(and(eq(noteVersions.noteId, noteId), eq(noteVersions.userId, userId)));
   const result = await db
-    .prepare("DELETE FROM notes WHERE id = ? AND user_id = ?")
-    .bind(noteId, userId)
-    .run();
-  return result.meta.changes > 0;
+    .delete(notes)
+    .where(and(eq(notes.id, noteId), eq(notes.userId, userId)));
+  return (result.meta?.changes ?? 0) > 0;
 }
 
-// Purge notes deleted more than N days ago
-export async function purgeOldDeletedNotes(db: D1Database, userId: string, daysOld = 30): Promise<number> {
+export async function purgeOldDeletedNotes(d1: D1Database, userId: string, daysOld = 30): Promise<number> {
+  const db = makeDb(d1);
   const result = await db
-    .prepare(
-      `DELETE FROM notes WHERE user_id = ? AND deleted_at IS NOT NULL AND deleted_at < strftime('%Y-%m-%dT%H:%M:%SZ', 'now', '-${daysOld} days')`,
-    )
-    .bind(userId)
-    .run();
-  return result.meta.changes;
+    .delete(notes)
+    .where(
+      and(
+        eq(notes.userId, userId),
+        isNotNull(notes.deletedAt),
+        lt(notes.deletedAt, sql`(strftime('%Y-%m-%dT%H:%M:%SZ', 'now', ${"-" + daysOld + " days"}))`),
+      ),
+    );
+  return result.meta?.changes ?? 0;
 }
 
-export async function togglePinNote(db: D1Database, userId: string, noteId: string, pinned: boolean): Promise<boolean> {
+export async function togglePinNote(d1: D1Database, userId: string, noteId: string, pinned: boolean): Promise<boolean> {
+  const db = makeDb(d1);
   const result = await db
-    .prepare("UPDATE notes SET pinned = ? WHERE id = ? AND user_id = ?")
-    .bind(pinned ? 1 : 0, noteId, userId)
-    .run();
-  return result.meta.changes > 0;
+    .update(notes)
+    .set({ pinned: pinned ? 1 : 0 })
+    .where(and(eq(notes.id, noteId), eq(notes.userId, userId)));
+  return (result.meta?.changes ?? 0) > 0;
 }
 
 // --- Folders ---
 
-export async function moveToFolder(db: D1Database, userId: string, noteId: string, folder: string | null): Promise<boolean> {
+export async function moveToFolder(d1: D1Database, userId: string, noteId: string, folder: string | null): Promise<boolean> {
+  const db = makeDb(d1);
   const result = await db
-    .prepare("UPDATE notes SET folder = ? WHERE id = ? AND user_id = ?")
-    .bind(folder, noteId, userId)
-    .run();
-  return result.meta.changes > 0;
+    .update(notes)
+    .set({ folder })
+    .where(and(eq(notes.id, noteId), eq(notes.userId, userId)));
+  return (result.meta?.changes ?? 0) > 0;
 }
 
-export async function renameFolder(db: D1Database, userId: string, oldPath: string, newPath: string): Promise<number> {
-  // Rename exact matches
+export async function renameFolder(d1: D1Database, userId: string, oldPath: string, newPath: string): Promise<number> {
+  const db = makeDb(d1);
   const exact = await db
-    .prepare(`UPDATE notes SET folder = ? WHERE user_id = ? AND folder = ? AND ${NOT_DELETED}`)
-    .bind(newPath, userId, oldPath)
-    .run();
-
-  // Rename children (old/child → new/child)
+    .update(notes)
+    .set({ folder: newPath })
+    .where(and(eq(notes.userId, userId), eq(notes.folder, oldPath), isNull(notes.deletedAt)));
   const children = await db
-    .prepare(`UPDATE notes SET folder = ? || substr(folder, ?) WHERE user_id = ? AND folder LIKE ? AND ${NOT_DELETED}`)
-    .bind(newPath, oldPath.length + 1, userId, oldPath + "/%")
-    .run();
-
-  return exact.meta.changes + children.meta.changes;
+    .update(notes)
+    .set({ folder: sql`${newPath} || substr(${notes.folder}, ${oldPath.length + 1})` })
+    .where(and(eq(notes.userId, userId), like(notes.folder, oldPath + "/%"), isNull(notes.deletedAt)));
+  return (exact.meta?.changes ?? 0) + (children.meta?.changes ?? 0);
 }
 
 // --- Version History ---
 
-const VERSION_THROTTLE_MS = 5 * 60 * 1000; // 5 minutes
+const VERSION_THROTTLE_MS = 5 * 60 * 1000;
 const VERSION_MAX_AGE_DAYS = 30;
 const VERSION_MAX_COUNT = 100;
 
-async function createVersionSnapshot(db: D1Database, userId: string, noteId: string, note: NoteRow): Promise<void> {
-  // Check time since last version
-  const lastVersion = await db
-    .prepare("SELECT created_at FROM note_versions WHERE note_id = ? AND user_id = ? ORDER BY created_at DESC LIMIT 1")
-    .bind(noteId, userId)
-    .first<{ created_at: string }>();
+async function createVersionSnapshot(d1: D1Database, userId: string, noteId: string, note: NoteRow): Promise<void> {
+  const db = makeDb(d1);
+  const [last] = await db
+    .select({ createdAt: noteVersions.createdAt })
+    .from(noteVersions)
+    .where(and(eq(noteVersions.noteId, noteId), eq(noteVersions.userId, userId)))
+    .orderBy(desc(noteVersions.createdAt))
+    .limit(1);
 
-  if (lastVersion) {
-    const elapsed = Date.now() - new Date(lastVersion.created_at).getTime();
+  if (last) {
+    const elapsed = Date.now() - new Date(last.createdAt).getTime();
     if (elapsed < VERSION_THROTTLE_MS) return;
   }
 
   const stats = computeStats(note.content);
-  await db
-    .prepare("INSERT INTO note_versions (id, note_id, user_id, content, title, preview, word_count) VALUES (?, ?, ?, ?, ?, ?, ?)")
-    .bind(
-      crypto.randomUUID().replace(/-/g, ""),
-      noteId,
-      userId,
-      note.content,
-      note.title,
-      stats.preview,
-      stats.wordCount,
-    )
-    .run();
+  await db.insert(noteVersions).values({
+    id: crypto.randomUUID().replace(/-/g, ""),
+    noteId,
+    userId,
+    content: note.content,
+    title: note.title,
+    preview: stats.preview,
+    wordCount: stats.wordCount,
+  });
 }
 
-export async function listNoteVersions(db: D1Database, userId: string, noteId: string): Promise<NoteVersionMeta[]> {
-  // Lazy cleanup
+export async function listNoteVersions(d1: D1Database, userId: string, noteId: string): Promise<NoteVersionMeta[]> {
+  const db = makeDb(d1);
+
+  // Lazy cleanup: drop versions older than VERSION_MAX_AGE_DAYS
   await db
-    .prepare(`DELETE FROM note_versions WHERE note_id = ? AND user_id = ? AND created_at < strftime('%Y-%m-%dT%H:%M:%SZ', 'now', '-${VERSION_MAX_AGE_DAYS} days')`)
-    .bind(noteId, userId)
-    .run();
+    .delete(noteVersions)
+    .where(
+      and(
+        eq(noteVersions.noteId, noteId),
+        eq(noteVersions.userId, userId),
+        lt(noteVersions.createdAt, sql`(strftime('%Y-%m-%dT%H:%M:%SZ', 'now', ${"-" + VERSION_MAX_AGE_DAYS + " days"}))`),
+      ),
+    );
 
   // Trim to max count
-  const countResult = await db
-    .prepare("SELECT COUNT(*) as cnt FROM note_versions WHERE note_id = ? AND user_id = ?")
-    .bind(noteId, userId)
-    .first<{ cnt: number }>();
+  const [{ cnt }] = await db
+    .select({ cnt: sql<number>`count(*)` })
+    .from(noteVersions)
+    .where(and(eq(noteVersions.noteId, noteId), eq(noteVersions.userId, userId)));
 
-  if (countResult && countResult.cnt > VERSION_MAX_COUNT) {
-    const excess = countResult.cnt - VERSION_MAX_COUNT;
-    await db
-      .prepare("DELETE FROM note_versions WHERE id IN (SELECT id FROM note_versions WHERE note_id = ? AND user_id = ? ORDER BY created_at ASC LIMIT ?)")
-      .bind(noteId, userId, excess)
-      .run();
+  if (cnt > VERSION_MAX_COUNT) {
+    const excess = cnt - VERSION_MAX_COUNT;
+    const oldest = await db
+      .select({ id: noteVersions.id })
+      .from(noteVersions)
+      .where(and(eq(noteVersions.noteId, noteId), eq(noteVersions.userId, userId)))
+      .orderBy(asc(noteVersions.createdAt))
+      .limit(excess);
+    if (oldest.length > 0) {
+      await db.delete(noteVersions).where(inArray(noteVersions.id, oldest.map((r) => r.id)));
+    }
   }
 
-  const result = await db
-    .prepare("SELECT id, note_id, title, preview, word_count, created_at FROM note_versions WHERE note_id = ? AND user_id = ? ORDER BY created_at DESC")
-    .bind(noteId, userId)
-    .all<NoteVersionMeta>();
-  return result.results;
+  const rows = await db
+    .select()
+    .from(noteVersions)
+    .where(and(eq(noteVersions.noteId, noteId), eq(noteVersions.userId, userId)))
+    .orderBy(desc(noteVersions.createdAt));
+  return rows.map(mapVersionMeta);
 }
 
-export async function getNoteVersion(db: D1Database, userId: string, versionId: string): Promise<NoteVersion | null> {
-  return db
-    .prepare("SELECT * FROM note_versions WHERE id = ? AND user_id = ?")
-    .bind(versionId, userId)
-    .first<NoteVersion>();
+export async function getNoteVersion(d1: D1Database, userId: string, versionId: string): Promise<NoteVersion | null> {
+  const db = makeDb(d1);
+  const [row] = await db
+    .select()
+    .from(noteVersions)
+    .where(and(eq(noteVersions.id, versionId), eq(noteVersions.userId, userId)))
+    .limit(1);
+  return row ? mapVersion(row) : null;
 }
