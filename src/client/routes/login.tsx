@@ -60,7 +60,7 @@ function LoginPage() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your name"
                 autoComplete="name"
-                className="w-full rounded-md border border-border bg-surface-secondary px-2.5 py-2 text-sm text-text outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20"
+                className="w-full rounded-md border border-border bg-surface-secondary px-2.5 py-2 text-sm text-text placeholder:text-text-muted outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20"
               />
             </div>
           )}
@@ -72,7 +72,8 @@ function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
-              className="w-full rounded-md border border-border bg-surface-secondary px-2.5 py-2 text-sm text-text outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20"
+              placeholder="you@example.com"
+              className="w-full rounded-md border border-border bg-surface-secondary px-2.5 py-2 text-sm text-text placeholder:text-text-muted outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20"
             />
           </div>
           <div>
@@ -84,7 +85,8 @@ function LoginPage() {
               required
               minLength={8}
               autoComplete={mode === "signin" ? "current-password" : "new-password"}
-              className="w-full rounded-md border border-border bg-surface-secondary px-2.5 py-2 text-sm text-text outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20"
+              placeholder={mode === "signin" ? "Your password" : "At least 8 characters"}
+              className="w-full rounded-md border border-border bg-surface-secondary px-2.5 py-2 text-sm text-text placeholder:text-text-muted outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20"
             />
           </div>
 
