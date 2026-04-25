@@ -33,3 +33,10 @@
 - Sign out, sign in as user B
 - B's sidebar does not show A's note
 - The /api/notes endpoint scopes by session.userId on the server
+
+## Email Allowlist
+- The `ALLOWED_EMAILS` env var (comma-separated) restricts who can sign up
+- Trying to sign up with an unlisted email shows "This email is not on the allowlist."
+- Allowlist matching is case-insensitive (`Logan@example.com` matches `logan@example.com`)
+- If `ALLOWED_EMAILS` is unset, signup is open to anyone
+- Existing users can still sign in regardless of the allowlist (it only gates new accounts)
