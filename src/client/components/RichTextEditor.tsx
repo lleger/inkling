@@ -29,16 +29,20 @@ import {
   $isParagraphNode,
   TextNode,
   COMMAND_PRIORITY_HIGH,
+  COPY_COMMAND,
   KEY_DOWN_COMMAND,
+  createEditor,
   type EditorState,
   type LexicalNode,
 } from "lexical";
 import { $isHeadingNode } from "@lexical/rich-text";
 import { $isListItemNode, $isListNode } from "@lexical/list";
+import { $generateJSONFromSelectedNodes } from "@lexical/clipboard";
 import { ScrollIntoViewPlugin } from "./ScrollIntoViewPlugin";
 import { FloatingToolbar } from "./FloatingToolbar";
 import { richTextTheme } from "../lib/editor-theme";
 import { TRANSFORMERS } from "../lib/markdown-transformers";
+import { normalizeMarkdown } from "../lib/normalize-markdown";
 import { getSmartReplacement } from "../lib/smart-typography";
 import { isTagZoneLine } from "../lib/parse-tags";
 
@@ -282,6 +286,78 @@ function ClickableLinkPlugin() {
   return null;
 }
 
+function CopyAsMarkdownPlugin() {
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    return editor.registerCommand<ClipboardEvent>(
+      COPY_COMMAND,
+      (event) => {
+        const selection = $getSelection();
+        if (!$isRangeSelection(selection) || selection.isCollapsed()) return false;
+        if (!event.clipboardData) return false;
+
+        // Serialize the selection to JSON, hydrate it in a headless editor,
+        // then ask the markdown transformers to render it.
+        const json = $generateJSONFromSelectedNodes(editor, selection);
+
+        // Inline-only selections (within a single paragraph) come back as text/link
+        // nodes which can't be root-level. Wrap them in a paragraph.
+        const ELEMENT_OR_DECORATOR_TYPES = new Set([
+          "paragraph", "heading", "quote", "list", "code", "table", "horizontalrule",
+        ]);
+        const wrappedChildren = (json.nodes as any[]).every(
+          (n) => ELEMENT_OR_DECORATOR_TYPES.has(n.type),
+        )
+          ? json.nodes
+          : [{
+              type: "paragraph",
+              version: 1,
+              direction: null,
+              format: "",
+              indent: 0,
+              children: json.nodes,
+            }];
+
+        const headless = createEditor({
+          namespace: "writer-copy",
+          nodes: [
+            HeadingNode, QuoteNode,
+            ListNode, ListItemNode,
+            CodeNode, CodeHighlightNode,
+            LinkNode, AutoLinkNode,
+            TableNode, TableRowNode, TableCellNode,
+            HashtagNode, HorizontalRuleNode,
+          ],
+        });
+        const state = headless.parseEditorState({
+          root: {
+            type: "root",
+            children: wrappedChildren,
+            direction: null,
+            format: "",
+            indent: 0,
+            version: 1,
+          },
+        } as any);
+        headless.setEditorState(state);
+
+        let md = "";
+        headless.getEditorState().read(() => {
+          md = $convertToMarkdownString(TRANSFORMERS);
+        });
+
+        event.clipboardData.setData("text/plain", md);
+        event.preventDefault();
+        return true;
+      },
+      COMMAND_PRIORITY_HIGH,
+    );
+  }, [editor]);
+
+  return null;
+}
+
 function AutoFocusPlugin() {
   const [editor] = useLexicalComposerContext();
 
@@ -328,7 +404,10 @@ export function RichTextEditor({ initialContent, onChange, autoFocus = true, sma
 
   function handleChange(editorState: EditorState) {
     editorState.read(() => {
-      onChange($convertToMarkdownString(TRANSFORMERS));
+      // $convertToMarkdownString joins block nodes with \n\n, which corrupts
+      // tables (rows must be contiguous) and accumulates blank lines inside
+      // code blocks across round-trips. Normalize before emitting.
+      onChange(normalizeMarkdown($convertToMarkdownString(TRANSFORMERS)));
     });
   }
 
@@ -358,6 +437,7 @@ export function RichTextEditor({ initialContent, onChange, autoFocus = true, sma
         <FloatingToolbar />
         <ScrollIntoViewPlugin />
         <ClickableLinkPlugin />
+        <CopyAsMarkdownPlugin />
         {autoFocus && <AutoFocusPlugin />}
       </div>
     </LexicalComposer>

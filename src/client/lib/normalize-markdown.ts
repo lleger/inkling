@@ -33,6 +33,15 @@ export function normalizeMarkdown(text: string): string {
     result = result.replace(/(^\|.+\|[^\S\n]*)\n\n(\|)/gm, "$1\n$2");
   }
 
+  // Inside fenced code blocks, blank lines are roundtrip artifacts.
+  // The Lexical CodeNode round-trip can insert 2+ blank lines between every
+  // code line. Collapse them. (If a user wants whitespace they can add a
+  // comment line; the trade-off is worth it to keep the block intact.)
+  result = result.replace(
+    /^```([^\n]*)\n([\s\S]*?)\n```/gm,
+    (_match, lang, body) => "```" + lang + "\n" + body.replace(/\n{2,}/g, "\n") + "\n```",
+  );
+
   // General: collapse 3+ newlines to 2
   result = result.replace(/\n{3,}/g, "\n\n");
   // Trim trailing

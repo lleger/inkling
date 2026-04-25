@@ -30,3 +30,9 @@
 ## Tables
 - In markdown mode, type a markdown table
 - Switch to rich text mode — table should render with headers and borders
+
+## Copy as Markdown
+- In rich text mode, select a heading and copy (Cmd+C)
+- Paste into a plain-text app — should be the markdown source (e.g. `# Heading`), not styled text
+- Copying a paragraph with a link preserves `[text](url)` syntax
+- Copying a list item preserves `- ` prefix

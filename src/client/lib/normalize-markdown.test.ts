@@ -75,4 +75,19 @@ describe("normalizeMarkdown", () => {
     const input = "# Title\n\n| Col |\n\n| --- |\n\n| Val |";
     expect(normalizeMarkdown(input)).toBe("# Title\n\n| Col |\n| --- |\n| Val |");
   });
+
+  it("collapses blank lines inside fenced code blocks", () => {
+    const input = "```js\nconst a = 1;\n\n\nconst b = 2;\n\n\nconst c = 3;\n```";
+    expect(normalizeMarkdown(input)).toBe("```js\nconst a = 1;\nconst b = 2;\nconst c = 3;\n```");
+  });
+
+  it("collapses blank lines inside fence with no language", () => {
+    const input = "```\nline1\n\nline2\n\nline3\n```";
+    expect(normalizeMarkdown(input)).toBe("```\nline1\nline2\nline3\n```");
+  });
+
+  it("preserves content between code blocks", () => {
+    const input = "```js\na;\n\nb;\n```\n\nMiddle.\n\n```py\nc\n\nd\n```";
+    expect(normalizeMarkdown(input)).toBe("```js\na;\nb;\n```\n\nMiddle.\n\n```py\nc\nd\n```");
+  });
 });
