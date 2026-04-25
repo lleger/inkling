@@ -1,35 +1,26 @@
 // Wrangler config for the writer worker.
 //
-// === Required runtime secrets (set via `wrangler secret put NAME`) ===
+// Required secrets are listed in the `secrets.required` block below —
+// `wrangler dev` warns and `wrangler deploy` fails if any are missing.
 //
-//   BETTER_AUTH_SECRET   — random ≥32 char string, signs session tokens.
-//                          generate: `openssl rand -hex 32`
-//   GOOGLE_CLIENT_SECRET — only required if Google OAuth is enabled.
+//   For local dev: put them in `.dev.vars` (gitignored).
+//   For deploy:    `npx wrangler secret put NAME`
 //
-// === Required runtime vars (either via `vars` below or `wrangler secret put`) ===
-//
-//   ALLOWED_EMAILS   — comma-separated email allowlist for sign-up.
-//                      If unset, anyone can sign up.
-//   GOOGLE_CLIENT_ID — public OAuth client ID. Only needed for Google sign-in.
-//
-// === Local development ===
-//
-// All of the above can be set in `.dev.vars` (gitignored) for local dev:
-//
-//   BETTER_AUTH_SECRET=...
-//   ALLOWED_EMAILS=you@example.com
-//
-// === Deploy ===
-//
-//   npx wrangler secret put BETTER_AUTH_SECRET
-//   npx wrangler secret put ALLOWED_EMAILS    # if you don't put it in vars below
-//   npx wrangler deploy
-//
+// Optional vars (not enforced):
+//   ALLOWED_EMAILS   — comma-separated email allowlist for sign-up. If unset,
+//                      anyone can sign up. Set as a secret OR in `vars` below.
+//   GOOGLE_CLIENT_ID — public OAuth client ID for Google sign-in.
 {
+  "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "writer",
   "main": "src/worker/index.ts",
   "compatibility_date": "2026-04-11",
   "compatibility_flags": ["nodejs_compat"],
+
+  "secrets": {
+    "required": ["BETTER_AUTH_SECRET"]
+    // Add "GOOGLE_CLIENT_SECRET" once Google OAuth is enabled.
+  },
 
   // Non-secret env vars baked into the deploy. Add ALLOWED_EMAILS /
   // GOOGLE_CLIENT_ID here if you don't want them as secrets.
