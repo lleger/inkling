@@ -41,12 +41,11 @@
 - Existing users can still sign in regardless of the allowlist (it only gates new accounts)
 
 ## Sign-Up Anti-Enumeration
-- /api/auth/sign-up/email returns an identical 200 + body for every outcome:
+- /api/auth/sign-up/email returns an identical 200 + empty body `{}` for every outcome:
   - Allowed + new email (auto-sign-in succeeds)
   - Allowed + email already registered
   - Email not on the allowlist
-- The body is always: `{"message": "If your email is allowed, you can sign in."}`
 - Only the legitimate success case sets a session cookie (unavoidable)
 - The /login page checks `getSession()` after sign-up:
   - If signed in → navigate to redirect target
-  - If not → show the generic message, switch the form to "sign in" mode
+  - If not → show "Something went wrong." (no detail about why)

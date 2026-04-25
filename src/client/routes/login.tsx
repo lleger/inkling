@@ -18,26 +18,24 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setInfo(null);
     setBusy(true);
     try {
       if (mode === "signup") {
-        // The server returns a generic response regardless of outcome
+        // Server returns a generic response regardless of outcome
         // (allowlist gate, existing email, success). The only way to know
-        // whether we're signed in is to check the session afterwards.
+        // whether we're actually signed in is to check the session.
         await signUp.email({ email, password, name: name || email });
         const session = await authClient.getSession();
         if (session.data?.user) {
           navigate({ to: search.redirect || "/" });
         } else {
-          setInfo("If your email is allowed, you can sign in now.");
-          setMode("signin");
+          // Don't reveal whether the email is taken or not on the allowlist
+          setError("Something went wrong.");
         }
       } else {
         const res = await signIn.email({ email, password });
@@ -104,12 +102,6 @@ function LoginPage() {
           {error && (
             <div className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-[12px] text-red-600">
               {error}
-            </div>
-          )}
-
-          {info && (
-            <div className="rounded-md border border-border bg-surface-secondary px-3 py-2 text-[12px] text-text-secondary">
-              {info}
             </div>
           )}
 

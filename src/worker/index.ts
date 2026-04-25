@@ -30,10 +30,9 @@ app.post("/api/auth/sign-up/email", async (c) => {
     const setCookies = upstream.headers.getSetCookie?.() ?? [];
     for (const v of setCookies) headers.append("set-cookie", v);
   }
-  return new Response(
-    JSON.stringify({ message: "If your email is allowed, you can sign in." }),
-    { status: 200, headers },
-  );
+  // Body is identical for every outcome — frontend distinguishes by
+  // calling getSession() afterwards.
+  return new Response(JSON.stringify({}), { status: 200, headers });
 });
 
 app.all("/api/auth/*", (c) => {
