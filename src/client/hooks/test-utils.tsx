@@ -4,7 +4,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 export function createTestQueryClient() {
   return new QueryClient({
     defaultOptions: {
-      queries: { retry: false, gcTime: 0, staleTime: 0 },
+      // gcTime: Infinity so setQueryData seeds for unobserved queries (e.g. trash) stick.
+      queries: { retry: false, gcTime: Infinity, staleTime: 0 },
       mutations: { retry: false },
     },
   });
