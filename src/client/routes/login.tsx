@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
-import { signIn, signUp } from "../lib/auth-client";
+import { authClient, signIn, signUp } from "../lib/auth-client";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (search): { mode?: "signin" | "signup"; redirect?: string } => ({
@@ -18,21 +18,32 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setInfo(null);
     setBusy(true);
     try {
       if (mode === "signup") {
-        const res = await signUp.email({ email, password, name: name || email });
-        if (res.error) throw new Error(res.error.message);
+        // The server returns a generic response regardless of outcome
+        // (allowlist gate, existing email, success). The only way to know
+        // whether we're signed in is to check the session afterwards.
+        await signUp.email({ email, password, name: name || email });
+        const session = await authClient.getSession();
+        if (session.data?.user) {
+          navigate({ to: search.redirect || "/" });
+        } else {
+          setInfo("If your email is allowed, you can sign in now.");
+          setMode("signin");
+        }
       } else {
         const res = await signIn.email({ email, password });
         if (res.error) throw new Error(res.error.message);
+        navigate({ to: search.redirect || "/" });
       }
-      navigate({ to: search.redirect || "/" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -93,6 +104,12 @@ function LoginPage() {
           {error && (
             <div className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-[12px] text-red-600">
               {error}
+            </div>
+          )}
+
+          {info && (
+            <div className="rounded-md border border-border bg-surface-secondary px-3 py-2 text-[12px] text-text-secondary">
+              {info}
             </div>
           )}
 
