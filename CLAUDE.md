@@ -71,6 +71,7 @@ Specs describe user-visible behavior, not implementation details. They should be
 - `09-trash.md` — view, restore, permanent delete
 - `10-version-history.md` — browse, preview, restore
 - `11-daily-note.md` — Cmd+Shift+D opens today's note (creating if missing)
+- `12-auth.md` — sign up / in / out, auth gate, session persistence, cross-user isolation
 
 ## Commits
 
