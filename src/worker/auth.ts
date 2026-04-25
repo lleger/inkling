@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { APIError } from "better-auth/api";
 import { Kysely } from "kysely";
-import { D1Dialect } from "kysely-d1";
+import { D1Dialect } from "./d1-dialect";
 import type { Env } from "./types";
 
 /** Parse the comma-separated ALLOWED_EMAILS env var into a lowercased set. */

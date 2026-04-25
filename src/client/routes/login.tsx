@@ -36,6 +36,9 @@ function LoginPage() {
         } else {
           // Don't reveal whether the email is taken or not on the allowlist
           setError("Something went wrong.");
+          setEmail("");
+          setPassword("");
+          setName("");
         }
       } else {
         const res = await signIn.email({ email, password });
@@ -44,6 +47,7 @@ function LoginPage() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
+      setPassword("");
     } finally {
       setBusy(false);
     }
