@@ -73,4 +73,5 @@ export interface Settings {
   accent: AccentColor;
   defaultMode: EditorMode;
   smartTypography: boolean;
+  dailyNoteFolder: string;
 }

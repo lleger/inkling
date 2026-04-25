@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { fetchSettings, saveSettings } from "../lib/api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { settingsQuery, queryKeys } from "../lib/queries";
+import { saveSettings } from "../lib/api";
 import type { Settings } from "../types";
 
 export type { Settings, AccentColor } from "../types";
@@ -11,6 +13,7 @@ const DEFAULTS: Settings = {
   accent: "green",
   defaultMode: "richtext",
   smartTypography: true,
+  dailyNoteFolder: "Daily",
 };
 
 function getLocalCache(): Settings {
@@ -22,33 +25,28 @@ function getLocalCache(): Settings {
 }
 
 export function useSettings() {
+  const qc = useQueryClient();
   const [settings, setSettings] = useState<Settings>(getLocalCache);
-  const [loaded, setLoaded] = useState(false);
+  const { data: remote, isSuccess } = useQuery(settingsQuery());
 
-  // Load from API on mount
+  // Hydrate from server when fetched
   useEffect(() => {
-    fetchSettings()
-      .then((remote) => {
-        if (remote && Object.keys(remote).length > 0) {
-          const merged = { ...DEFAULTS, ...remote } as Settings;
-          setSettings(merged);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoaded(true));
-  }, []);
+    if (isSuccess && remote && Object.keys(remote).length > 0) {
+      const merged = { ...DEFAULTS, ...remote } as Settings;
+      setSettings(merged);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+    }
+  }, [isSuccess, remote]);
 
   const update = useCallback((partial: Partial<Settings>) => {
     setSettings((prev) => {
       const next = { ...prev, ...partial };
-      // Write to localStorage immediately for instant feedback
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      // Write to API in background
       saveSettings(next).catch(() => {});
+      qc.setQueryData(queryKeys.settings, next);
       return next;
     });
-  }, []);
+  }, [qc]);
 
-  return { settings, update, loaded };
+  return { settings, update, loaded: isSuccess };
 }

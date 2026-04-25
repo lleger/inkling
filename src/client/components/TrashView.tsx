@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Trash2, RotateCcw, X } from "lucide-react";
-import { fetchTrash, restoreNote, permanentlyDeleteNote } from "../lib/api";
-import type { DeletedNoteMeta } from "../types";
+import { restoreNote, permanentlyDeleteNote } from "../lib/api";
+import { trashQuery, queryKeys } from "../lib/queries";
 
 function timeAgo(dateStr: string): string {
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -16,46 +16,22 @@ function timeAgo(dateStr: string): string {
   return `${months}mo ago`;
 }
 
-interface TrashViewProps {
-  onNoteRestored: () => void;
-}
+export function TrashView() {
+  const qc = useQueryClient();
+  const { data: notes = [], isLoading } = useQuery(trashQuery());
 
-export function TrashView({ onNoteRestored }: TrashViewProps) {
-  const [notes, setNotes] = useState<DeletedNoteMeta[]>([]);
-  const [loading, setLoading] = useState(true);
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: queryKeys.trash });
+    qc.invalidateQueries({ queryKey: queryKeys.notes });
+  };
 
-  const load = useCallback(async () => {
-    try {
-      const data = await fetchTrash();
-      setNotes(data);
-    } catch (err) {
-      console.error("Failed to load trash:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const restore = useMutation({ mutationFn: restoreNote, onSuccess: invalidate });
+  const purge = useMutation({ mutationFn: permanentlyDeleteNote, onSuccess: invalidate });
 
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  const handleRestore = useCallback(
-    async (id: string) => {
-      await restoreNote(id);
-      await load();
-      onNoteRestored();
-    },
-    [load, onNoteRestored],
-  );
-
-  const handlePermanentDelete = useCallback(
-    async (id: string) => {
-      if (!window.confirm("Permanently delete this note? This cannot be undone.")) return;
-      await permanentlyDeleteNote(id);
-      await load();
-    },
-    [load],
-  );
+  const handlePermanentDelete = async (id: string) => {
+    if (!window.confirm("Permanently delete this note? This cannot be undone.")) return;
+    purge.mutate(id);
+  };
 
   return (
     <div className="flex w-full max-w-[680px] flex-col px-6 pt-12 pb-24 min-h-full animate-[fade-in_0.2s_ease-out]">
@@ -68,7 +44,7 @@ export function TrashView({ onNoteRestored }: TrashViewProps) {
         Deleted notes are kept for 30 days, then permanently removed.
       </p>
 
-      {loading ? (
+      {isLoading ? (
         <div className="pt-16 text-center text-sm text-text-muted">Loading...</div>
       ) : notes.length === 0 ? (
         <div className="flex flex-col items-center gap-3 pt-16 text-text-muted">
@@ -90,7 +66,7 @@ export function TrashView({ onNoteRestored }: TrashViewProps) {
               </div>
               <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                 <button
-                  onClick={() => handleRestore(note.id)}
+                  onClick={() => restore.mutate(note.id)}
                   title="Restore"
                   className="flex size-7 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-active hover:text-accent"
                 >

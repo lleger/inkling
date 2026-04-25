@@ -1,55 +1,50 @@
-import { useState, useEffect, useCallback } from "react";
-import type { NoteMeta } from "../types";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as api from "../lib/api";
+import { notesQuery, queryKeys } from "../lib/queries";
+import type { Note } from "../types";
 
 export function useNotes() {
-  const [notes, setNotes] = useState<NoteMeta[]>([]);
-  const [loading, setLoading] = useState(true);
+  const qc = useQueryClient();
+  const query = useQuery(notesQuery());
 
-  const refresh = useCallback(async () => {
-    try {
-      const data = await api.fetchNotes();
-      setNotes(data);
-    } catch (err) {
-      console.error("Failed to fetch notes:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: queryKeys.notes });
+    qc.invalidateQueries({ queryKey: queryKeys.trash });
+  };
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+  const createMutation = useMutation({
+    mutationFn: (options?: { title?: string; content?: string }) => api.createNote(options),
+    onSuccess: invalidate,
+  });
 
-  const create = useCallback(async (options?: { title?: string; content?: string }) => {
-    const note = await api.createNote(options);
-    await refresh();
-    return note;
-  }, [refresh]);
+  const removeMutation = useMutation({
+    mutationFn: (id: string) => api.deleteNote(id),
+    onSuccess: invalidate,
+  });
 
-  const remove = useCallback(
-    async (id: string) => {
-      await api.deleteNote(id);
-      await refresh();
-    },
-    [refresh],
-  );
+  const restoreMutation = useMutation({
+    mutationFn: (id: string) => api.restoreNote(id),
+    onSuccess: invalidate,
+  });
 
-  const pin = useCallback(
-    async (id: string, pinned: boolean) => {
-      await api.pinNote(id, pinned);
-      await refresh();
-    },
-    [refresh],
-  );
+  const pinMutation = useMutation({
+    mutationFn: ({ id, pinned }: { id: string; pinned: boolean }) => api.pinNote(id, pinned),
+    onSuccess: invalidate,
+  });
 
-  const move = useCallback(
-    async (id: string, folder: string | null) => {
-      await api.moveNoteToFolder(id, folder);
-      await refresh();
-    },
-    [refresh],
-  );
+  const moveMutation = useMutation({
+    mutationFn: ({ id, folder }: { id: string; folder: string | null }) => api.moveNoteToFolder(id, folder),
+    onSuccess: invalidate,
+  });
 
-  return { notes, loading, refresh, create, remove, pin, move };
+  return {
+    notes: query.data ?? [],
+    loading: query.isLoading,
+    refresh: () => qc.invalidateQueries({ queryKey: queryKeys.notes }),
+    create: async (options?: { title?: string; content?: string }): Promise<Note> => createMutation.mutateAsync(options),
+    remove: async (id: string) => removeMutation.mutateAsync(id),
+    restore: async (id: string) => restoreMutation.mutateAsync(id),
+    pin: async (id: string, pinned: boolean) => pinMutation.mutateAsync({ id, pinned }),
+    move: async (id: string, folder: string | null) => moveMutation.mutateAsync({ id, folder }),
+  };
 }
