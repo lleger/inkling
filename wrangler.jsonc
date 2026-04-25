@@ -1,8 +1,42 @@
+// Wrangler config for the writer worker.
+//
+// === Required runtime secrets (set via `wrangler secret put NAME`) ===
+//
+//   BETTER_AUTH_SECRET   — random ≥32 char string, signs session tokens.
+//                          generate: `openssl rand -hex 32`
+//   GOOGLE_CLIENT_SECRET — only required if Google OAuth is enabled.
+//
+// === Required runtime vars (either via `vars` below or `wrangler secret put`) ===
+//
+//   ALLOWED_EMAILS   — comma-separated email allowlist for sign-up.
+//                      If unset, anyone can sign up.
+//   GOOGLE_CLIENT_ID — public OAuth client ID. Only needed for Google sign-in.
+//
+// === Local development ===
+//
+// All of the above can be set in `.dev.vars` (gitignored) for local dev:
+//
+//   BETTER_AUTH_SECRET=...
+//   ALLOWED_EMAILS=you@example.com
+//
+// === Deploy ===
+//
+//   npx wrangler secret put BETTER_AUTH_SECRET
+//   npx wrangler secret put ALLOWED_EMAILS    # if you don't put it in vars below
+//   npx wrangler deploy
+//
 {
   "name": "writer",
   "main": "src/worker/index.ts",
   "compatibility_date": "2026-04-11",
   "compatibility_flags": ["nodejs_compat"],
+
+  // Non-secret env vars baked into the deploy. Add ALLOWED_EMAILS /
+  // GOOGLE_CLIENT_ID here if you don't want them as secrets.
+  // "vars": {
+  //   "ALLOWED_EMAILS": "you@example.com,colleague@example.com"
+  // },
+
   "assets": {
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*"]
