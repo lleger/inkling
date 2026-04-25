@@ -6,6 +6,11 @@
 - If no note exists for today, a new note is created with the title `YYYY-MM-DD` (today's date)
 - The note is placed in the `Daily` folder by default (configurable in Settings)
 
+## Open today's daily note via /today URL
+- Navigate to `/today` (e.g., bookmark, type in URL bar)
+- Same behavior: redirects to today's daily note, creating it if missing
+- The URL after redirect is `/notes/:id` of the daily note (so refreshing stays put)
+
 ## Open via command palette
 - Press `Cmd+K` to open the command palette
 - Select "Open today's daily note"
