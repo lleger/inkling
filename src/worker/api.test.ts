@@ -48,10 +48,10 @@ beforeAll(async () => {
 });
 
 
-// In tests we use the worker's DEV_MODE fallback to populate userId/email.
+// Tests bypass real session creation via TEST_AUTH_BYPASS=1 in env.
 // Real auth (better-auth sessions) is exercised by acceptance tests.
-const TEST_USER_ID = "dev-user";
-const TEST_USER_EMAIL = "dev@localhost";
+const TEST_USER_ID = "test-user";
+const TEST_USER_EMAIL = "test@local";
 
 function authHeaders() {
   return { "Content-Type": "application/json" };
@@ -68,8 +68,7 @@ describe("API", () => {
   });
 
   function req(path: string, init?: RequestInit) {
-    // DEV_MODE=true so the auth middleware injects a deterministic dev user
-    return app.request(path, init, { DB: db, DEV_MODE: "true" });
+    return app.request(path, init, { DB: db, TEST_AUTH_BYPASS: "1" });
   }
 
   describe("GET /api/health", () => {
@@ -81,12 +80,12 @@ describe("API", () => {
   });
 
   describe("auth middleware", () => {
-    it("returns 401 without a session and without dev mode", async () => {
+    it("returns 401 without a session and without TEST_AUTH_BYPASS", async () => {
       const res = await app.request("/api/user", {}, { DB: db });
       expect(res.status).toBe(401);
     });
 
-    it("allows dev mode fallback", async () => {
+    it("allows the test auth bypass when explicitly enabled", async () => {
       const res = await req("/api/user");
       expect(res.status).toBe(200);
       const body = await res.json();

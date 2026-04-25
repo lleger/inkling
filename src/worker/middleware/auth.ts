@@ -20,12 +20,14 @@ export const authMiddleware = createMiddleware<{
     return next();
   }
 
-  // Dev fallback — only when DEV_MODE is on AND no session.
-  // Tests may pass X-Test-User-Id to impersonate a specific user.
-  if (c.env.DEV_MODE === "true") {
+  // Test-only auth bypass. Honored ONLY when TEST_AUTH_BYPASS is "1".
+  // The unit test harness passes this in the env arg to app.request().
+  // Production wrangler config never sets it, so this branch is unreachable
+  // in deployed environments. Don't put TEST_AUTH_BYPASS in .dev.vars.
+  if (c.env.TEST_AUTH_BYPASS === "1") {
     const testUserId = c.req.header("X-Test-User-Id");
-    c.set("userId", testUserId || "dev-user");
-    c.set("userEmail", testUserId ? `${testUserId}@test.local` : "dev@localhost");
+    c.set("userId", testUserId || "test-user");
+    c.set("userEmail", testUserId ? `${testUserId}@test.local` : "test@local");
     return next();
   }
 
