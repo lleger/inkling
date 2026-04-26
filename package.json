@@ -38,7 +38,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.0.0",
+    "@cloudflare/vite-plugin": "^1.33.2",
     "@cloudflare/workers-types": "^4.20260411.1",
     "@tailwindcss/vite": "^4.2.2",
     "@tanstack/react-query-devtools": "^5.100.1",
