@@ -320,7 +320,7 @@ function CopyAsMarkdownPlugin() {
             }];
 
         const headless = createEditor({
-          namespace: "writer-copy",
+          namespace: "inkling-copy",
           nodes: [
             HeadingNode, QuoteNode,
             ListNode, ListItemNode,

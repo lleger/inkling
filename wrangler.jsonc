@@ -1,4 +1,4 @@
-// Wrangler config for the writer worker.
+// Wrangler config for the Inkling worker.
 //
 // Required secrets are listed in the `secrets.required` block below —
 // `wrangler dev` warns and `wrangler deploy` fails if any are missing.
@@ -12,7 +12,7 @@
 //   GOOGLE_CLIENT_ID — public OAuth client ID for Google sign-in.
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "writer",
+  "name": "inkling",
   "main": "src/worker/index.ts",
   "compatibility_date": "2026-04-11",
   "compatibility_flags": ["nodejs_compat"],

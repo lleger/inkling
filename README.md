@@ -1,4 +1,4 @@
-# Writer
+# Inkling
 
 A minimal, fast writing app on Cloudflare Workers. Dual-mode editor with rich text and raw markdown, stored on the edge via D1, secured with CF Zero Trust.
 
