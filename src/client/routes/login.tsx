@@ -120,7 +120,13 @@ function LoginPage() {
 
         <button
           type="button"
-          onClick={() => { setMode((m) => (m === "signin" ? "signup" : "signin")); setError(null); }}
+          onClick={() => {
+            setMode((m) => (m === "signin" ? "signup" : "signin"));
+            setError(null);
+            setEmail("");
+            setPassword("");
+            setName("");
+          }}
           className="mt-4 w-full text-[12px] text-text-muted hover:text-text-secondary"
         >
           {mode === "signin" ? "Don't have an account? Sign up" : "Have an account? Sign in"}
