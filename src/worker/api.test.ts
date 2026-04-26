@@ -18,9 +18,9 @@ const SCHEMA_SQL = `
     tags TEXT NOT NULL DEFAULT '[]',
     pinned INTEGER NOT NULL DEFAULT 0,
     folder TEXT DEFAULT NULL,
-    deleted_at TEXT DEFAULT NULL,
-    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
-    updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+    deleted_at INTEGER DEFAULT NULL,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
+    updated_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
   );
   CREATE TABLE IF NOT EXISTS note_versions (
     id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
@@ -30,7 +30,7 @@ const SCHEMA_SQL = `
     title TEXT NOT NULL,
     preview TEXT NOT NULL DEFAULT '',
     word_count INTEGER NOT NULL DEFAULT 0,
-    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+    created_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
   );
   CREATE TABLE IF NOT EXISTS user_settings (
     user_id TEXT PRIMARY KEY,

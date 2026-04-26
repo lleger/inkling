@@ -98,6 +98,11 @@ function computeStats(content: string) {
 // (camelCase). The wire types we ship to the client (NoteMeta etc.) use
 // snake_case to match the existing JSON contract on the API.
 
+// Date columns are returned as JS Date by Drizzle. The wire format is ISO
+// strings; convert at the boundary so the JSON contract stays stable.
+const iso = (d: Date | null | undefined): string | null =>
+  d == null ? null : d.toISOString();
+
 function mapMeta(row: typeof notes.$inferSelect): NoteMeta {
   return {
     id: row.id,
@@ -109,8 +114,8 @@ function mapMeta(row: typeof notes.$inferSelect): NoteMeta {
     tags: row.tags,
     pinned: row.pinned,
     folder: row.folder,
-    created_at: row.createdAt,
-    updated_at: row.updatedAt,
+    created_at: iso(row.createdAt)!,
+    updated_at: iso(row.updatedAt)!,
   };
 }
 
@@ -127,9 +132,9 @@ function mapNote(row: typeof notes.$inferSelect): Note {
     tags: row.tags,
     pinned: row.pinned,
     folder: row.folder,
-    deleted_at: row.deletedAt,
-    created_at: row.createdAt,
-    updated_at: row.updatedAt,
+    deleted_at: iso(row.deletedAt),
+    created_at: iso(row.createdAt)!,
+    updated_at: iso(row.updatedAt)!,
   };
 }
 
@@ -140,7 +145,7 @@ function mapVersionMeta(row: typeof noteVersions.$inferSelect): NoteVersionMeta 
     title: row.title,
     preview: row.preview,
     word_count: row.wordCount,
-    created_at: row.createdAt,
+    created_at: iso(row.createdAt)!,
   };
 }
 
@@ -153,7 +158,7 @@ function mapVersion(row: typeof noteVersions.$inferSelect): NoteVersion {
     title: row.title,
     preview: row.preview,
     word_count: row.wordCount,
-    created_at: row.createdAt,
+    created_at: iso(row.createdAt)!,
   };
 }
 
@@ -235,7 +240,7 @@ export async function updateNote(
       taskDone: stats.taskDone,
       taskTotal: stats.taskTotal,
       tags: JSON.stringify(stats.tags),
-      updatedAt: sql`(strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))`,
+      updatedAt: new Date(),
     })
     .where(and(eq(notes.id, noteId), eq(notes.userId, userId)));
 
@@ -250,7 +255,7 @@ export async function deleteNote(d1: D1Database, userId: string, noteId: string)
   const db = makeDb(d1);
   const result = await db
     .update(notes)
-    .set({ deletedAt: sql`(strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))` })
+    .set({ deletedAt: new Date() })
     .where(and(eq(notes.id, noteId), eq(notes.userId, userId), isNull(notes.deletedAt)));
   return (result.meta?.changes ?? 0) > 0;
 }
@@ -279,8 +284,8 @@ export async function listDeletedNotes(d1: D1Database, userId: string): Promise<
   return rows.map((r) => ({
     id: r.id,
     title: r.title,
-    deleted_at: r.deletedAt!,
-    created_at: r.createdAt,
+    deleted_at: iso(r.deletedAt)!,
+    created_at: iso(r.createdAt)!,
   }));
 }
 
@@ -303,7 +308,7 @@ export async function purgeOldDeletedNotes(d1: D1Database, userId: string, daysO
       and(
         eq(notes.userId, userId),
         isNotNull(notes.deletedAt),
-        lt(notes.deletedAt, sql`(strftime('%Y-%m-%dT%H:%M:%SZ', 'now', ${"-" + daysOld + " days"}))`),
+        lt(notes.deletedAt, new Date(Date.now() - daysOld * 24 * 60 * 60 * 1000)),
       ),
     );
   return result.meta?.changes ?? 0;
@@ -358,7 +363,7 @@ async function createVersionSnapshot(d1: D1Database, userId: string, noteId: str
     .limit(1);
 
   if (last) {
-    const elapsed = Date.now() - new Date(last.createdAt).getTime();
+    const elapsed = Date.now() - last.createdAt.getTime();
     if (elapsed < VERSION_THROTTLE_MS) return;
   }
 
@@ -384,7 +389,7 @@ export async function listNoteVersions(d1: D1Database, userId: string, noteId: s
       and(
         eq(noteVersions.noteId, noteId),
         eq(noteVersions.userId, userId),
-        lt(noteVersions.createdAt, sql`(strftime('%Y-%m-%dT%H:%M:%SZ', 'now', ${"-" + VERSION_MAX_AGE_DAYS + " days"}))`),
+        lt(noteVersions.createdAt, new Date(Date.now() - VERSION_MAX_AGE_DAYS * 24 * 60 * 60 * 1000)),
       ),
     );
 

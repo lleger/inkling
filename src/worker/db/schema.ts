@@ -1,9 +1,15 @@
 import { sql } from "drizzle-orm";
 import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 
-// --- App tables ---
+// All timestamp columns use Drizzle's standard timestamp_ms mode: stored as
+// INTEGER (Unix milliseconds) and surfaced to JS as Date objects. This matches
+// what better-auth's adapter passes (Date) and serializes cleanly to ISO
+// strings on the wire via JSON.stringify.
 
-const isoNow = sql`(strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))`;
+const nowMs = sql`(unixepoch() * 1000)`;
+const ts = (name: string) => integer(name, { mode: "timestamp_ms" });
+
+// --- App tables ---
 
 export const notes = sqliteTable(
   "notes",
@@ -19,9 +25,9 @@ export const notes = sqliteTable(
     tags: text("tags").notNull().default("[]"),
     pinned: integer("pinned").notNull().default(0),
     folder: text("folder"),
-    deletedAt: text("deleted_at"),
-    createdAt: text("created_at").notNull().default(isoNow),
-    updatedAt: text("updated_at").notNull().default(isoNow),
+    deletedAt: ts("deleted_at"),
+    createdAt: ts("created_at").notNull().default(nowMs),
+    updatedAt: ts("updated_at").notNull().default(nowMs),
   },
   (t) => [
     index("idx_notes_user_id").on(t.userId),
@@ -39,7 +45,7 @@ export const noteVersions = sqliteTable(
     title: text("title").notNull(),
     preview: text("preview").notNull().default(""),
     wordCount: integer("word_count").notNull().default(0),
-    createdAt: text("created_at").notNull().default(isoNow),
+    createdAt: ts("created_at").notNull().default(nowMs),
   },
   (t) => [
     index("idx_versions_note").on(t.noteId, t.createdAt),
@@ -53,17 +59,17 @@ export const userSettings = sqliteTable("user_settings", {
 });
 
 // --- better-auth tables ---
-// These match the standard better-auth SQLite schema. Don't rename columns
-// without updating the auth migration too.
+// Standard better-auth SQLite schema with timestamps as INTEGER (Unix ms),
+// matching the Drizzle pattern.
 
 export const user = sqliteTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  emailVerified: integer("emailVerified").notNull().default(0),
+  emailVerified: integer("emailVerified", { mode: "boolean" }).notNull().default(false),
   image: text("image"),
-  createdAt: text("createdAt").notNull().default(isoNow),
-  updatedAt: text("updatedAt").notNull().default(isoNow),
+  createdAt: ts("createdAt").notNull().default(nowMs),
+  updatedAt: ts("updatedAt").notNull().default(nowMs),
 });
 
 export const session = sqliteTable(
@@ -72,11 +78,11 @@ export const session = sqliteTable(
     id: text("id").primaryKey(),
     userId: text("userId").notNull().references(() => user.id, { onDelete: "cascade" }),
     token: text("token").notNull().unique(),
-    expiresAt: text("expiresAt").notNull(),
+    expiresAt: ts("expiresAt").notNull(),
     ipAddress: text("ipAddress"),
     userAgent: text("userAgent"),
-    createdAt: text("createdAt").notNull().default(isoNow),
-    updatedAt: text("updatedAt").notNull().default(isoNow),
+    createdAt: ts("createdAt").notNull().default(nowMs),
+    updatedAt: ts("updatedAt").notNull().default(nowMs),
   },
   (t) => [
     index("idx_session_userId").on(t.userId),
@@ -94,12 +100,12 @@ export const account = sqliteTable(
     accessToken: text("accessToken"),
     refreshToken: text("refreshToken"),
     idToken: text("idToken"),
-    accessTokenExpiresAt: text("accessTokenExpiresAt"),
-    refreshTokenExpiresAt: text("refreshTokenExpiresAt"),
+    accessTokenExpiresAt: ts("accessTokenExpiresAt"),
+    refreshTokenExpiresAt: ts("refreshTokenExpiresAt"),
     scope: text("scope"),
     password: text("password"),
-    createdAt: text("createdAt").notNull().default(isoNow),
-    updatedAt: text("updatedAt").notNull().default(isoNow),
+    createdAt: ts("createdAt").notNull().default(nowMs),
+    updatedAt: ts("updatedAt").notNull().default(nowMs),
   },
   (t) => [
     index("idx_account_userId").on(t.userId),
@@ -113,9 +119,9 @@ export const verification = sqliteTable(
     id: text("id").primaryKey(),
     identifier: text("identifier").notNull(),
     value: text("value").notNull(),
-    expiresAt: text("expiresAt").notNull(),
-    createdAt: text("createdAt").notNull().default(isoNow),
-    updatedAt: text("updatedAt").notNull().default(isoNow),
+    expiresAt: ts("expiresAt").notNull(),
+    createdAt: ts("createdAt").notNull().default(nowMs),
+    updatedAt: ts("updatedAt").notNull().default(nowMs),
   },
   (t) => [index("idx_verification_identifier").on(t.identifier)],
 );
