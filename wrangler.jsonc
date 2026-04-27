@@ -22,6 +22,15 @@
   "compatibility_date": "2026-04-11",
   "compatibility_flags": ["nodejs_compat"],
 
+  // Workers Logs — enables the Logs/Traces tab in the dashboard. Without
+  // this, `wrangler tail` is the only way to see runtime errors.
+  // head_sampling_rate=1.0 captures every request; lower it once we have
+  // real traffic.
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1.0
+  },
+
   // Custom domain. Add inkling.page to Cloudflare as a zone first, then
   // uncomment. `custom_domain: true` makes wrangler issue the cert and
   // wire DNS automatically (cleaner than the legacy `routes` pattern).
@@ -51,6 +60,7 @@
     {
       "binding": "DB",
       "database_name": "inkling-db",
+      "database_id": "6cc9d799-a795-46ac-8d7b-1d3da8a60284",
     }
   ]
 }
