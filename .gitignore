@@ -8,3 +8,4 @@ tests/acceptance/screenshots/
 *.png
 src/client/routeTree.gen.ts
 .tanstack/
+worker-configuration.d.ts
