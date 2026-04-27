@@ -12,7 +12,7 @@
 - Clear the search — all notes should reappear
 
 ## Tag Filtering
-- Tag pills should appear above the stats row (e.g., #blog, #writer)
+- Tag pills should appear above the stats row (e.g., #blog, #journal)
 - Click a tag — only notes with that tag should show
 - Click the same tag again — filter clears, all notes reappear
 - Tag filter and search can be active at the same time

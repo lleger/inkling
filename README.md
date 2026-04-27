@@ -1,6 +1,6 @@
 # Inkling
 
-A minimal, fast writing app on Cloudflare Workers. Dual-mode editor with rich text and raw markdown, stored on the edge via D1, secured with CF Zero Trust.
+A minimal, fast writing app on Cloudflare Workers. Dual-mode editor with rich text and raw markdown, stored on the edge via D1, multi-user with email/password auth (better-auth) and an optional email allowlist for sign-up.
 
 ## Features
 
@@ -84,10 +84,10 @@ npm run dev
 
 ## Deploy
 
-1. Create a D1 database: `wrangler d1 create writer-db`
+1. Create a D1 database: `wrangler d1 create inkling-db`
 2. Update `database_id` in `wrangler.jsonc`
 3. Run migrations: `npm run db:migrate`
-4. Configure a CF Access application in the Zero Trust dashboard for your domain
+4. Set required secrets: `wrangler secret put BETTER_AUTH_SECRET` and (optionally) `wrangler secret put ALLOWED_EMAILS`
 5. Deploy: `npm run deploy`
 
 ## Project structure
