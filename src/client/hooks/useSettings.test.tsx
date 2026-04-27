@@ -6,7 +6,7 @@ import * as api from "../lib/api";
 
 vi.mock("../lib/api");
 
-const STORAGE_KEY = "writer-settings";
+const STORAGE_KEY = "inkling-settings";
 
 beforeEach(() => {
   localStorage.clear();

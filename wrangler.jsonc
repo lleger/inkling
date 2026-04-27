@@ -35,7 +35,7 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "writer-db",
+      "database_name": "inkling-db",
       "database_id": "local-dev-placeholder"
     }
   ]

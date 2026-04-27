@@ -5,7 +5,7 @@ import { defineConfig } from "drizzle-kit";
  *
  * Usage:
  *   npx drizzle-kit generate          # diff schema.ts vs prior snapshot, write a migration
- *   npx wrangler d1 execute writer-db --local --file=src/worker/db/migrations/<file>
+ *   npx wrangler d1 execute inkling-db --local --file=src/worker/db/migrations/<file>
  *
  * For now, the existing migrate-001..008 SQL files were applied by hand and
  * remain the source of truth for the live schema. New schema changes should

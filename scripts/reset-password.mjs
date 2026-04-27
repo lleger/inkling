@@ -5,9 +5,9 @@
 // Usage:
 //   node scripts/reset-password.mjs <email> <new-password>
 //   # then run the printed SQL against your D1:
-//   npx wrangler d1 execute writer-db --local --command "<sql>"
+//   npx wrangler d1 execute inkling-db --local --command "<sql>"
 //   # or for production:
-//   npx wrangler d1 execute writer-db --remote --command "<sql>"
+//   npx wrangler d1 execute inkling-db --remote --command "<sql>"
 
 import { hashPassword } from "@better-auth/utils/password";
 

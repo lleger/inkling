@@ -6,7 +6,7 @@ import type { Settings } from "../types";
 
 export type { Settings, AccentColor } from "../types";
 
-const STORAGE_KEY = "writer-settings";
+const STORAGE_KEY = "inkling-settings";
 
 const DEFAULTS: Settings = {
   theme: "system",
