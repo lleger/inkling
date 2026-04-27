@@ -25,10 +25,10 @@
   // Custom domain. Add inkling.page to Cloudflare as a zone first, then
   // uncomment. `custom_domain: true` makes wrangler issue the cert and
   // wire DNS automatically (cleaner than the legacy `routes` pattern).
-  // "routes": [
-  //   { "pattern": "inkling.page", "custom_domain": true },
-  //   { "pattern": "www.inkling.page", "custom_domain": true }
-  // ],
+  "routes": [
+    { "pattern": "inkling.page", "custom_domain": true },
+    { "pattern": "www.inkling.page", "custom_domain": true }
+  ],
 
   "secrets": {
     "required": ["BETTER_AUTH_SECRET"]
@@ -51,7 +51,6 @@
     {
       "binding": "DB",
       "database_name": "inkling-db",
-      "database_id": "local-dev-placeholder"
     }
   ]
 }

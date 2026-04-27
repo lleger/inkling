@@ -9,3 +9,4 @@ tests/acceptance/screenshots/
 src/client/routeTree.gen.ts
 .tanstack/
 worker-configuration.d.ts
+.env
