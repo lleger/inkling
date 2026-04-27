@@ -22,6 +22,14 @@
   "compatibility_date": "2026-04-11",
   "compatibility_flags": ["nodejs_compat"],
 
+  // Custom domain. Add inkling.page to Cloudflare as a zone first, then
+  // uncomment. `custom_domain: true` makes wrangler issue the cert and
+  // wire DNS automatically (cleaner than the legacy `routes` pattern).
+  // "routes": [
+  //   { "pattern": "inkling.page", "custom_domain": true },
+  //   { "pattern": "www.inkling.page", "custom_domain": true }
+  // ],
+
   "secrets": {
     "required": ["BETTER_AUTH_SECRET"]
     // Add "GOOGLE_CLIENT_SECRET" once Google OAuth is enabled.
