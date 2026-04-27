@@ -6,9 +6,14 @@
 //   For local dev: put them in `.dev.vars` (gitignored).
 //   For deploy:    `npx wrangler secret put NAME`
 //
-// Optional vars (not enforced):
-//   ALLOWED_EMAILS   — comma-separated email allowlist for sign-up. If unset,
-//                      anyone can sign up. Set as a secret OR in `vars` below.
+// Required env (the worker throws at request time if any are missing or
+// invalid; pick one mode explicitly so config drift can't silently flip
+// the app to open registration):
+//   SIGNUP_MODE      — "allowlist" or "open"
+//   ALLOWED_EMAILS   — comma-separated allowlist; required when
+//                      SIGNUP_MODE=allowlist
+//
+// Optional vars:
 //   GOOGLE_CLIENT_ID — public OAuth client ID for Google sign-in.
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
@@ -22,11 +27,13 @@
     // Add "GOOGLE_CLIENT_SECRET" once Google OAuth is enabled.
   },
 
-  // Non-secret env vars baked into the deploy. Add ALLOWED_EMAILS /
-  // GOOGLE_CLIENT_ID here if you don't want them as secrets.
-  // "vars": {
-  //   "ALLOWED_EMAILS": "you@example.com,colleague@example.com"
-  // },
+  // Non-secret env vars baked into the deploy. Update for prod before
+  // deploying. Move ALLOWED_EMAILS to a secret (`wrangler secret put`) if
+  // you want the allowlist hidden from anyone with read-only deploy access.
+  "vars": {
+    "SIGNUP_MODE": "allowlist",
+    "ALLOWED_EMAILS": "logan@hiive.com,logan@loganleger.com"
+  },
 
   "assets": {
     "not_found_handling": "single-page-application",

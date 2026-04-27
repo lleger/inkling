@@ -67,8 +67,15 @@ describe("API", () => {
     ]);
   });
 
+  const TEST_ENV = {
+    DB: db,
+    BETTER_AUTH_SECRET: "test-secret-not-used-but-required",
+    SIGNUP_MODE: "open",
+    TEST_AUTH_BYPASS: "1",
+  } as const;
+
   function req(path: string, init?: RequestInit) {
-    return app.request(path, init, { DB: db, TEST_AUTH_BYPASS: "1" });
+    return app.request(path, init, { ...TEST_ENV, DB: db });
   }
 
   describe("GET /api/health", () => {
@@ -81,7 +88,8 @@ describe("API", () => {
 
   describe("auth middleware", () => {
     it("returns 401 without a session and without TEST_AUTH_BYPASS", async () => {
-      const res = await app.request("/api/user", {}, { DB: db });
+      const env = { ...TEST_ENV, DB: db, TEST_AUTH_BYPASS: undefined };
+      const res = await app.request("/api/user", {}, env);
       expect(res.status).toBe(401);
     });
 
