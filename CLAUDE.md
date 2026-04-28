@@ -88,6 +88,16 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`
 
 Run `npm test` before committing.
 
+### QA user (browser/playwright walkthroughs)
+
+A dev-only QA user (`qa@inkling.local`) lives in the local D1, created
+via direct insert (bypasses `ALLOWED_EMAILS`). Credentials are in `.env`
+(gitignored, loaded by mise) as `QA_EMAIL` / `QA_PASSWORD`. Use it for
+automated QA via curl/playwright instead of touching the real account.
+
+If local D1 gets wiped: `node scripts/create-qa-user.mjs` recreates the
+user using whatever `QA_EMAIL` / `QA_PASSWORD` are currently in `.env`.
+
 ## Formatting & Linting
 
 - `npm run fmt` — oxfmt
