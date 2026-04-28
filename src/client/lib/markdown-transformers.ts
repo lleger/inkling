@@ -38,6 +38,7 @@ import {
 } from "@lexical/table";
 import { $createTextNode, type ElementNode } from "lexical";
 import { $createUrlChipNode, $isUrlChipNode, UrlChipNode } from "../components/UrlChipNode";
+import { $createWikiLinkNode, $isWikiLinkNode, WikiLinkNode } from "../components/WikiLinkNode";
 
 const HR: ElementTransformer = {
   dependencies: [HorizontalRuleNode],
@@ -191,6 +192,26 @@ const URL_CHIP_AUTOLINK_LEGACY: TextMatchTransformer = {
   type: "text-match",
 };
 
+// Wiki-link: `[[<id>|<title-snapshot>]]`. The id is canonical (stable
+// across renames); the title is sugar that renderers can fall back to
+// when offline. Not portable to other markdown tools but you've decided
+// that's fine until sharing lands.
+const WIKI_LINK: TextMatchTransformer = {
+  dependencies: [WikiLinkNode],
+  export: (node) => {
+    if (!$isWikiLinkNode(node)) return null;
+    return `[[${node.getNoteId()}|${node.getTitleSnapshot()}]]`;
+  },
+  importRegExp: /\[\[([a-f0-9]+)\|([^\]\n]*)\]\]/,
+  regExp: /\[\[([a-f0-9]+)\|([^\]\n]*)\]\]$/,
+  replace: (textNode, match) => {
+    const [, id, title] = match;
+    textNode.replace($createWikiLinkNode(id, title));
+  },
+  trigger: "]",
+  type: "text-match",
+};
+
 export const TRANSFORMERS: Transformer[] = [
   TABLE,
   HEADING,
@@ -208,6 +229,7 @@ export const TRANSFORMERS: Transformer[] = [
   ITALIC_STAR,
   ITALIC_UNDERSCORE,
   STRIKETHROUGH,
+  WIKI_LINK,
   URL_CHIP_SELF_LABELED,
   URL_CHIP_AUTOLINK_LEGACY,
   LINK,

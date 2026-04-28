@@ -21,6 +21,7 @@ import { richTextTheme } from "../lib/editor-theme";
 import { TRANSFORMERS } from "../lib/markdown-transformers";
 import { normalizeMarkdown } from "../lib/normalize-markdown";
 import { UrlChipNode } from "./UrlChipNode";
+import { WikiLinkNode } from "./WikiLinkNode";
 
 function UpdatePlugin({ content }: { content: string }) {
   const [editor] = useLexicalComposerContext();
@@ -61,6 +62,7 @@ export function RichTextPreview({ content }: RichTextPreviewProps) {
       HorizontalRuleNode,
       HashtagNode,
       UrlChipNode,
+      WikiLinkNode,
     ],
   };
 

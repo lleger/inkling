@@ -41,6 +41,7 @@ import { $generateJSONFromSelectedNodes } from "@lexical/clipboard";
 import { ScrollIntoViewPlugin } from "./ScrollIntoViewPlugin";
 import { FloatingToolbar } from "./FloatingToolbar";
 import { UrlChipNode, UrlChipPlugin } from "./UrlChipNode";
+import { WikiLinkNode, WikiLinkPlugin } from "./WikiLinkNode";
 import { richTextTheme } from "../lib/editor-theme";
 import { TRANSFORMERS } from "../lib/markdown-transformers";
 import { normalizeMarkdown } from "../lib/normalize-markdown";
@@ -330,6 +331,7 @@ function CopyAsMarkdownPlugin() {
             TableNode, TableRowNode, TableCellNode,
             HashtagNode, HorizontalRuleNode,
             UrlChipNode,
+            WikiLinkNode,
           ],
         });
         const state = headless.parseEditorState({
@@ -397,6 +399,7 @@ export function RichTextEditor({ initialContent, onChange, autoFocus = true, sma
       HorizontalRuleNode,
       HashtagNode,
       UrlChipNode,
+      WikiLinkNode,
     ],
     editorState: () => {
       $convertFromMarkdownString(initialContent, TRANSFORMERS);
@@ -442,6 +445,7 @@ export function RichTextEditor({ initialContent, onChange, autoFocus = true, sma
         <ClickableLinkPlugin />
         <CopyAsMarkdownPlugin />
         <UrlChipPlugin />
+        <WikiLinkPlugin />
         {autoFocus && <AutoFocusPlugin />}
       </div>
     </LexicalComposer>
