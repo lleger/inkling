@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { VersionHistoryView } from "../components/VersionHistoryView";
 import { noteQuery, queryKeys } from "../lib/queries";
 import { useUI } from "../context/UIContext";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 export const Route = createFileRoute("/_app/notes/$id_/versions")({
   loader: ({ context: { queryClient }, params: { id } }) =>
@@ -16,6 +17,7 @@ function VersionsRoute() {
   const ui = useUI();
   const qc = useQueryClient();
   const { data: note } = useQuery(noteQuery(id));
+  useDocumentTitle(note ? `Versions of ${note.title}` : "Versions");
 
   if (!note) return null;
 

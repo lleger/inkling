@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { authClient, signIn, signUp } from "../lib/auth-client";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (search): { mode?: "signin" | "signup"; redirect?: string } => ({
@@ -19,6 +20,8 @@ function LoginPage() {
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  useDocumentTitle(mode === "signin" ? "Sign in" : "Create account");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

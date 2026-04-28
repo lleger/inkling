@@ -5,6 +5,7 @@ import { Type, Code, Columns2, Maximize } from "lucide-react";
 import { Editor } from "../components/Editor";
 import { useUI } from "../context/UIContext";
 import { useSettings } from "../hooks/useSettings";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { noteQuery, queryKeys } from "../lib/queries";
 import { updateNote } from "../lib/api";
 import { normalizeMarkdown } from "../lib/normalize-markdown";
@@ -23,6 +24,7 @@ function NoteRoute() {
   const { settings } = useSettings();
   const qc = useQueryClient();
   const { data: note } = useQuery(noteQuery(id));
+  useDocumentTitle(note?.title);
 
   const [editorMode, setEditorMode] = useState<EditorMode>(settings.defaultMode);
   const [editorKey, setEditorKey] = useState(0);
