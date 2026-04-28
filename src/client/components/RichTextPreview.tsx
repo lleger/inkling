@@ -20,6 +20,7 @@ import { $getRoot } from "lexical";
 import { richTextTheme } from "../lib/editor-theme";
 import { TRANSFORMERS } from "../lib/markdown-transformers";
 import { normalizeMarkdown } from "../lib/normalize-markdown";
+import { UrlChipNode } from "./UrlChipNode";
 
 function UpdatePlugin({ content }: { content: string }) {
   const [editor] = useLexicalComposerContext();
@@ -59,6 +60,7 @@ export function RichTextPreview({ content }: RichTextPreviewProps) {
       TableCellNode,
       HorizontalRuleNode,
       HashtagNode,
+      UrlChipNode,
     ],
   };
 

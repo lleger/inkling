@@ -14,6 +14,7 @@ import {
   UNORDERED_LIST,
   CODE,
   LINK,
+  type TextMatchTransformer,
   type Transformer,
   type MultilineElementTransformer,
 } from "@lexical/markdown";
@@ -36,6 +37,7 @@ import {
   TableCellHeaderStates,
 } from "@lexical/table";
 import { $createTextNode, type ElementNode } from "lexical";
+import { $createUrlChipNode, $isUrlChipNode, UrlChipNode } from "../components/UrlChipNode";
 
 const HR: ElementTransformer = {
   dependencies: [HorizontalRuleNode],
@@ -146,6 +148,26 @@ const TABLE: MultilineElementTransformer = {
   type: "multiline-element",
 };
 
+// URL chip: round-trips as a CommonMark autolink (`<https://...>`) — that's
+// the unambiguous way to express "bare URL displayed as link" in markdown
+// and avoids colliding with `[text](url)` which the user uses for explicit
+// labeled links.
+const URL_CHIP: TextMatchTransformer = {
+  dependencies: [UrlChipNode],
+  export: (node) => {
+    return $isUrlChipNode(node) ? `<${node.getUrl()}>` : null;
+  },
+  importRegExp: /<(https?:\/\/[^\s<>"]+)>/,
+  regExp: /<(https?:\/\/[^\s<>"]+)>$/,
+  replace: (textNode, match) => {
+    const [, url] = match;
+    const chip = $createUrlChipNode(url);
+    textNode.replace(chip);
+  },
+  trigger: ">",
+  type: "text-match",
+};
+
 export const TRANSFORMERS: Transformer[] = [
   TABLE,
   HEADING,
@@ -163,5 +185,6 @@ export const TRANSFORMERS: Transformer[] = [
   ITALIC_STAR,
   ITALIC_UNDERSCORE,
   STRIKETHROUGH,
+  URL_CHIP,
   LINK,
 ];

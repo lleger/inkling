@@ -1,4 +1,4 @@
-import type { Note, NoteMeta, User, DeletedNoteMeta, NoteVersionMeta, NoteVersion, Settings } from "../types";
+import type { Note, NoteMeta, User, DeletedNoteMeta, NoteVersionMeta, NoteVersion, Settings, OgPreview } from "../types";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -105,4 +105,10 @@ export async function saveSettings(settings: Settings): Promise<void> {
     method: "PUT",
     body: JSON.stringify(settings),
   });
+}
+
+export async function fetchOgPreview(url: string, opts?: { refresh?: boolean }): Promise<OgPreview> {
+  const qs = new URLSearchParams({ url });
+  if (opts?.refresh) qs.set("refresh", "1");
+  return request<OgPreview>(`/api/og?${qs.toString()}`);
 }

@@ -8,6 +8,7 @@ export const queryKeys = {
   versions: (noteId: string) => ["versions", noteId] as const,
   user: ["user"] as const,
   settings: ["settings"] as const,
+  ogPreview: (url: string) => ["og", url] as const,
 };
 
 export const notesQuery = () =>
@@ -48,4 +49,16 @@ export const settingsQuery = () =>
     queryKey: queryKeys.settings,
     queryFn: () => api.fetchSettings(),
     staleTime: Infinity,
+  });
+
+// Server already TTLs the upstream fetch via Cache-Control, so we trust
+// it on our side and treat the query as never-stale until the user hits
+// the refresh button.
+export const ogPreviewQuery = (url: string) =>
+  queryOptions({
+    queryKey: queryKeys.ogPreview(url),
+    queryFn: () => api.fetchOgPreview(url),
+    staleTime: Infinity,
+    enabled: !!url,
+    retry: false,
   });

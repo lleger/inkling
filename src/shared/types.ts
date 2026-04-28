@@ -75,3 +75,13 @@ export interface Settings {
   smartTypography: boolean;
   dailyNoteFolder: string;
 }
+
+export interface OgPreview {
+  url: string;
+  finalUrl: string;
+  title: string | null;
+  description: string | null;
+  image: string | null;
+  siteName: string | null;
+  favicon: string | null;
+}
