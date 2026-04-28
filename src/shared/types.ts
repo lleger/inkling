@@ -76,6 +76,13 @@ export interface Settings {
   dailyNoteFolder: string;
 }
 
+export interface BacklinkMeta {
+  id: string;
+  title: string;
+  preview: string;
+  updated_at: string;
+}
+
 export interface OgPreview {
   url: string;
   finalUrl: string;

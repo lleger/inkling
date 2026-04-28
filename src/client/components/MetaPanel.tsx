@@ -1,8 +1,10 @@
 import { useEffect } from "react";
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { X, History, FolderClosed, Hash, Calendar, FileText } from "lucide-react";
 import type { Note } from "../types";
 import { useUI } from "../context/UIContext";
+import { backlinksQuery } from "../lib/queries";
 
 interface MetaPanelProps {
   note: Note;
@@ -12,6 +14,10 @@ interface MetaPanelProps {
 
 export function MetaPanel({ note, wordCount, taskStats }: MetaPanelProps) {
   const ui = useUI();
+  const { data: backlinks } = useQuery({
+    ...backlinksQuery(note.id),
+    enabled: ui.metaPanelOpen, // only fetch when panel is open
+  });
 
   // Close on Escape
   useEffect(() => {
@@ -106,10 +112,33 @@ export function MetaPanel({ note, wordCount, taskStats }: MetaPanelProps) {
         </Section>
 
         <Section title="Backlinks">
-          <div className="text-text-muted text-[12px]">
-            {/* Populated in slice 3 */}
-            No backlinks yet.
-          </div>
+          {backlinks && backlinks.length > 0 ? (
+            <ul className="space-y-1">
+              {backlinks.map((bl) => (
+                <li key={bl.id}>
+                  <Link
+                    to="/notes/$id"
+                    params={{ id: bl.id }}
+                    onClick={() => ui.setMetaPanelOpen(false)}
+                    className="block rounded-md border border-border px-2 py-1.5 no-underline transition-colors hover:border-accent/40"
+                  >
+                    <div className="line-clamp-1 text-[12px] font-medium text-text">
+                      {bl.title || "Untitled"}
+                    </div>
+                    {bl.preview && (
+                      <div className="line-clamp-1 text-[11px] text-text-muted">
+                        {bl.preview}
+                      </div>
+                    )}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="text-text-muted text-[12px]">
+              {backlinks ? "No notes link here yet." : "Loading…"}
+            </div>
+          )}
         </Section>
       </div>
     </aside>

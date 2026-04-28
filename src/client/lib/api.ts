@@ -1,4 +1,4 @@
-import type { Note, NoteMeta, User, DeletedNoteMeta, NoteVersionMeta, NoteVersion, Settings, OgPreview } from "../types";
+import type { Note, NoteMeta, User, DeletedNoteMeta, NoteVersionMeta, NoteVersion, Settings, OgPreview, BacklinkMeta } from "../types";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -111,4 +111,9 @@ export async function fetchOgPreview(url: string, opts?: { refresh?: boolean }):
   const qs = new URLSearchParams({ url });
   if (opts?.refresh) qs.set("refresh", "1");
   return request<OgPreview>(`/api/og?${qs.toString()}`);
+}
+
+export async function fetchBacklinks(noteId: string): Promise<BacklinkMeta[]> {
+  const data = await request<{ backlinks: BacklinkMeta[] }>(`/api/notes/${noteId}/backlinks`);
+  return data.backlinks;
 }

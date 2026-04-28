@@ -1,13 +1,3 @@
--- Consolidated schema for a fresh D1. Generated from `src/worker/db/schema.ts`
--- (Drizzle) by exporting the local DB after all migrate-001..009 had been
--- applied. Keep regenerating this file from the canonical schema.ts using:
---
---   npx wrangler d1 export inkling-db --local --output=src/worker/db/schema.sql --no-data
---
--- The migrate-*.sql files in this directory are historical and only relevant
--- if you're upgrading an old DB in place. For a fresh deploy, just apply
--- this file (`npm run db:migrate`).
-
 PRAGMA defer_foreign_keys=TRUE;
 CREATE TABLE user_settings (
   user_id TEXT PRIMARY KEY,
@@ -81,6 +71,12 @@ CREATE TABLE IF NOT EXISTS "verification" (
   createdAt INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
   updatedAt INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
 );
+CREATE TABLE note_refs (
+  note_id TEXT NOT NULL,
+  ref_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  PRIMARY KEY (note_id, ref_id)
+);
 CREATE INDEX idx_notes_user_id ON notes(user_id);
 CREATE INDEX idx_notes_user_updated ON notes(user_id, updated_at DESC);
 CREATE INDEX idx_versions_note ON note_versions(note_id, created_at DESC);
@@ -90,3 +86,5 @@ CREATE INDEX idx_session_token ON session(token);
 CREATE INDEX idx_account_userId ON account(userId);
 CREATE INDEX idx_account_provider ON account(providerId, accountId);
 CREATE INDEX idx_verification_identifier ON verification(identifier);
+CREATE INDEX idx_refs_note ON note_refs(note_id);
+CREATE INDEX idx_refs_target_user ON note_refs(ref_id, user_id);

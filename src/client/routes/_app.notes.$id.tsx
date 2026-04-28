@@ -70,6 +70,10 @@ function NoteRoute() {
       retryCountRef.current = 0;
       qc.invalidateQueries({ queryKey: queryKeys.notes });
       qc.invalidateQueries({ queryKey: queryKeys.note(id) });
+      // Saving may add/remove wiki-links → backlinks for the targets
+      // change. Invalidate broadly; cheap, only refetches when panels
+      // are mounted.
+      qc.invalidateQueries({ queryKey: ["backlinks"] });
     },
   });
 

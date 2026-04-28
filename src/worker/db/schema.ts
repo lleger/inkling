@@ -58,6 +58,24 @@ export const userSettings = sqliteTable("user_settings", {
   settings: text("settings").notNull().default("{}"),
 });
 
+// Note → note references, populated on every save by parsing wiki-link
+// markdown out of the saved content. Keyed by (noteId, refId) so a note
+// can reference the same target multiple times without dupes. Two indexes
+// support both directions: forward (a note's outbound refs) and backward
+// (incoming backlinks for a target).
+export const noteRefs = sqliteTable(
+  "note_refs",
+  {
+    noteId: text("note_id").notNull(),
+    refId: text("ref_id").notNull(),
+    userId: text("user_id").notNull(),
+  },
+  (t) => [
+    index("idx_refs_note").on(t.noteId),
+    index("idx_refs_target_user").on(t.refId, t.userId),
+  ],
+);
+
 // --- better-auth tables ---
 // Standard better-auth SQLite schema with timestamps as INTEGER (Unix ms),
 // matching the Drizzle pattern.

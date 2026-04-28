@@ -1,8 +1,14 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, cleanup } from "@testing-library/react";
+import { render as rtlRender, cleanup } from "@testing-library/react";
 import { Editor } from "./Editor";
+import { makeQueryWrapper } from "../hooks/test-utils";
 
 afterEach(cleanup);
+
+function render(ui: React.ReactElement) {
+  const { Wrapper } = makeQueryWrapper();
+  return rtlRender(ui, { wrapper: Wrapper });
+}
 
 const baseProps = {
   content: "",

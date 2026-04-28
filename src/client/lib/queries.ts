@@ -9,6 +9,7 @@ export const queryKeys = {
   user: ["user"] as const,
   settings: ["settings"] as const,
   ogPreview: (url: string) => ["og", url] as const,
+  backlinks: (noteId: string) => ["backlinks", noteId] as const,
 };
 
 export const notesQuery = () =>
@@ -61,4 +62,11 @@ export const ogPreviewQuery = (url: string) =>
     staleTime: Infinity,
     enabled: !!url,
     retry: false,
+  });
+
+export const backlinksQuery = (noteId: string) =>
+  queryOptions({
+    queryKey: queryKeys.backlinks(noteId),
+    queryFn: () => api.fetchBacklinks(noteId),
+    enabled: !!noteId,
   });

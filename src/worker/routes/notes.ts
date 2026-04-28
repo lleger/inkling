@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import type { Env } from "../types";
-import { listNotes, getNote, createNote, updateNote, deleteNote, restoreNote, listDeletedNotes, permanentlyDeleteNote, purgeOldDeletedNotes, togglePinNote, moveToFolder, listNoteVersions, getNoteVersion } from "../db/queries";
+import { listNotes, getNote, createNote, updateNote, deleteNote, restoreNote, listDeletedNotes, permanentlyDeleteNote, purgeOldDeletedNotes, togglePinNote, moveToFolder, listNoteVersions, getNoteVersion, listBacklinks } from "../db/queries";
 
 type AuthVars = { userId: string; userEmail: string };
 
@@ -105,6 +105,12 @@ notesRoutes.delete("/:id/permanent", async (c) => {
 notesRoutes.get("/:id/versions", async (c) => {
   const versions = await listNoteVersions(c.env.DB, c.get("userId"), c.req.param("id"));
   return c.json({ versions });
+});
+
+// Backlinks: notes that wiki-link to this one (excludes self + trashed).
+notesRoutes.get("/:id/backlinks", async (c) => {
+  const backlinks = await listBacklinks(c.env.DB, c.get("userId"), c.req.param("id"));
+  return c.json({ backlinks });
 });
 
 notesRoutes.get("/:id/versions/:vid", async (c) => {

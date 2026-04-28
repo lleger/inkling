@@ -1,6 +1,6 @@
 import { and, eq, isNull, isNotNull, like, lt, or, sql, asc, desc, inArray } from "drizzle-orm";
 import { makeDb } from "./client";
-import { notes, noteVersions } from "./schema";
+import { notes, noteVersions, noteRefs } from "./schema";
 import type { Note, NoteMeta, DeletedNoteMeta, NoteVersionMeta, NoteVersion } from "../../shared/types";
 
 // Re-export for consumers that import from queries
@@ -213,6 +213,8 @@ export async function createNote(
     tags: JSON.stringify(stats.tags),
   });
 
+  if (c) await replaceNoteRefs(d1, userId, id, c);
+
   return (await getNote(d1, userId, id))!;
 }
 
@@ -248,7 +250,73 @@ export async function updateNote(
     await createVersionSnapshot(d1, userId, noteId, existing);
   }
 
+  await replaceNoteRefs(d1, userId, noteId, content);
+
   return getNote(d1, userId, noteId);
+}
+
+// --- Wiki-link refs ---
+
+const WIKI_LINK_RE = /\[\[([a-f0-9]+)\|[^\]\n]*\]\]/g;
+
+export function extractRefIds(content: string): string[] {
+  const set = new Set<string>();
+  for (const m of content.matchAll(WIKI_LINK_RE)) {
+    set.add(m[1]);
+  }
+  return [...set];
+}
+
+export async function replaceNoteRefs(
+  d1: D1Database,
+  userId: string,
+  noteId: string,
+  content: string,
+): Promise<void> {
+  const db = makeDb(d1);
+  await db.delete(noteRefs).where(eq(noteRefs.noteId, noteId));
+  const ids = extractRefIds(content).filter((id) => id !== noteId); // ignore self-references
+  if (ids.length === 0) return;
+  await db.insert(noteRefs).values(ids.map((refId) => ({ noteId, refId, userId })));
+}
+
+export interface BacklinkMeta {
+  id: string;
+  title: string;
+  preview: string;
+  updated_at: string;
+}
+
+export async function listBacklinks(
+  d1: D1Database,
+  userId: string,
+  targetId: string,
+): Promise<BacklinkMeta[]> {
+  const db = makeDb(d1);
+  const rows = await db
+    .select({
+      id: notes.id,
+      title: notes.title,
+      preview: notes.preview,
+      updatedAt: notes.updatedAt,
+    })
+    .from(noteRefs)
+    .innerJoin(notes, eq(noteRefs.noteId, notes.id))
+    .where(
+      and(
+        eq(noteRefs.refId, targetId),
+        eq(noteRefs.userId, userId),
+        eq(notes.userId, userId),
+        isNull(notes.deletedAt),
+      ),
+    )
+    .orderBy(desc(notes.updatedAt));
+  return rows.map((r) => ({
+    id: r.id,
+    title: r.title,
+    preview: r.preview,
+    updated_at: (r.updatedAt as Date).toISOString(),
+  }));
 }
 
 export async function deleteNote(d1: D1Database, userId: string, noteId: string): Promise<boolean> {
@@ -294,6 +362,17 @@ export async function permanentlyDeleteNote(d1: D1Database, userId: string, note
   await db
     .delete(noteVersions)
     .where(and(eq(noteVersions.noteId, noteId), eq(noteVersions.userId, userId)));
+  // Drop both outbound refs (this note → others) and incoming refs
+  // (others → this note). Incoming refs from still-living notes naturally
+  // re-populate next time those notes are saved.
+  await db
+    .delete(noteRefs)
+    .where(
+      and(
+        eq(noteRefs.userId, userId),
+        or(eq(noteRefs.noteId, noteId), eq(noteRefs.refId, noteId)),
+      ),
+    );
   const result = await db
     .delete(notes)
     .where(and(eq(notes.id, noteId), eq(notes.userId, userId)));

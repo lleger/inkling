@@ -1,9 +1,17 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, cleanup, waitFor } from "@testing-library/react";
+import { render as rtlRender, cleanup, waitFor } from "@testing-library/react";
 import { RichTextEditor } from "./RichTextEditor";
 import { RichTextPreview } from "./RichTextPreview";
+import { makeQueryWrapper } from "../hooks/test-utils";
 
 afterEach(cleanup);
+
+// The editor uses TanStack Query (wiki-link picker fetches notes list);
+// wrap every test render so useQuery has a client available.
+function render(ui: React.ReactElement) {
+  const { Wrapper } = makeQueryWrapper();
+  return rtlRender(ui, { wrapper: Wrapper });
+}
 
 describe("RichTextEditor", () => {
   it("renders with editor-rich class", () => {
