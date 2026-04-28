@@ -10,7 +10,7 @@ const STORAGE_KEY = "inkling-settings";
 
 const DEFAULTS: Settings = {
   theme: "system",
-  accent: "green",
+  accent: "orange",
   defaultMode: "richtext",
   smartTypography: true,
   dailyNoteFolder: "Daily",

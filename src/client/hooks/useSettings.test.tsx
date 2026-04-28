@@ -20,7 +20,7 @@ describe("useSettings", () => {
     const { result } = renderHook(() => useSettings(), { wrapper: Wrapper });
 
     expect(result.current.settings.theme).toBe("system");
-    expect(result.current.settings.accent).toBe("green");
+    expect(result.current.settings.accent).toBe("orange");
     expect(result.current.settings.defaultMode).toBe("richtext");
     expect(result.current.settings.smartTypography).toBe(true);
     expect(result.current.settings.dailyNoteFolder).toBe("Daily");
