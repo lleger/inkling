@@ -16,6 +16,8 @@ interface UIContextValue {
   setSettingsOpen: (v: boolean | ((p: boolean) => boolean)) => void;
   folderModalOpen: boolean;
   setFolderModalOpen: (v: boolean | ((p: boolean) => boolean)) => void;
+  metaPanelOpen: boolean;
+  setMetaPanelOpen: (v: boolean | ((p: boolean) => boolean)) => void;
   toast: ToastState | null;
   setToast: (t: ToastState | null) => void;
 }
@@ -34,6 +36,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [folderModalOpen, setFolderModalOpen] = useState(false);
+  const [metaPanelOpen, setMetaPanelOpen] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
 
   // Cmd+K and Escape (focus mode)
@@ -59,6 +62,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
       paletteOpen, setPaletteOpen,
       settingsOpen, setSettingsOpen,
       folderModalOpen, setFolderModalOpen,
+      metaPanelOpen, setMetaPanelOpen,
       toast, setToast,
     }}>
       {children}

@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import { Type, Code, Columns2, Maximize } from "lucide-react";
+import { Type, Code, Columns2, Maximize, Info } from "lucide-react";
 import { Editor } from "../components/Editor";
+import { MetaPanel } from "../components/MetaPanel";
 import { useUI } from "../context/UIContext";
 import { useSettings } from "../hooks/useSettings";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
@@ -177,6 +178,15 @@ function NoteRoute() {
         </div>
         <div className="w-5 h-px bg-border my-1.5" />
         <button
+          onClick={() => ui.setMetaPanelOpen((o) => !o)}
+          title="Note details"
+          className={`flex size-8 items-center justify-center rounded-md transition-colors ${
+            ui.metaPanelOpen ? "text-accent" : "text-text-muted hover:bg-surface-hover hover:text-text-secondary"
+          }`}
+        >
+          <Info size={15} />
+        </button>
+        <button
           onClick={() => ui.setFocusMode(true)}
           title="Focus mode"
           className="flex size-8 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary"
@@ -184,6 +194,8 @@ function NoteRoute() {
           <Maximize size={15} />
         </button>
       </div>
+
+      <MetaPanel note={note} wordCount={wordCount} taskStats={taskStats} />
 
       {/* Stats — bottom right */}
       <div className={`fixed bottom-4 right-4 z-10 flex items-center gap-2 rounded-lg bg-surface-secondary/80 backdrop-blur-sm border border-border px-3 py-1.5 text-[11px] text-text-muted select-none transition-opacity duration-200 ${ui.focusMode ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
