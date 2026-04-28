@@ -148,21 +148,44 @@ const TABLE: MultilineElementTransformer = {
   type: "multiline-element",
 };
 
-// URL chip: round-trips as a CommonMark autolink (`<https://...>`) — that's
-// the unambiguous way to express "bare URL displayed as link" in markdown
-// and avoids colliding with `[text](url)` which the user uses for explicit
-// labeled links.
-const URL_CHIP: TextMatchTransformer = {
+// URL chip — round-trips as a self-labeled markdown link `[url](url)` so
+// it's valid everywhere and renders as a clickable link in any markdown
+// viewer. The "text === href" rule distinguishes a chip from a regular
+// labeled link `[click here](url)` which stays as a LinkNode.
+//
+// Also accepts `<url>` autolink form on import for backwards compatibility
+// with notes saved by earlier versions.
+const URL_CHIP_SELF_LABELED: TextMatchTransformer = {
   dependencies: [UrlChipNode],
   export: (node) => {
-    return $isUrlChipNode(node) ? `<${node.getUrl()}>` : null;
+    if (!$isUrlChipNode(node)) return null;
+    const u = node.getUrl();
+    return `[${u}](${u})`;
   },
+  // Match `[<url>](<same-url>)` exactly. The `\1` backreference enforces
+  // text === href; anything else falls through to the regular LINK
+  // transformer below.
+  importRegExp: /\[(https?:\/\/[^\]\s]+)\]\(\1\)/,
+  regExp: /\[(https?:\/\/[^\]\s]+)\]\(\1\)$/,
+  replace: (textNode, match) => {
+    const [, url] = match;
+    textNode.replace($createUrlChipNode(url));
+  },
+  trigger: ")",
+  type: "text-match",
+};
+
+// Backwards-compat: import-only fallback for `<url>` autolinks written
+// by earlier versions. No export — exports go through the canonical form
+// above.
+const URL_CHIP_AUTOLINK_LEGACY: TextMatchTransformer = {
+  dependencies: [UrlChipNode],
+  export: () => null,
   importRegExp: /<(https?:\/\/[^\s<>"]+)>/,
   regExp: /<(https?:\/\/[^\s<>"]+)>$/,
   replace: (textNode, match) => {
     const [, url] = match;
-    const chip = $createUrlChipNode(url);
-    textNode.replace(chip);
+    textNode.replace($createUrlChipNode(url));
   },
   trigger: ">",
   type: "text-match",
@@ -185,6 +208,7 @@ export const TRANSFORMERS: Transformer[] = [
   ITALIC_STAR,
   ITALIC_UNDERSCORE,
   STRIKETHROUGH,
-  URL_CHIP,
+  URL_CHIP_SELF_LABELED,
+  URL_CHIP_AUTOLINK_LEGACY,
   LINK,
 ];

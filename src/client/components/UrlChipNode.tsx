@@ -125,8 +125,25 @@ export function $isUrlChipNode(node: LexicalNode | null | undefined): node is Ur
 // Match a "bare URL ending the text node": http(s)://... right at the end.
 // Trailing punctuation that's typically not part of the URL gets excluded.
 const TRAILING_URL_RE = /(https?:\/\/[^\s<>"]+?)([.,;:!?)\]]*)$/;
-// Standalone URL (whole text node is one URL).
-const FULL_URL_RE = /^https?:\/\/[^\s<>"]+$/;
+
+// Extract a URL from clipboard text in any of the forms our editor + the
+// markdown export pipeline can produce:
+//   bare:           https://example.com
+//   autolink:       <https://example.com>
+//   self-labeled:   [https://example.com](https://example.com)
+// Returns the URL if the entire input (after trimming) is exactly one of
+// these forms; otherwise null. We're intentionally strict here — URLs
+// embedded in larger text don't get chipified on paste.
+function extractStandaloneUrl(input: string): string | null {
+  const t = input.trim();
+  let m: RegExpMatchArray | null;
+  if ((m = t.match(/^https?:\/\/[^\s<>"]+$/))) return m[0];
+  if ((m = t.match(/^<(https?:\/\/[^\s<>"]+)>$/))) return m[1];
+  if ((m = t.match(/^\[(https?:\/\/[^\]\s]+)\]\((https?:\/\/[^)\s]+)\)$/)) && m[1] === m[2]) {
+    return m[1];
+  }
+  return null;
+}
 
 export function UrlChipPlugin() {
   const [editor] = useLexicalComposerContext();
@@ -220,31 +237,25 @@ export function UrlChipPlugin() {
       COMMAND_PRIORITY_LOW,
     );
 
-    // 5. Paste handler — if the clipboard text looks like one or more URLs,
-    //    insert chips directly (skipping the typed-then-converted dance).
+    // 5. Paste handler — if the clipboard text is one URL in any of our
+    //    serialization forms (bare, <autolink>, or [url](url)), insert a
+    //    chip directly. URLs inside larger pastes stay as plain text and
+    //    get picked up by the per-textNode transform on the next space.
     const removePaste = editor.registerCommand(
       PASTE_COMMAND,
       (event) => {
         if (!(event instanceof ClipboardEvent)) return false;
         const text = event.clipboardData?.getData("text/plain");
         if (!text) return false;
-        const trimmed = text.trim();
-
-        // Whole clipboard is a single URL → insert one chip.
-        if (FULL_URL_RE.test(trimmed)) {
-          event.preventDefault();
-          editor.update(() => {
-            const selection = $getSelection();
-            if (!$isRangeSelection(selection)) return;
-            const chip = $createUrlChipNode(trimmed);
-            selection.insertNodes([chip]);
-          });
-          return true;
-        }
-        // Otherwise let the default paste happen (URLs inside larger pastes
-        // remain plain text — the per-textNode transform will pick them up
-        // if they end up trailing).
-        return false;
+        const url = extractStandaloneUrl(text);
+        if (!url) return false;
+        event.preventDefault();
+        editor.update(() => {
+          const selection = $getSelection();
+          if (!$isRangeSelection(selection)) return;
+          selection.insertNodes([$createUrlChipNode(url)]);
+        });
+        return true;
       },
       COMMAND_PRIORITY_LOW,
     );
