@@ -49,7 +49,7 @@
   // you want the allowlist hidden from anyone with read-only deploy access.
   "vars": {
     "SIGNUP_MODE": "allowlist",
-    "ALLOWED_EMAILS": "logan@hiive.com,logan@loganleger.com"
+    "ALLOWED_EMAILS": "logan@loganleger.com,mstall2@gmail.com"
   },
 
   "assets": {
