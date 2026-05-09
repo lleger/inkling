@@ -166,8 +166,8 @@ function Row({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-start gap-2 text-[12px]">
-      <span className="mt-0.5 flex w-16 flex-shrink-0 items-center gap-1.5 text-text-muted">
+    <div className="flex items-baseline gap-2 text-[12px]">
+      <span className="flex w-20 flex-shrink-0 items-center gap-1.5 self-start pt-px text-text-muted">
         {icon}
         {label}
       </span>
