@@ -28,7 +28,7 @@ describe("plainifyTypography", () => {
 
   it("handles mixed smart typography", () => {
     expect(plainifyTypography("\u201CHe said\u2014\u2018wait\u2026\u2019\u201D")).toBe(
-      '"He said--\'wait...\'\"',
+      '"He said--\'wait...\'"',
     );
   });
 

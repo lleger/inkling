@@ -2,7 +2,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useNotes } from "./useNotes";
 import { useSettings } from "./useSettings";
-import * as api from "../lib/api";
 import { queryKeys } from "../lib/queries";
 import type { NoteMeta } from "../types";
 

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { X, Monitor, Sun, Moon, Check, LogOut } from "lucide-react";
 import { signOut } from "../lib/auth-client";
-import type { Settings, AccentColor } from "../hooks/useSettings";
+import type { Settings } from "../hooks/useSettings";
 import { ACCENT_COLORS, ACCENT_NAMES } from "../lib/accent-colors";
 import type { EditorMode } from "../types";
 

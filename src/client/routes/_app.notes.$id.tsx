@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Type, Code, Columns2, Maximize, Info } from "lucide-react";
 import { Editor } from "../components/Editor";
 import { MetaPanel } from "../components/MetaPanel";
@@ -11,7 +11,7 @@ import { noteQuery, queryKeys } from "../lib/queries";
 import { updateNote } from "../lib/api";
 import { normalizeMarkdown } from "../lib/normalize-markdown";
 import { clearDoneTasks } from "../lib/clear-done-tasks";
-import type { EditorMode, SaveStatus } from "../types";
+import type { EditorMode } from "../types";
 
 export const Route = createFileRoute("/_app/notes/$id")({
   loader: ({ context: { queryClient }, params: { id } }) =>
@@ -29,7 +29,6 @@ function NoteRoute() {
 
   const [editorMode, setEditorMode] = useState<EditorMode>(settings.defaultMode);
   const [editorKey, setEditorKey] = useState(0);
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
   const [wordCount, setWordCount] = useState(0);
   const [taskStats, setTaskStats] = useState<{ done: number; total: number } | null>(null);
 
@@ -57,7 +56,6 @@ function NoteRoute() {
     pendingContentRef.current = null;
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     retryCountRef.current = 0;
-    setSaveStatus("saved");
     updateStats(note.content);
     setEditorKey((k) => k + 1);
   }, [note, updateStats]);
@@ -65,7 +63,6 @@ function NoteRoute() {
   const saveMutation = useMutation({
     mutationFn: (content: string) => updateNote(id, { content }),
     onSuccess: (_, content) => {
-      setSaveStatus("saved");
       lastSavedContentRef.current = content;
       retryCountRef.current = 0;
       qc.invalidateQueries({ queryKey: queryKeys.notes });
@@ -78,20 +75,17 @@ function NoteRoute() {
   });
 
   const saveContent = useCallback(async (content: string) => {
-    setSaveStatus("saving");
     try {
       await saveMutation.mutateAsync(content);
     } catch {
       retryCountRef.current++;
       if (retryCountRef.current < 3) {
         const delay = 2000 * Math.pow(2, retryCountRef.current - 1);
-        setSaveStatus("unsaved");
         setTimeout(() => {
           if (pendingContentRef.current !== null) return;
           saveContent(content);
         }, delay);
       } else {
-        setSaveStatus("unsaved");
         retryCountRef.current = 0;
         ui.setToast({ message: "Failed to save. Check your connection." });
       }
@@ -103,7 +97,6 @@ function NoteRoute() {
     updateStats(content);
     if (content === lastSavedContentRef.current) return;
     pendingContentRef.current = content;
-    setSaveStatus("unsaved");
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(async () => {
       if (pendingContentRef.current === null) return;

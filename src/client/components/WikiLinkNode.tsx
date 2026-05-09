@@ -4,6 +4,7 @@ import {
   $createTextNode,
   $getNodeByKey,
   $getSelection,
+  $isElementNode,
   $isRangeSelection,
   $isTextNode,
   COMMAND_PRIORITY_LOW,
@@ -14,11 +15,9 @@ import {
   KEY_ARROW_DOWN_COMMAND,
   KEY_ARROW_UP_COMMAND,
   KEY_ESCAPE_COMMAND,
-  TextNode,
   type DOMConversionMap,
   type DOMExportOutput,
   type EditorConfig,
-  type LexicalEditor,
   type LexicalNode,
   type NodeKey,
   type SerializedLexicalNode,
@@ -346,9 +345,9 @@ export function WikiLinkPlugin() {
             return true;
           }
         }
-        if (anchor.type === "element") {
+        if (anchor.type === "element" && $isElementNode(node)) {
           const parent = node;
-          const prev = parent.getChildAtIndex?.(anchor.offset - 1);
+          const prev = parent.getChildAtIndex(anchor.offset - 1);
           if (prev && $isWikiLinkNode(prev)) {
             prev.remove();
             return true;

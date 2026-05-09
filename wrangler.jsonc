@@ -61,6 +61,7 @@
       "binding": "DB",
       "database_name": "inkling-db",
       "database_id": "6cc9d799-a795-46ac-8d7b-1d3da8a60284",
+      "migrations_dir": "src/worker/db/migrations",
     }
   ]
 }

@@ -27,13 +27,13 @@ Copy the `database_id` from the output and replace `local-dev-placeholder` in `w
 
 Commit this change.
 
-## 2. Apply the schema
+## 2. Apply migrations
 
 ```bash
 npm run db:migrate          # runs against --remote
 ```
 
-(Equivalent to `npx wrangler d1 execute inkling-db --file=src/worker/db/schema.sql`.)
+This applies SQL migrations from `src/worker/db/migrations/` via Wrangler. `0001_initial.sql` bootstraps fresh databases; `src/worker/db/schema.sql` is legacy reference SQL. New schema changes should be generated from `src/worker/db/schema.ts` with `npm run db:generate`.
 
 Verify:
 
@@ -57,9 +57,9 @@ Verify:
 npx wrangler secret list
 ```
 
-## 4. Wire up the custom domain
+## 4. Verify the custom domain
 
-Uncomment the `routes` block in `wrangler.jsonc`:
+The `routes` block in `wrangler.jsonc` should point at the production domain:
 
 ```jsonc
 "routes": [
@@ -68,7 +68,7 @@ Uncomment the `routes` block in `wrangler.jsonc`:
 ],
 ```
 
-Commit it.
+Commit any domain/config changes before deploying.
 
 ## 5. Deploy
 
@@ -95,7 +95,7 @@ Then in a browser: visit `https://inkling.page/`, sign up with an email on `ALLO
 
 ## Updating later
 
-For schema changes: edit `src/worker/db/schema.ts`, run `npx drizzle-kit generate` to produce a migration in `src/worker/db/migrations/`, apply with `npx wrangler d1 execute inkling-db --remote --file=src/worker/db/migrations/<file>`, then redeploy.
+For schema changes: edit `src/worker/db/schema.ts`, run `npm run db:generate` to produce a migration in `src/worker/db/migrations/`, apply with `npm run db:migrate` for production or `npm run db:migrate:local` for local dev, then redeploy.
 
 For app code: just `npm run deploy`.
 

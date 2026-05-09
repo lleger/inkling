@@ -13,6 +13,18 @@
  */
 import Database, { type Database as Sqlite } from "better-sqlite3";
 
+function meta(changes: number, rowsRead: number, lastRowId = 0): D1Meta {
+  return {
+    changes,
+    duration: 0,
+    last_row_id: lastRowId,
+    rows_read: rowsRead,
+    rows_written: changes,
+    size_after: 0,
+    changed_db: changes > 0,
+  };
+}
+
 export function createTestD1(): D1Database {
   const sqlite: Sqlite = new Database(":memory:");
   sqlite.pragma("journal_mode = WAL");
@@ -64,21 +76,15 @@ function makePrepared(sqlite: Sqlite, sql: string, bindings: unknown[]): D1Prepa
           return {
             results: rows,
             success: true,
-            meta: { changes: 0, duration: 0, last_row_id: 0, rows_read: rows.length, rows_written: 0 },
+            meta: meta(0, rows.length),
           } as D1Result<T>;
         } else {
           const info = stmt.run(...bindings);
           return {
             results: [],
             success: true,
-            meta: {
-              changes: info.changes,
-              duration: 0,
-              last_row_id: Number(info.lastInsertRowid),
-              rows_read: 0,
-              rows_written: info.changes,
-            },
-          } as D1Result<T>;
+            meta: meta(info.changes, 0, Number(info.lastInsertRowid)),
+          } as unknown as D1Result<T>;
         }
       } catch (err) {
         return handleError(err);
@@ -93,20 +99,14 @@ function makePrepared(sqlite: Sqlite, sql: string, bindings: unknown[]): D1Prepa
           return {
             results: rows,
             success: true,
-            meta: { changes: 0, duration: 0, last_row_id: 0, rows_read: rows.length, rows_written: 0 },
+            meta: meta(0, rows.length),
           } as unknown as D1Result;
         }
         const info = stmt.run(...bindings);
         return {
           results: [],
           success: true,
-          meta: {
-            changes: info.changes,
-            duration: 0,
-            last_row_id: Number(info.lastInsertRowid),
-            rows_read: 0,
-            rows_written: info.changes,
-          },
+          meta: meta(info.changes, 0, Number(info.lastInsertRowid)),
         } as unknown as D1Result;
       } catch (err) {
         return handleError(err);

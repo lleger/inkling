@@ -1,6 +1,7 @@
 import {
   $createTextNode,
   $getSelection,
+  $isElementNode,
   $isRangeSelection,
   $isTextNode,
   $nodesOfType,
@@ -224,9 +225,9 @@ export function UrlChipPlugin() {
           }
         }
         // Case 2: caret element selection just after a chip.
-        if (anchor.type === "element") {
+        if (anchor.type === "element" && $isElementNode(node)) {
           const parent = node;
-          const prev = parent.getChildAtIndex?.(anchor.offset - 1);
+          const prev = parent.getChildAtIndex(anchor.offset - 1);
           if (prev && $isUrlChipNode(prev)) {
             prev.remove();
             return true;
@@ -296,4 +297,3 @@ function replaceWithChip(
     chip.selectNext();
   }
 }
-

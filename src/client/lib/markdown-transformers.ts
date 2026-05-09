@@ -36,7 +36,7 @@ import {
   TableCellNode,
   TableCellHeaderStates,
 } from "@lexical/table";
-import { $createTextNode, type ElementNode } from "lexical";
+import { $createTextNode } from "lexical";
 import { $createUrlChipNode, $isUrlChipNode, UrlChipNode } from "../components/UrlChipNode";
 import { $createWikiLinkNode, $isWikiLinkNode, WikiLinkNode } from "../components/WikiLinkNode";
 
@@ -96,8 +96,8 @@ const TABLE: MultilineElementTransformer = {
     return lines.join("\n");
   },
   regExpStart: TABLE_ROW_RE,
-  handleImportAfterStartMatch: ({ lines, rootNode, startLineIndex, startMatch }) => {
-    // We need: header (startMatch), separator (next line), then data rows
+  handleImportAfterStartMatch: ({ lines, rootNode, startLineIndex }) => {
+    // We need: header, separator (next line), then data rows
     const headerLine = lines[startLineIndex];
     const separatorLine = lines[startLineIndex + 1];
 

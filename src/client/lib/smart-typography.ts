@@ -14,14 +14,14 @@ export function getSmartReplacement(
 
   // Smart double quotes
   if (key === '"') {
-    const isOpening = charBefore === "" || /[\s(\[{]/.test(charBefore);
+    const isOpening = charBefore === "" || /[\s([{]/.test(charBefore);
     return { char: isOpening ? "\u201C" : "\u201D", deleteCount: 0 };
   }
 
   // Smart single quotes
   if (key === "'") {
     const isApostrophe = /\w/.test(charBefore);
-    const isOpening = charBefore === "" || /[\s(\[{]/.test(charBefore);
+    const isOpening = charBefore === "" || /[\s([{]/.test(charBefore);
     return { char: isApostrophe || !isOpening ? "\u2019" : "\u2018", deleteCount: 0 };
   }
 

@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, redirect, useNavigate, useLocation, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useNavigate, useLocation } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef } from "react";
 import { Sidebar } from "../components/Sidebar";
 import { SettingsModal } from "../components/SettingsModal";
@@ -112,7 +112,7 @@ function AppLayout() {
 
   const handleDuplicateNote = async () => {
     if (!activeNote) return;
-    const full = await fetch(`/api/notes/${activeNote.id}`).then((r) => r.json());
+    const full = await fetch(`/api/notes/${activeNote.id}`).then((r) => r.json() as Promise<{ note: { content: string } }>);
     const note = await create({ title: `${activeNote.title} (copy)`, content: full.note.content });
     navigate({ to: "/notes/$id", params: { id: note.id } });
   };

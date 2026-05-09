@@ -114,13 +114,13 @@ notesRoutes.get("/:id/backlinks", async (c) => {
 });
 
 notesRoutes.get("/:id/versions/:vid", async (c) => {
-  const version = await getNoteVersion(c.env.DB, c.get("userId"), c.req.param("vid"));
+  const version = await getNoteVersion(c.env.DB, c.get("userId"), c.req.param("id"), c.req.param("vid"));
   if (!version) return c.json({ error: "Not found" }, 404);
   return c.json({ version });
 });
 
 notesRoutes.post("/:id/versions/:vid/restore", async (c) => {
-  const version = await getNoteVersion(c.env.DB, c.get("userId"), c.req.param("vid"));
+  const version = await getNoteVersion(c.env.DB, c.get("userId"), c.req.param("id"), c.req.param("vid"));
   if (!version) return c.json({ error: "Version not found" }, 404);
   const note = await updateNote(c.env.DB, c.get("userId"), c.req.param("id"), { content: version.content });
   if (!note) return c.json({ error: "Note not found" }, 404);

@@ -47,7 +47,7 @@ A minimal, fast writing app on Cloudflare Workers. Dual-mode editor with rich te
 ### Backend
 - **Cloudflare Workers** — served from the edge, globally fast
 - **D1 (SQLite)** — notes and settings stored per-user with full CRUD API
-- **CF Zero Trust** — authentication via Access JWT, user identity from claims
+- **better-auth** — email/password auth with session cookies and optional sign-up allowlist
 - **Hono** — lightweight API framework
 - **Search** — full-text search across note titles and content
 
@@ -59,7 +59,7 @@ A minimal, fast writing app on Cloudflare Workers. Dual-mode editor with rich te
 - D1 (SQLite) for storage
 - `@cloudflare/vite-plugin` for unified dev/build/deploy
 - Lucide React for icons
-- Vitest for testing (125 tests), oxlint + oxfmt for linting/formatting
+- Vitest for testing, oxlint + oxfmt for linting/formatting
 
 ## Getting started
 
@@ -76,11 +76,15 @@ npm run dev
 | `npm run dev` | Local dev server with Workers runtime + D1 |
 | `npm run build` | Production build |
 | `npm run deploy` | Build and deploy to Cloudflare |
+| `npm run typecheck` | Run TypeScript with `--noEmit` |
 | `npm test` | Run all tests |
 | `npm run lint` | Lint with oxlint |
 | `npm run fmt` | Format with oxfmt |
-| `npm run db:migrate:local` | Run D1 migrations locally |
-| `npm run db:migrate` | Run D1 migrations on production |
+| `npm run db:generate` | Generate Drizzle migrations from `schema.ts` |
+| `npm run db:migrate:local` | Apply D1 migrations locally |
+| `npm run db:migrate` | Apply D1 migrations on production |
+
+Schema source lives in `src/worker/db/schema.ts`. Apply migrations from `src/worker/db/migrations/`; `src/worker/db/schema.sql` is retained as legacy reference SQL.
 
 ## Deploy
 

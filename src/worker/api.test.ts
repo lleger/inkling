@@ -396,4 +396,53 @@ describe("API", () => {
       expect(body.backlinks).toEqual([]);
     });
   });
+
+  describe("version history", () => {
+    async function createNote(content: string): Promise<string> {
+      const res = await req("/api/notes", {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ content }),
+      });
+      const { note } = (await res.json()) as { note: { id: string } };
+      return note.id;
+    }
+
+    async function createVersion(noteId: string): Promise<string> {
+      await req(`/api/notes/${noteId}`, {
+        method: "PUT",
+        headers: authHeaders(),
+        body: JSON.stringify({ content: "# Updated\n\nnew content" }),
+      });
+      const versionsRes = await req(`/api/notes/${noteId}/versions`, { headers: authHeaders() });
+      const body = (await versionsRes.json()) as { versions: { id: string }[] };
+      expect(body.versions).toHaveLength(1);
+      return body.versions[0].id;
+    }
+
+    it("returns a version only for its owning note", async () => {
+      const noteA = await createNote("# A\n\noriginal");
+      const noteB = await createNote("# B\n\nother");
+      const versionId = await createVersion(noteA);
+
+      const res = await req(`/api/notes/${noteB}/versions/${versionId}`, { headers: authHeaders() });
+      expect(res.status).toBe(404);
+    });
+
+    it("does not restore a version into a different note", async () => {
+      const noteA = await createNote("# A\n\noriginal");
+      const noteB = await createNote("# B\n\nother");
+      const versionId = await createVersion(noteA);
+
+      const res = await req(`/api/notes/${noteB}/versions/${versionId}/restore`, {
+        method: "POST",
+        headers: authHeaders(),
+      });
+      expect(res.status).toBe(404);
+
+      const noteBRes = await req(`/api/notes/${noteB}`, { headers: authHeaders() });
+      const body = (await noteBRes.json()) as { note: { content: string } };
+      expect(body.note.content).toBe("# B\n\nother");
+    });
+  });
 });

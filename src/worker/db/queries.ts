@@ -499,12 +499,12 @@ export async function listNoteVersions(d1: D1Database, userId: string, noteId: s
   return rows.map(mapVersionMeta);
 }
 
-export async function getNoteVersion(d1: D1Database, userId: string, versionId: string): Promise<NoteVersion | null> {
+export async function getNoteVersion(d1: D1Database, userId: string, noteId: string, versionId: string): Promise<NoteVersion | null> {
   const db = makeDb(d1);
   const [row] = await db
     .select()
     .from(noteVersions)
-    .where(and(eq(noteVersions.id, versionId), eq(noteVersions.userId, userId)))
+    .where(and(eq(noteVersions.id, versionId), eq(noteVersions.noteId, noteId), eq(noteVersions.userId, userId)))
     .limit(1);
   return row ? mapVersion(row) : null;
 }

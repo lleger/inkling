@@ -30,7 +30,7 @@ ogRoutes.get("/", async (c) => {
   // Cache key is a synthetic request URL keyed by the target. Keeps the
   // entry per-target regardless of which user asked.
   const cacheKey = new Request(`https://og-cache.invalid/${encodeURIComponent(url.toString())}`);
-  const cache = caches.default;
+  const cache = (caches as CacheStorage & { default: Cache }).default;
 
   if (!refresh) {
     const hit = await cache.match(cacheKey);

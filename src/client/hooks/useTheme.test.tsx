@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
-import { useTheme } from "./useTheme";
+import { useTheme, type ThemePreference } from "./useTheme";
 
 function mockMatchMedia(matches: boolean) {
   const listeners = new Set<() => void>();
@@ -49,8 +49,8 @@ describe("useTheme", () => {
   });
 
   it("re-resolves when preference changes", () => {
-    const { result, rerender } = renderHook(({ pref }) => useTheme(pref), {
-      initialProps: { pref: "light" as const },
+    const { result, rerender } = renderHook(({ pref }: { pref: ThemePreference }) => useTheme(pref), {
+      initialProps: { pref: "light" },
     });
     expect(result.current).toBe("light");
 
