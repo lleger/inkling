@@ -13,3 +13,8 @@
 - Hover a trashed note, click the X icon
 - A confirmation dialog should appear
 - Confirm — the note should be permanently removed
+
+## Mobile Trash
+- Set viewport to a phone size such as 390x844
+- Trash view should fit without horizontal scrolling
+- Restore and permanent delete actions should be visible/tappable without hover

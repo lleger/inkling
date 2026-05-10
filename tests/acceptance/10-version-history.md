@@ -19,3 +19,9 @@
 
 ## Back Navigation
 - Click the back arrow — should return to the note editor
+
+## Mobile Layout
+- Set viewport to a phone size such as 390x844
+- Version list should stack above the preview instead of appearing side by side
+- The restore button should be full-width or otherwise easy to tap
+- Long note titles should truncate rather than overflow

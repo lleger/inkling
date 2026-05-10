@@ -87,11 +87,11 @@ export function MoveToFolderModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh] bg-surface-overlay animate-[fade-in_0.1s_ease-out]"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-surface-overlay px-3 pt-[max(4rem,env(safe-area-inset-top))] animate-[fade-in_0.1s_ease-out] sm:pt-[20vh]"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-sm rounded-xl border border-border bg-surface shadow-2xl animate-[scale-in_0.1s_ease-out]"
+        className="max-h-[calc(100dvh-5rem)] w-full max-w-sm overflow-hidden rounded-xl border border-border bg-surface shadow-2xl animate-[scale-in_0.1s_ease-out] sm:max-h-none"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
       >
@@ -113,7 +113,7 @@ export function MoveToFolderModal({
           </button>
         </div>
 
-        <div className="max-h-60 overflow-y-auto py-1">
+        <div className="max-h-[min(15rem,50dvh)] overflow-y-auto py-1">
           {options.length === 0 && (
             <div className="px-3 py-4 text-center text-sm text-text-muted">
               Type a folder name to create one

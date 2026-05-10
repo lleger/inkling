@@ -41,11 +41,24 @@ body,
   height: 100%;
 }
 
+@supports (height: 100dvh) {
+  html,
+  body,
+  #root {
+    height: 100dvh;
+  }
+}
+
 body {
   background: var(--color-surface);
   color: var(--color-text);
+  overflow: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 /* All buttons should have pointer cursor */
@@ -96,6 +109,7 @@ button:focus-visible {
   line-height: 1.85;
   color: var(--color-text);
   padding-bottom: 6rem;
+  overflow-wrap: anywhere;
 }
 .editor-rich .editor-placeholder {
   font-family: var(--font-editor-serif);
@@ -112,6 +126,7 @@ button:focus-visible {
   color: var(--color-text);
   tab-size: 2;
   padding-bottom: 6rem;
+  overflow-x: auto;
 }
 .editor-mono .editor-placeholder {
   font-family: var(--font-editor-mono);
@@ -348,6 +363,7 @@ button:focus-visible {
 /* Tables */
 .editor-table {
   width: 100%;
+  max-width: 100%;
   border-collapse: collapse;
   margin: 0.75em 0;
   font-size: 0.9em;

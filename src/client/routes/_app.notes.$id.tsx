@@ -178,14 +178,14 @@ function NoteRoute() {
     <>
       {/* Mode switcher */}
       <div
-        className={`fixed top-3 right-3 z-10 flex flex-col items-center rounded-lg bg-surface-secondary border border-border p-0.5 transition-opacity duration-200 ${ui.focusMode ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+        className={`fixed top-3 right-3 z-10 flex items-center rounded-lg border border-border bg-surface-secondary/90 p-0.5 shadow-sm backdrop-blur-sm transition-opacity duration-200 md:flex-col md:bg-surface-secondary md:shadow-none md:backdrop-blur-none ${ui.focusMode ? "opacity-0 pointer-events-none" : "opacity-100"}`}
       >
-        <div className="flex flex-col gap-0.5">
+        <div className="flex gap-0.5 md:flex-col">
           {modeBtn("richtext", <Type size={15} />, "Rich Text")}
           {modeBtn("markdown", <Code size={15} />, "Markdown")}
           {modeBtn("split", <Columns2 size={15} />, "Split View")}
         </div>
-        <div className="w-5 h-px bg-border my-1.5" />
+        <div className="mx-1.5 h-5 w-px bg-border md:mx-0 md:my-1.5 md:h-px md:w-5" />
         <button
           onClick={() => ui.setMetaPanelOpen((o) => !o)}
           title="Note details"
@@ -210,7 +210,7 @@ function NoteRoute() {
 
       {/* Stats — bottom right */}
       <div
-        className={`fixed bottom-4 right-4 z-10 flex items-center gap-2 rounded-lg bg-surface-secondary/80 backdrop-blur-sm border border-border px-3 py-1.5 text-[11px] text-text-muted select-none transition-opacity duration-200 ${ui.focusMode ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+        className={`fixed right-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-10 flex max-w-[calc(100vw-1.5rem)] items-center gap-2 rounded-lg border border-border bg-surface-secondary/80 px-3 py-1.5 text-[11px] text-text-muted shadow-sm backdrop-blur-sm select-none transition-opacity duration-200 sm:right-4 sm:bottom-4 ${ui.focusMode ? "opacity-0 pointer-events-none" : "opacity-100"}`}
       >
         {taskStats && (
           <>

@@ -34,7 +34,7 @@ export function TrashView() {
   };
 
   return (
-    <div className="flex w-full max-w-[680px] flex-col px-6 pt-12 pb-24 min-h-full animate-[fade-in_0.2s_ease-out]">
+    <div className="flex min-h-full w-full max-w-[680px] flex-col px-4 pt-16 pb-32 animate-[fade-in_0.2s_ease-out] sm:px-6 sm:pt-12 sm:pb-24">
       <div className="mb-8 flex items-center gap-2 text-text-secondary">
         <Trash2 size={18} />
         <h2 className="text-lg font-semibold">Trash</h2>
@@ -56,26 +56,26 @@ export function TrashView() {
           {notes.map((note) => (
             <div
               key={note.id}
-              className="group flex items-center justify-between rounded-lg border border-border bg-surface-secondary p-3 transition-colors hover:bg-surface-hover"
+              className="group flex items-center justify-between gap-3 rounded-lg border border-border bg-surface-secondary p-3 transition-colors hover:bg-surface-hover"
             >
-              <div>
+              <div className="min-w-0">
                 <div className="text-sm font-medium text-text">{note.title || "Untitled"}</div>
                 <div className="mt-0.5 text-[11px] text-text-muted">
                   Deleted {timeAgo(note.deleted_at)}
                 </div>
               </div>
-              <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="flex shrink-0 items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                 <button
                   onClick={() => restore.mutate(note.id)}
                   title="Restore"
-                  className="flex size-7 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-active hover:text-accent"
+                  className="flex size-9 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-active hover:text-accent sm:size-7"
                 >
                   <RotateCcw size={14} />
                 </button>
                 <button
                   onClick={() => handlePermanentDelete(note.id)}
                   title="Delete permanently"
-                  className="flex size-7 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-active hover:text-red-500"
+                  className="flex size-9 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-active hover:text-red-500 sm:size-7"
                 >
                   <X size={14} />
                 </button>

@@ -21,3 +21,9 @@
 - Click the "New Note" dashed card
 - A new note should open in the editor
 - The sidebar should show the new note as active
+
+## Mobile Layout
+- Set viewport to a phone size such as 390x844
+- Home page content should fit without horizontal scrolling
+- Stats should wrap if needed rather than overflowing
+- Note delete buttons should be visible/tappable without hover

@@ -36,7 +36,7 @@ export function MetaPanel({ note, wordCount, taskStats }: MetaPanelProps) {
 
   return (
     <aside
-      className={`fixed top-0 right-0 z-20 flex h-full w-80 flex-col border-l border-border bg-surface shadow-lg transition-transform duration-200 ${
+      className={`fixed top-0 right-0 z-20 flex h-full w-[min(100vw,22rem)] flex-col border-l border-border bg-surface shadow-lg transition-transform duration-200 ${
         ui.metaPanelOpen ? "translate-x-0" : "translate-x-full"
       }`}
       aria-hidden={!ui.metaPanelOpen}

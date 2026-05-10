@@ -18,6 +18,13 @@
 - A hamburger button should appear at the top-left of the main area
 - Click it to reopen the sidebar
 
+## Mobile Drawer
+- Set viewport to a phone size such as 390x844
+- Sidebar should open as an overlay drawer, not squeeze the main content
+- Tapping outside the sidebar should close it
+- Selecting a note should navigate to the note and close the drawer
+- Note pin and delete actions should be visible/tappable without hover
+
 ## Home Button
 - Click the home icon in the sidebar header
 - Should navigate back to the home page (no note selected)

@@ -20,3 +20,9 @@
 
 ## Sign Out
 - The settings modal should show the user email at the bottom
+
+## Mobile Settings
+- Set viewport to a phone size such as 390x844
+- Settings modal should fit inside the viewport with side margins
+- If content is taller than the screen, modal content should scroll internally
+- User email should truncate rather than overflow

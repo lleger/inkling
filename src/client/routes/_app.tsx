@@ -128,11 +128,13 @@ function AppLayout() {
   const handleCreateNote = async () => {
     const note = await create();
     navigate({ to: "/notes/$id", params: { id: note.id } });
+    closeSidebarOnMobile();
   };
 
   const handleCreateWithTitle = async (title: string) => {
     const note = await create({ title, content: `# ${title}\n\n` });
     navigate({ to: "/notes/$id", params: { id: note.id } });
+    closeSidebarOnMobile();
   };
 
   const handleDuplicateNote = async () => {
@@ -167,6 +169,27 @@ function AppLayout() {
   };
 
   const isPinned = activeNote ? !!activeNote.pinned : false;
+
+  const closeSidebarOnMobile = () => {
+    if (window.matchMedia("(max-width: 767px)").matches) {
+      ui.setSidebarOpen(false);
+    }
+  };
+
+  const selectNote = (id: string) => {
+    navigate({ to: "/notes/$id", params: { id } });
+    closeSidebarOnMobile();
+  };
+
+  const goHome = () => {
+    navigate({ to: "/" });
+    closeSidebarOnMobile();
+  };
+
+  const goTrash = () => {
+    navigate({ to: "/trash" });
+    closeSidebarOnMobile();
+  };
 
   // Mode switcher state lives here so the palette can switch modes from any route
   // (we'll use a custom event the note route listens for)
@@ -304,20 +327,28 @@ function AppLayout() {
   ];
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full min-w-0 overflow-hidden">
+      {ui.sidebarOpen && !ui.focusMode && (
+        <button
+          type="button"
+          aria-label="Close sidebar"
+          className="fixed inset-0 z-20 bg-surface-overlay md:hidden"
+          onClick={() => ui.setSidebarOpen(false)}
+        />
+      )}
       <div
         className={`flex h-full transition-opacity duration-200 ${ui.focusMode ? "opacity-0 pointer-events-none w-0 overflow-hidden" : "opacity-100"}`}
       >
         <Sidebar
           notes={notes}
           activeNoteId={activeNoteId}
-          onSelectNote={(id) => navigate({ to: "/notes/$id", params: { id } })}
+          onSelectNote={selectNote}
           onCreateNote={handleCreateNote}
           onDeleteNote={handleDeleteNote}
           onCollapse={() => ui.setSidebarOpen(false)}
-          onHome={() => navigate({ to: "/" })}
+          onHome={goHome}
           onOpenSettings={() => ui.setSettingsOpen(true)}
-          onOpenTrash={() => navigate({ to: "/trash" })}
+          onOpenTrash={goTrash}
           onTogglePin={(id) => {
             const note = notes.find((n) => n.id === id);
             if (note) pin(id, !note.pinned);
@@ -331,7 +362,7 @@ function AppLayout() {
         />
       </div>
 
-      <main className="relative flex flex-1 justify-center overflow-y-auto bg-surface">
+      <main className="relative flex min-w-0 flex-1 justify-center overflow-y-auto bg-surface">
         <div
           className={`transition-opacity duration-200 ${ui.focusMode ? "opacity-0 pointer-events-none" : "opacity-100"}`}
         >
@@ -339,7 +370,7 @@ function AppLayout() {
             <button
               onClick={() => ui.setSidebarOpen(true)}
               title="Open sidebar"
-              className="fixed top-3 left-3 z-10 flex size-8 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary"
+              className="fixed top-3 left-3 z-10 flex size-9 items-center justify-center rounded-md bg-surface-secondary/80 text-text-muted shadow-sm ring-1 ring-border backdrop-blur-sm transition-colors hover:bg-surface-hover hover:text-text-secondary md:size-8 md:bg-transparent md:shadow-none md:ring-0"
             >
               <PanelLeftOpen size={16} />
             </button>
@@ -356,7 +387,7 @@ function AppLayout() {
         onClose={() => ui.setPaletteOpen(false)}
         notes={notes}
         actions={paletteActions}
-        onSelectNote={(id) => navigate({ to: "/notes/$id", params: { id } })}
+        onSelectNote={selectNote}
         onCreateWithTitle={handleCreateWithTitle}
       />
 

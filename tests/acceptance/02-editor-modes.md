@@ -18,6 +18,13 @@
 - Left pane: editable markdown (monospace)
 - Right pane: read-only rich text preview
 
+## Mobile Split Mode
+- Set viewport to a phone size such as 390x844
+- Click the split view icon in the mode switcher
+- Markdown editor and rich text preview should stack vertically
+- Editor content should fit without horizontal page scrolling
+- Mode controls should remain visible and tappable
+
 ## Mode Switching Preserves Content
 - Type some text in rich text mode
 - Switch to markdown mode

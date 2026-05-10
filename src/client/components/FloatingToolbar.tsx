@@ -247,7 +247,7 @@ export function FloatingToolbar() {
   return (
     <div
       ref={toolbarRef}
-      className="fixed z-30 flex items-center gap-0.5 rounded-lg border border-border bg-surface shadow-lg px-1 py-0.5 animate-[fade-in_0.1s_ease-out]"
+      className="fixed z-30 flex max-w-[calc(100vw-1rem)] items-center gap-0.5 overflow-x-auto rounded-lg border border-border bg-surface px-1 py-0.5 shadow-lg animate-[fade-in_0.1s_ease-out]"
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,

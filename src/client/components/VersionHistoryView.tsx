@@ -77,9 +77,9 @@ export function VersionHistoryView({
   }, [noteId, selectedId, onRestore]);
 
   return (
-    <div className="flex w-full max-w-[900px] flex-col px-6 pt-10 pb-24 min-h-full animate-[fade-in_0.2s_ease-out]">
+    <div className="flex min-h-full w-full max-w-[900px] flex-col px-4 pt-16 pb-32 animate-[fade-in_0.2s_ease-out] sm:px-6 sm:pt-10 sm:pb-24">
       {/* Header */}
-      <div className="mb-6 flex items-center gap-3">
+      <div className="mb-6 flex flex-wrap items-center gap-3">
         <button
           onClick={onClose}
           className="flex size-8 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary"
@@ -91,7 +91,7 @@ export function VersionHistoryView({
           <History size={18} />
           <h2 className="text-lg font-semibold">Version History</h2>
         </div>
-        <span className="text-sm text-text-muted">— {noteTitle}</span>
+        <span className="min-w-0 truncate text-sm text-text-muted sm:max-w-xs">— {noteTitle}</span>
       </div>
 
       <p className="mb-6 text-xs text-text-muted">
@@ -107,9 +107,9 @@ export function VersionHistoryView({
           <p className="text-xs">Versions are created after 5 minutes of editing</p>
         </div>
       ) : (
-        <div className="flex gap-6 flex-1 min-h-0">
+        <div className="flex min-h-0 flex-1 flex-col gap-6 md:flex-row">
           {/* Version list */}
-          <div className="w-64 shrink-0 overflow-y-auto flex flex-col gap-1">
+          <div className="flex max-h-72 shrink-0 flex-col gap-1 overflow-y-auto md:max-h-none md:w-64">
             {versions.map((v) => (
               <button
                 key={v.id}
@@ -136,7 +136,7 @@ export function VersionHistoryView({
           <div className="flex-1 min-w-0 flex flex-col">
             {previewContent !== null ? (
               <>
-                <div className="mb-3 flex items-center justify-between">
+                <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <span className="text-xs text-text-muted">
                     {versions.find((v) => v.id === selectedId)?.created_at
                       ? timeAgo(versions.find((v) => v.id === selectedId)!.created_at)
@@ -145,13 +145,13 @@ export function VersionHistoryView({
                   <button
                     onClick={handleRestore}
                     disabled={restoring}
-                    className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                    className="flex items-center justify-center gap-1.5 rounded-md bg-accent px-3 py-2 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 sm:py-1.5"
                   >
                     <RotateCcw size={13} />
                     {restoring ? "Restoring..." : "Restore this version"}
                   </button>
                 </div>
-                <div className="flex-1 overflow-y-auto rounded-lg border border-border bg-surface-secondary p-6">
+                <div className="flex-1 overflow-y-auto rounded-lg border border-border bg-surface-secondary p-4 sm:p-6">
                   <RichTextPreview content={previewContent} />
                 </div>
               </>

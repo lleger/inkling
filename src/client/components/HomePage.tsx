@@ -112,7 +112,7 @@ export function HomePage({
 
   return (
     <div
-      className={`flex w-full max-w-[680px] flex-col px-6 pt-12 pb-24 min-h-full animate-[fade-in_0.2s_ease-out] transition-colors ${
+      className={`flex min-h-full w-full max-w-[680px] flex-col px-4 pt-16 pb-32 animate-[fade-in_0.2s_ease-out] transition-colors sm:px-6 sm:pt-12 sm:pb-24 ${
         dragFiles.length > 0 ? "bg-accent/5" : ""
       }`}
       onDragEnter={handleDragEnter}
@@ -180,7 +180,7 @@ export function HomePage({
       )}
 
       {/* Stats summary */}
-      <div className="mb-8 flex items-center gap-2">
+      <div className="mb-8 flex flex-wrap items-center gap-2">
         <div className="flex items-center gap-1.5 rounded-md bg-surface-tertiary px-2.5 py-1 text-[12px] text-text-secondary">
           <FileText size={13} />
           <span>
@@ -221,7 +221,7 @@ export function HomePage({
               className="group relative cursor-pointer rounded-lg border border-border bg-surface-secondary p-4 text-left transition-all duration-150 hover:bg-surface-hover hover:-translate-y-0.5 hover:shadow-md"
             >
               <button
-                className="absolute top-2 right-2 flex size-6 items-center justify-center rounded-md text-text-muted opacity-0 transition-opacity group-hover:opacity-100 hover:bg-surface-active hover:text-text"
+                className="absolute top-2 right-2 flex size-8 items-center justify-center rounded-md text-text-muted opacity-100 transition-opacity hover:bg-surface-active hover:text-text sm:size-6 sm:opacity-0 sm:group-hover:opacity-100"
                 onClick={(e) => {
                   e.stopPropagation();
                   onDeleteNote(note.id);

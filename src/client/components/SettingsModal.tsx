@@ -44,11 +44,11 @@ export function SettingsModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-surface-overlay animate-[fade-in_0.15s_ease-out]"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-surface-overlay px-3 py-[max(0.75rem,env(safe-area-inset-top))] animate-[fade-in_0.15s_ease-out]"
       onClick={onClose}
     >
       <div
-        className="w-80 rounded-lg border border-border bg-surface shadow-xl animate-[scale-in_0.15s_ease-out]"
+        className="max-h-[calc(100dvh-1.5rem)] w-full max-w-80 overflow-hidden rounded-lg border border-border bg-surface shadow-xl animate-[scale-in_0.15s_ease-out]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
@@ -61,7 +61,7 @@ export function SettingsModal({
           </button>
         </div>
 
-        <div className="p-4 space-y-5">
+        <div className="max-h-[calc(100dvh-4.5rem)] space-y-5 overflow-y-auto p-4">
           {/* Theme */}
           <div>
             <label className="block text-[12px] font-medium text-text-secondary mb-2">Theme</label>
@@ -172,8 +172,8 @@ export function SettingsModal({
               <label className="block text-[12px] font-medium text-text-secondary mb-1">
                 Account
               </label>
-              <div className="flex items-center justify-between">
-                <span className="text-[12px] text-text-muted">{userEmail}</span>
+              <div className="flex items-center justify-between gap-3">
+                <span className="min-w-0 truncate text-[12px] text-text-muted">{userEmail}</span>
                 <button
                   type="button"
                   onClick={async () => {

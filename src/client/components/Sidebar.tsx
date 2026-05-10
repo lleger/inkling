@@ -127,7 +127,7 @@ export function Sidebar({
     return (
       <div
         key={note.id}
-        className={`group relative flex items-center gap-2 cursor-pointer rounded-md px-2 py-2 transition-colors ${
+        className={`group relative flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-2 py-2 transition-colors md:min-h-0 ${
           isActive
             ? "bg-surface-active text-text"
             : "text-text-secondary hover:bg-surface-hover hover:text-text"
@@ -147,13 +147,15 @@ export function Sidebar({
           />
         )}
         {note.pinned === 1 && <Pin size={11} className="shrink-0 text-text-muted" />}
-        <span className="flex-1 truncate text-[13px]">{note.title || "Untitled"}</span>
-        <span className="shrink-0 text-[11px] text-text-muted transition-opacity group-hover:opacity-0">
+        <span className="flex-1 truncate pr-16 text-[13px] md:pr-0">
+          {note.title || "Untitled"}
+        </span>
+        <span className="hidden shrink-0 text-[11px] text-text-muted transition-opacity group-hover:opacity-0 md:inline">
           {timeAgo(note.updated_at)}
         </span>
-        <div className="absolute right-1.5 flex items-center gap-0.5 opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-hover:pointer-events-auto">
+        <div className="absolute right-1.5 flex items-center gap-0.5 opacity-100 transition-opacity md:pointer-events-none md:opacity-0 md:group-hover:pointer-events-auto md:group-hover:opacity-100">
           <button
-            className="flex size-5 items-center justify-center rounded text-text-muted hover:bg-surface-active hover:text-text"
+            className="flex size-8 items-center justify-center rounded text-text-muted hover:bg-surface-active hover:text-text md:size-5"
             onClick={(e) => {
               e.stopPropagation();
               onTogglePin(note.id);
@@ -163,7 +165,7 @@ export function Sidebar({
             <Pin size={11} className={note.pinned ? "text-accent" : ""} />
           </button>
           <button
-            className="flex size-5 items-center justify-center rounded text-text-muted hover:bg-surface-active hover:text-text"
+            className="flex size-8 items-center justify-center rounded text-text-muted hover:bg-surface-active hover:text-text md:size-5"
             onClick={(e) => {
               e.stopPropagation();
               onDeleteNote(note.id);
@@ -187,7 +189,7 @@ export function Sidebar({
       <div key={folder.path}>
         <button
           onClick={() => toggleFolder(folder.path)}
-          className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-[12px] font-medium text-text-secondary transition-colors hover:bg-surface-hover hover:text-text"
+          className="flex min-h-10 w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-[12px] font-medium text-text-secondary transition-colors hover:bg-surface-hover hover:text-text md:min-h-0"
           style={{ paddingLeft: `${8 + depth * 16}px` }}
         >
           <ChevronRight
@@ -220,8 +222,10 @@ export function Sidebar({
 
   return (
     <aside
-      className={`w-56 shrink-0 flex flex-col border-r border-border bg-surface-secondary transition-all duration-200 ease-out ${
-        open ? "translate-x-0" : "-translate-x-56 absolute top-0 left-0 bottom-0 z-10"
+      className={`fixed inset-y-0 left-0 z-30 flex w-[min(18rem,82vw)] shrink-0 flex-col border-r border-border bg-surface-secondary transition-transform duration-200 ease-out md:relative md:z-auto md:w-56 md:shadow-none ${
+        open
+          ? "translate-x-0 shadow-2xl"
+          : "-translate-x-full md:-translate-x-56 md:absolute md:top-0 md:bottom-0"
       }`}
     >
       <div className="flex items-center justify-between border-b border-border px-3 py-2">
@@ -234,14 +238,14 @@ export function Sidebar({
         </button>
         <div className="flex items-center gap-0.5 rounded-md bg-surface p-0.5">
           <button
-            className="flex size-7 items-center justify-center rounded text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary"
+            className="flex size-9 items-center justify-center rounded text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary md:size-7"
             onClick={onCreateNote}
             title="New note"
           >
             <Plus size={15} />
           </button>
           <button
-            className="flex size-7 items-center justify-center rounded text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary"
+            className="flex size-9 items-center justify-center rounded text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary md:size-7"
             onClick={onCollapse}
             title="Collapse sidebar"
           >
@@ -270,7 +274,7 @@ export function Sidebar({
       )}
 
       {/* Note list with folders */}
-      <div className="flex-1 overflow-y-auto px-1.5 py-1 flex flex-col gap-0.5">
+      <div className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-1.5 py-1">
         {/* Pinned notes at top */}
         {hasPinned && (
           <>
@@ -292,20 +296,20 @@ export function Sidebar({
 
       <div className="flex items-center justify-between border-t border-border px-3 py-2">
         {userEmail ? (
-          <span className="truncate text-[11px] text-text-muted">{userEmail}</span>
+          <span className="min-w-0 truncate text-[11px] text-text-muted">{userEmail}</span>
         ) : (
           <span />
         )}
         <div className="flex items-center gap-0.5">
           <button
-            className="flex size-7 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary"
+            className="flex size-9 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary md:size-7"
             onClick={onOpenTrash}
             title="Trash"
           >
             <Trash2 size={14} />
           </button>
           <button
-            className="flex size-7 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary"
+            className="flex size-9 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary md:size-7"
             onClick={onOpenSettings}
             title="Settings"
           >

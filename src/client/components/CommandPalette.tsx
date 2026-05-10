@@ -153,11 +153,11 @@ export function CommandPalette({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh] bg-surface-overlay animate-[fade-in_0.1s_ease-out]"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-surface-overlay px-3 pt-[max(4rem,env(safe-area-inset-top))] animate-[fade-in_0.1s_ease-out] sm:pt-[20vh]"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-xl border border-border bg-surface shadow-2xl animate-[scale-in_0.1s_ease-out]"
+        className="max-h-[calc(100dvh-5rem)] w-full max-w-md overflow-hidden rounded-xl border border-border bg-surface shadow-2xl animate-[scale-in_0.1s_ease-out] sm:max-h-none"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
       >
@@ -178,7 +178,7 @@ export function CommandPalette({
         </div>
 
         {/* Results */}
-        <div ref={listRef} className="max-h-72 overflow-y-auto py-1">
+        <div ref={listRef} className="max-h-[min(18rem,55dvh)] overflow-y-auto py-1">
           {results.length === 0 && (
             <div className="px-3 py-6 text-center text-sm text-text-muted">No results</div>
           )}
