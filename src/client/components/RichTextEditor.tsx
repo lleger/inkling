@@ -28,6 +28,7 @@ import { ChecklistShortcutPlugin } from "./editor/plugins/ChecklistShortcutPlugi
 import { ClickableLinkPlugin } from "./editor/plugins/ClickableLinkPlugin";
 import { CopyAsMarkdownPlugin } from "./editor/plugins/CopyAsMarkdownPlugin";
 import { ListIndentPlugin } from "./editor/plugins/ListIndentPlugin";
+import { MarkdownPastePlugin } from "./editor/plugins/MarkdownPastePlugin";
 import { SmartTypographyPlugin } from "./editor/plugins/SmartTypographyPlugin";
 import { TagZonePlugin } from "./editor/plugins/TagZonePlugin";
 import { richTextTheme } from "../lib/editor-theme";
@@ -101,6 +102,7 @@ export function RichTextEditor({
         <CheckListPlugin />
         <ListIndentPlugin />
         <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
+        <MarkdownPastePlugin />
         <TablePlugin />
         <HorizontalRulePlugin />
         <OnChangePlugin onChange={handleChange} ignoreSelectionChange />

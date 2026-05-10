@@ -36,3 +36,8 @@
 - Paste into a plain-text app — should be the markdown source (e.g. `# Heading`), not styled text
 - Copying a paragraph with a link preserves `[text](url)` syntax
 - Copying a list item preserves `- ` prefix
+
+## Paste Markdown
+- In rich text mode, paste markdown such as `# Heading` followed by `- item`
+- The pasted content should render as rich text: heading text should become a heading and list markers should become list items
+- Plain prose without markdown syntax should still paste as normal text

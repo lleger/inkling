@@ -76,6 +76,27 @@ describe("RichTextEditor", () => {
     );
     expect(container.querySelector(".editor-rich")).toBeTruthy();
   });
+
+  it("converts pasted markdown into rich text", async () => {
+    const { container } = render(
+      <RichTextEditor initialContent="" onChange={vi.fn()} autoFocus={false} />,
+    );
+
+    const editable = container.querySelector("[contenteditable]");
+    expect(editable).toBeTruthy();
+
+    fireEvent.paste(editable!, {
+      clipboardData: {
+        getData: (type: string) =>
+          type === "text/plain" ? "# Pasted heading\n\n- item one\n- item two" : "",
+      },
+    });
+
+    await waitFor(() => {
+      expect(container.querySelector(".editor-heading-h1")?.textContent).toBe("Pasted heading");
+      expect(container.querySelectorAll(".editor-listitem")).toHaveLength(2);
+    });
+  });
 });
 
 describe("RichTextPreview", () => {
