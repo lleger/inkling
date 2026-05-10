@@ -31,12 +31,14 @@ import {
   PanelLeftClose,
   CalendarDays,
   CalendarRange,
+  Eraser,
 } from "lucide-react";
 import { useNotes } from "../hooks/useNotes";
 import { useUser } from "../hooks/useUser";
 import { useTheme } from "../hooks/useTheme";
 import { useSettings } from "../hooks/useSettings";
 import { useDailyNote } from "../hooks/useDailyNote";
+import { useScratchNote } from "../hooks/useScratchNote";
 import { useFolderMetadata } from "../hooks/useFolderMetadata";
 import { applyAccent } from "../lib/accent-colors";
 import { dailyFolder } from "../lib/daily-notes";
@@ -66,6 +68,7 @@ function AppLayout() {
   const { settings, update: updateSettings } = useSettings();
   const theme = useTheme(settings.theme);
   const { openDailyNote } = useDailyNote();
+  const { openScratchNote } = useScratchNote();
   const [iconFolderPath, setIconFolderPath] = useState<string | null>(null);
 
   // Apply accent
@@ -84,6 +87,18 @@ function AppLayout() {
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [openDailyNote]);
+
+  // Cmd+Shift+X — open scratch note
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "x") {
+        e.preventDefault();
+        openScratchNote();
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [openScratchNote]);
 
   // Derive active note from URL
   const activeNoteId = useMemo(() => {
@@ -212,6 +227,11 @@ function AppLayout() {
     closeSidebarOnMobile();
   };
 
+  const handleOpenScratchNote = async () => {
+    await openScratchNote();
+    closeSidebarOnMobile();
+  };
+
   const openSettings = () => {
     ui.setSettingsOpen(true);
     closeSidebarOnMobile();
@@ -247,6 +267,13 @@ function AppLayout() {
       icon: <CalendarRange size={15} />,
       category: "action",
       onSelect: () => navigate({ to: "/daily" }),
+    },
+    {
+      id: "scratch-note",
+      label: "Open scratch note",
+      icon: <Eraser size={15} />,
+      category: "action",
+      onSelect: openScratchNote,
     },
     {
       id: "duplicate-note",
@@ -382,6 +409,7 @@ function AppLayout() {
           onHome={goHome}
           onOpenDailyDate={handleOpenDailyDate}
           onOpenDailyNotes={goDailyNotes}
+          onOpenScratchNote={handleOpenScratchNote}
           onOpenSettings={openSettings}
           onOpenTrash={goTrash}
           onTogglePin={(id) => {

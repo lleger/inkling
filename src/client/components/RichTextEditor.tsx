@@ -17,7 +17,7 @@ import { TableNode, TableRowNode, TableCellNode } from "@lexical/table";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
 import { HorizontalRuleNode } from "@lexical/react/LexicalHorizontalRuleNode";
 import { HashtagNode } from "@lexical/hashtag";
-import { $getRoot, type EditorState } from "lexical";
+import { $createParagraphNode, $getRoot, type EditorState } from "lexical";
 import { ScrollIntoViewPlugin } from "./ScrollIntoViewPlugin";
 import { FloatingToolbar } from "./FloatingToolbar";
 import { UrlChipNode, UrlChipPlugin } from "./UrlChipNode";
@@ -71,8 +71,12 @@ export function RichTextEditor({
     ],
     editorState: () => {
       $convertFromMarkdownString(initialContent, TRANSFORMERS);
+      const root = $getRoot();
+      if (/\n\s*\n$/.test(initialContent) && root.getLastChild()?.getTextContent() !== "") {
+        root.append($createParagraphNode());
+      }
       // Place cursor at end
-      $getRoot().selectEnd();
+      root.selectEnd();
     },
   };
 

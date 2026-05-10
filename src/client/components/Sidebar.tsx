@@ -5,6 +5,7 @@ import {
   X,
   Home,
   CalendarRange,
+  Eraser,
   Settings,
   Trash2,
   Pin,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 import { renderFolderIcon } from "../lib/folder-icons";
 import { addDays, dailyLabel, dailyTitle, findDailyNote } from "../lib/daily-notes";
+import { findScratchNote, scratchFolder } from "../lib/scratch-notes";
 import type { FolderMetadata, NoteMeta, SaveStatus } from "../types";
 
 function timeAgo(dateStr: string): string {
@@ -35,14 +37,14 @@ interface FolderTree {
 
 function buildFolderTree(
   notes: NoteMeta[],
-  excludedFolder: string | null,
+  excludedFolders: Set<string>,
 ): { tree: FolderTree[]; unfiled: NoteMeta[] } {
   const folders = new Map<string, FolderTree>();
   const unfiled: NoteMeta[] = [];
 
   // Collect all folder paths
   for (const note of notes) {
-    if (note.folder === excludedFolder) continue;
+    if (note.folder && excludedFolders.has(note.folder)) continue;
 
     if (!note.folder) {
       unfiled.push(note);
@@ -87,6 +89,7 @@ interface SidebarProps {
   onHome: () => void;
   onOpenDailyDate: (date?: Date) => void;
   onOpenDailyNotes: () => void;
+  onOpenScratchNote: () => void;
   onOpenSettings: () => void;
   onOpenTrash: () => void;
   onTogglePin: (id: string) => void;
@@ -111,6 +114,7 @@ export function Sidebar({
   onHome,
   onOpenDailyDate,
   onOpenDailyNotes,
+  onOpenScratchNote,
   onOpenSettings,
   onOpenTrash,
   onTogglePin,
@@ -125,7 +129,7 @@ export function Sidebar({
   dailyNoteFolder,
 }: SidebarProps) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(["__all__"]));
-  const { tree, unfiled } = buildFolderTree(notes, dailyNoteFolder);
+  const { tree, unfiled } = buildFolderTree(notes, new Set([dailyNoteFolder, scratchFolder()]));
 
   const toggleFolder = (path: string) => {
     setExpandedFolders((prev) => {
@@ -139,6 +143,41 @@ export function Sidebar({
   // Auto-expand folder containing active note
   const activeFolder = notes.find((n) => n.id === activeNoteId)?.folder;
   const dailyDates = [new Date(), addDays(new Date(), -1), addDays(new Date(), -2)];
+  const scratchNote = findScratchNote(notes);
+  const isScratchActive = scratchNote?.id === activeNoteId;
+
+  const renderScratchSection = () => (
+    <div className="mx-1 my-1 rounded-lg border border-border bg-surface/60 p-1">
+      <div
+        onClick={() => onOpenScratchNote()}
+        className={`group relative flex w-full min-h-10 cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors md:min-h-0 ${
+          isScratchActive
+            ? "bg-surface-active text-text"
+            : "text-text-secondary hover:bg-surface-hover hover:text-text"
+        }`}
+      >
+        {isScratchActive && (
+          <div className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-accent" />
+        )}
+        <Eraser size={13} className="shrink-0 text-text-muted" />
+        <span className="min-w-0 flex-1 truncate text-[13px] font-medium">Scratch</span>
+        <span className="shrink-0 text-[11px] text-text-muted">⌘⇧X</span>
+        {scratchNote && (
+          <button
+            type="button"
+            title="Delete scratch note"
+            className="flex size-7 shrink-0 items-center justify-center rounded text-text-muted opacity-100 transition-opacity hover:bg-surface-active hover:text-text md:size-5 md:opacity-0 md:group-hover:opacity-100"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeleteNote(scratchNote.id);
+            }}
+          >
+            <X size={12} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
 
   const renderDailySection = () => (
     <div className="mx-1 my-1 rounded-lg border border-border bg-surface/60 p-1">
@@ -357,6 +396,7 @@ export function Sidebar({
         )}
 
         {renderDailySection()}
+        {renderScratchSection()}
 
         {/* Folders */}
         {tree.map((folder) => renderFolder(folder))}

@@ -13,7 +13,7 @@
 
 ## Auth Gate
 - Sign out (or open in a fresh browser)
-- Navigate to `/`, `/notes/<id>`, `/trash`, `/today`, or `/notes/<id>/versions`
+- Navigate to `/`, `/notes/<id>`, `/trash`, `/today`, `/scratch`, or `/notes/<id>/versions`
 - Should redirect to `/login?mode=signin&redirect=<original path>`
 - After signing in, should land on the originally requested path
 

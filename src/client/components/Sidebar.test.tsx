@@ -13,6 +13,7 @@ const baseProps = {
   onHome: vi.fn(),
   onOpenDailyDate: vi.fn(),
   onOpenDailyNotes: vi.fn(),
+  onOpenScratchNote: vi.fn(),
   onOpenSettings: vi.fn(),
   onOpenTrash: vi.fn(),
   onTogglePin: vi.fn(),
@@ -88,6 +89,12 @@ describe("Sidebar", () => {
     expect(screen.getByText("Today")).toBeTruthy();
   });
 
+  it("shows the scratch section", () => {
+    render(<Sidebar {...baseProps} notes={[]} activeNoteId={null} />);
+    expect(screen.getByText("Scratch")).toBeTruthy();
+    expect(screen.getByText("⌘⇧X")).toBeTruthy();
+  });
+
   it("excludes the daily folder from the normal folder tree", () => {
     render(
       <Sidebar
@@ -99,6 +106,18 @@ describe("Sidebar", () => {
 
     expect(screen.queryByText("2026-04-11")).toBeNull();
     expect(screen.queryAllByText("Daily")).toHaveLength(1);
+  });
+
+  it("excludes the scratch folder from the normal folder tree", () => {
+    render(
+      <Sidebar
+        {...baseProps}
+        activeNoteId={null}
+        notes={[{ ...notes[0], title: "Scratch", folder: "Scratch" }]}
+      />,
+    );
+
+    expect(screen.queryAllByText("Scratch")).toHaveLength(1);
   });
 
   it("deletes an existing daily note without opening it", () => {
@@ -129,6 +148,41 @@ describe("Sidebar", () => {
     fireEvent.click(screen.getByText("Daily"));
 
     expect(onOpenDailyNotes).toHaveBeenCalledOnce();
+  });
+
+  it("opens scratch from the Scratch section", () => {
+    const onOpenScratchNote = vi.fn();
+    render(
+      <Sidebar
+        {...baseProps}
+        notes={[]}
+        activeNoteId={null}
+        onOpenScratchNote={onOpenScratchNote}
+      />,
+    );
+
+    fireEvent.click(screen.getByText("Scratch"));
+
+    expect(onOpenScratchNote).toHaveBeenCalledOnce();
+  });
+
+  it("deletes an existing scratch note without opening it", () => {
+    const onDelete = vi.fn();
+    const onOpenScratchNote = vi.fn();
+    render(
+      <Sidebar
+        {...baseProps}
+        activeNoteId={null}
+        onDeleteNote={onDelete}
+        onOpenScratchNote={onOpenScratchNote}
+        notes={[{ ...notes[0], id: "scratch", title: "Scratch", folder: "Scratch" }]}
+      />,
+    );
+
+    fireEvent.click(screen.getByTitle("Delete scratch note"));
+
+    expect(onDelete).toHaveBeenCalledWith("scratch");
+    expect(onOpenScratchNote).not.toHaveBeenCalled();
   });
 
   it("calls onCollapse when clicking collapse button", () => {
