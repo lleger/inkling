@@ -68,7 +68,7 @@ describe("useSettings", () => {
       result.current.update({ theme: "dark" });
     });
 
-    expect(result.current.settings.theme).toBe("dark");
+    await waitFor(() => expect(result.current.settings.theme).toBe("dark"));
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
     expect(stored.theme).toBe("dark");
     expect(api.saveSettings).toHaveBeenCalled();
@@ -86,7 +86,7 @@ describe("useSettings", () => {
       result.current.update({ accent: "purple" });
     });
 
-    expect(result.current.settings.theme).toBe("dark");
+    await waitFor(() => expect(result.current.settings.theme).toBe("dark"));
     expect(result.current.settings.accent).toBe("purple");
   });
 

@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { settingsQuery, queryKeys } from "../lib/queries";
-import { saveSettings } from "../lib/api";
+import { useCallback } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "../lib/queries";
+import { fetchSettings, saveSettings } from "../lib/api";
 import type { Settings } from "../types";
 
 export type { Settings, AccentColor } from "../types";
@@ -26,30 +26,33 @@ function getLocalCache(): Settings {
 
 export function useSettings() {
   const qc = useQueryClient();
-  const [settings, setSettings] = useState<Settings>(getLocalCache);
-  const { data: remote, isSuccess } = useQuery(settingsQuery());
+  const { data: settings = DEFAULTS, isFetched } = useQuery({
+    queryKey: queryKeys.settings,
+    queryFn: async () => {
+      const remote = await fetchSettings();
+      const current = qc.getQueryData<Settings>(queryKeys.settings) ?? getLocalCache();
+      const next =
+        Object.keys(remote).length > 0 ? ({ ...DEFAULTS, ...remote } as Settings) : current;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      return next;
+    },
+    initialData: getLocalCache,
+    refetchOnMount: "always",
+    staleTime: Infinity,
+  });
 
-  // Hydrate from server when fetched
-  useEffect(() => {
-    if (isSuccess && remote && Object.keys(remote).length > 0) {
-      const merged = { ...DEFAULTS, ...remote } as Settings;
-      setSettings(merged);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
-    }
-  }, [isSuccess, remote]);
+  const { mutate: save } = useMutation({ mutationFn: saveSettings });
 
   const update = useCallback(
     (partial: Partial<Settings>) => {
-      setSettings((prev) => {
-        const next = { ...prev, ...partial };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-        saveSettings(next).catch(() => {});
-        qc.setQueryData(queryKeys.settings, next);
-        return next;
-      });
+      const current = qc.getQueryData<Settings>(queryKeys.settings) ?? settings;
+      const next = { ...current, ...partial };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      qc.setQueryData(queryKeys.settings, next);
+      save(next);
     },
-    [qc],
+    [qc, save, settings],
   );
 
-  return { settings, update, loaded: isSuccess };
+  return { settings, update, loaded: isFetched };
 }

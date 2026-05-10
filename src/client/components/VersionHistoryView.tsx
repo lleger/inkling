@@ -1,8 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { History, RotateCcw, ArrowLeft } from "lucide-react";
-import { fetchVersions, fetchVersion, restoreVersion } from "../lib/api";
+import { restoreVersion } from "../lib/api";
+import { versionQuery, versionsQuery } from "../lib/queries";
 import { RichTextPreview } from "./RichTextPreview";
-import type { NoteVersionMeta, Note } from "../types";
+import type { Note } from "../types";
 
 function timeAgo(dateStr: string): string {
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -30,51 +32,25 @@ export function VersionHistoryView({
   onClose,
   onRestore,
 }: VersionHistoryViewProps) {
-  const [versions, setVersions] = useState<NoteVersionMeta[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [previewContent, setPreviewContent] = useState<string | null>(null);
-  const [restoring, setRestoring] = useState(false);
 
-  const load = useCallback(async () => {
-    try {
-      const data = await fetchVersions(noteId);
-      setVersions(data);
-    } catch (err) {
-      console.error("Failed to load versions:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [noteId]);
+  const { data: versions = [], isLoading } = useQuery(versionsQuery(noteId));
+  const { data: preview } = useQuery(versionQuery(noteId, selectedId));
+  const selectedVersion = versions.find((v) => v.id === selectedId);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const restore = useMutation({
+    mutationFn: (versionId: string) => restoreVersion(noteId, versionId),
+    onSuccess: onRestore,
+  });
 
-  const handleSelect = useCallback(
-    async (versionId: string) => {
-      setSelectedId(versionId);
-      try {
-        const version = await fetchVersion(noteId, versionId);
-        setPreviewContent(version.content);
-      } catch (err) {
-        console.error("Failed to load version:", err);
-      }
-    },
-    [noteId],
-  );
+  const handleSelect = useCallback((versionId: string) => {
+    setSelectedId(versionId);
+  }, []);
 
   const handleRestore = useCallback(async () => {
     if (!selectedId) return;
-    setRestoring(true);
-    try {
-      const note = await restoreVersion(noteId, selectedId);
-      onRestore(note);
-    } catch (err) {
-      console.error("Failed to restore version:", err);
-      setRestoring(false);
-    }
-  }, [noteId, selectedId, onRestore]);
+    await restore.mutateAsync(selectedId);
+  }, [restore, selectedId]);
 
   return (
     <div className="flex min-h-full w-full max-w-[900px] flex-col px-4 pt-16 pb-32 animate-[fade-in_0.2s_ease-out] sm:px-6 sm:pt-10 sm:pb-24">
@@ -98,7 +74,7 @@ export function VersionHistoryView({
         Versions are saved every 5 minutes while editing. Kept for 30 days, up to 100 per note.
       </p>
 
-      {loading ? (
+      {isLoading ? (
         <div className="pt-16 text-center text-sm text-text-muted">Loading...</div>
       ) : versions.length === 0 ? (
         <div className="flex flex-col items-center gap-3 pt-16 text-text-muted">
@@ -134,25 +110,23 @@ export function VersionHistoryView({
 
           {/* Preview */}
           <div className="flex-1 min-w-0 flex flex-col">
-            {previewContent !== null ? (
+            {preview ? (
               <>
                 <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <span className="text-xs text-text-muted">
-                    {versions.find((v) => v.id === selectedId)?.created_at
-                      ? timeAgo(versions.find((v) => v.id === selectedId)!.created_at)
-                      : ""}
+                    {selectedVersion ? timeAgo(selectedVersion.created_at) : ""}
                   </span>
                   <button
                     onClick={handleRestore}
-                    disabled={restoring}
+                    disabled={restore.isPending}
                     className="flex items-center justify-center gap-1.5 rounded-md bg-accent px-3 py-2 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 sm:py-1.5"
                   >
                     <RotateCcw size={13} />
-                    {restoring ? "Restoring..." : "Restore this version"}
+                    {restore.isPending ? "Restoring..." : "Restore this version"}
                   </button>
                 </div>
                 <div className="flex-1 overflow-y-auto rounded-lg border border-border bg-surface-secondary p-4 sm:p-6">
-                  <RichTextPreview content={previewContent} />
+                  <RichTextPreview content={preview.content} />
                 </div>
               </>
             ) : (

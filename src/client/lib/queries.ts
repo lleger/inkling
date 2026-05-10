@@ -6,6 +6,7 @@ export const queryKeys = {
   note: (id: string) => ["notes", id] as const,
   trash: ["trash"] as const,
   versions: (noteId: string) => ["versions", noteId] as const,
+  version: (noteId: string, versionId: string) => ["versions", noteId, versionId] as const,
   user: ["user"] as const,
   settings: ["settings"] as const,
   ogPreview: (url: string) => ["og", url] as const,
@@ -36,6 +37,13 @@ export const versionsQuery = (noteId: string) =>
     queryKey: queryKeys.versions(noteId),
     queryFn: () => api.fetchVersions(noteId),
     enabled: !!noteId,
+  });
+
+export const versionQuery = (noteId: string, versionId: string | null) =>
+  queryOptions({
+    queryKey: queryKeys.version(noteId, versionId ?? ""),
+    queryFn: () => api.fetchVersion(noteId, versionId!),
+    enabled: !!noteId && !!versionId,
   });
 
 export const userQuery = () =>
