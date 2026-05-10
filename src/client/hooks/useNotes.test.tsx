@@ -169,19 +169,6 @@ describe("useNotes", () => {
     expect(api.moveNoteToFolder).toHaveBeenCalledWith("1", null);
   });
 
-  it("refresh() invalidates only the notes query", async () => {
-    const { qc, Wrapper } = makeQueryWrapper();
-    const spy = vi.spyOn(qc, "invalidateQueries");
-    const { result } = renderHook(() => useNotes(), { wrapper: Wrapper });
-
-    await act(async () => {
-      await result.current.refresh();
-    });
-
-    expect(spy).toHaveBeenCalledWith({ queryKey: queryKeys.notes });
-    expect(spy).not.toHaveBeenCalledWith({ queryKey: queryKeys.trash });
-  });
-
   describe("optimistic updates", () => {
     it("remove() drops the note from the cache before the server responds", async () => {
       // Make the API hang so we can inspect the cache mid-mutation

@@ -132,7 +132,6 @@ export function useNotes() {
   return {
     notes: query.data ?? [],
     loading: query.isLoading,
-    refresh: () => qc.invalidateQueries({ queryKey: queryKeys.notes }),
     create: async (options?: { title?: string; content?: string }): Promise<Note> =>
       createMutation.mutateAsync(options),
     remove: async (id: string) => removeMutation.mutateAsync(id),
