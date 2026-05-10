@@ -36,6 +36,14 @@ const SCHEMA_SQL = `
     user_id TEXT PRIMARY KEY,
     settings TEXT NOT NULL DEFAULT '{}'
   );
+  CREATE TABLE IF NOT EXISTS folder_metadata (
+    user_id TEXT NOT NULL,
+    path TEXT NOT NULL,
+    icon_type TEXT NOT NULL,
+    icon_value TEXT NOT NULL,
+    updated_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
+    PRIMARY KEY (user_id, path)
+  );
   CREATE TABLE IF NOT EXISTS note_refs (
     note_id TEXT NOT NULL,
     ref_id TEXT NOT NULL,
@@ -71,6 +79,7 @@ describe("API", () => {
       db.prepare("DELETE FROM notes"),
       db.prepare("DELETE FROM note_versions"),
       db.prepare("DELETE FROM user_settings"),
+      db.prepare("DELETE FROM folder_metadata"),
       db.prepare("DELETE FROM note_refs"),
     ]);
   });
@@ -315,6 +324,59 @@ describe("API", () => {
       const res = await req("/api/notes?q=", { headers: authHeaders() });
       const body = (await res.json()) as { notes: unknown[] };
       expect(body.notes).toHaveLength(2);
+    });
+  });
+
+  describe("folder metadata", () => {
+    it("lists folder metadata", async () => {
+      await db
+        .prepare(
+          "INSERT INTO folder_metadata (user_id, path, icon_type, icon_value) VALUES (?, ?, ?, ?)",
+        )
+        .bind(TEST_USER_ID, "Work", "emoji", "💼")
+        .run();
+
+      const res = await req("/api/folders", { headers: authHeaders() });
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as { folders: unknown[] };
+      expect(body.folders).toEqual([{ path: "Work", icon_type: "emoji", icon_value: "💼" }]);
+    });
+
+    it("saves and clears a folder icon", async () => {
+      const saveRes = await req("/api/folders/icon", {
+        method: "PUT",
+        headers: authHeaders(),
+        body: JSON.stringify({ path: "Projects", icon_type: "lucide", icon_value: "star" }),
+      });
+      expect(saveRes.status).toBe(200);
+
+      const listRes = await req("/api/folders", { headers: authHeaders() });
+      expect(((await listRes.json()) as { folders: unknown[] }).folders).toEqual([
+        { path: "Projects", icon_type: "lucide", icon_value: "star" },
+      ]);
+
+      const clearRes = await req("/api/folders/icon", {
+        method: "PUT",
+        headers: authHeaders(),
+        body: JSON.stringify({ path: "Projects", icon_type: null, icon_value: null }),
+      });
+      expect(clearRes.status).toBe(200);
+
+      const afterClearRes = await req("/api/folders", { headers: authHeaders() });
+      expect(((await afterClearRes.json()) as { folders: unknown[] }).folders).toEqual([]);
+    });
+
+    it("isolates folder metadata between users", async () => {
+      await req("/api/folders/icon", {
+        method: "PUT",
+        headers: { ...authHeaders(), "X-Test-User-Id": "user-1" },
+        body: JSON.stringify({ path: "Work", icon_type: "emoji", icon_value: "💼" }),
+      });
+
+      const res = await req("/api/folders", {
+        headers: { ...authHeaders(), "X-Test-User-Id": "user-2" },
+      });
+      expect(((await res.json()) as { folders: unknown[] }).folders).toEqual([]);
     });
   });
 

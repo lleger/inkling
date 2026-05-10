@@ -5,12 +5,13 @@ import {
   useNavigate,
   useLocation,
 } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Sidebar } from "../components/Sidebar";
 import { SettingsModal } from "../components/SettingsModal";
 import { FocusOverlay } from "../components/FocusOverlay";
 import { Toast } from "../components/Toast";
 import { MoveToFolderModal } from "../components/MoveToFolderModal";
+import { FolderIconPickerModal } from "../components/FolderIconPickerModal";
 import { CommandPalette, type PaletteAction } from "../components/CommandPalette";
 import {
   PanelLeftOpen,
@@ -35,6 +36,7 @@ import { useUser } from "../hooks/useUser";
 import { useTheme } from "../hooks/useTheme";
 import { useSettings } from "../hooks/useSettings";
 import { useDailyNote } from "../hooks/useDailyNote";
+import { useFolderMetadata } from "../hooks/useFolderMetadata";
 import { applyAccent } from "../lib/accent-colors";
 import { useUI } from "../context/UIContext";
 import { authClient } from "../lib/auth-client";
@@ -57,10 +59,12 @@ function AppLayout() {
   const location = useLocation();
   const ui = useUI();
   const { notes, create, remove, restore, pin, move } = useNotes();
+  const { folders: folderMetadata, setIcon: setFolderIcon } = useFolderMetadata();
   const user = useUser();
   const { settings, update: updateSettings } = useSettings();
   const theme = useTheme(settings.theme);
   const { openDailyNote } = useDailyNote();
+  const [iconFolderPath, setIconFolderPath] = useState<string | null>(null);
 
   // Apply accent
   useEffect(() => {
@@ -108,6 +112,11 @@ function AppLayout() {
     }
     return [...set].sort();
   }, [notes]);
+
+  const folderMetadataByPath = useMemo(
+    () => Object.fromEntries(folderMetadata.map((folder) => [folder.path, folder])),
+    [folderMetadata],
+  );
 
   const handleDeleteNote = async (id: string) => {
     const title = notes.find((n) => n.id === id)?.title || "Note";
@@ -364,6 +373,8 @@ function AppLayout() {
           allTags={allTags}
           selectedTag={null}
           onSelectTag={() => {}}
+          folderMetadata={folderMetadataByPath}
+          onCustomizeFolder={setIconFolderPath}
         />
       </div>
 
@@ -409,6 +420,17 @@ function AppLayout() {
         onSelect={handleMoveToFolder}
         currentFolder={activeNote?.folder ?? null}
         allFolders={allFolders}
+      />
+      <FolderIconPickerModal
+        open={iconFolderPath !== null}
+        folderPath={iconFolderPath}
+        current={iconFolderPath ? folderMetadataByPath[iconFolderPath] : undefined}
+        onClose={() => setIconFolderPath(null)}
+        onSave={async (icon) => {
+          if (!iconFolderPath) return;
+          await setFolderIcon(iconFolderPath, icon);
+          setIconFolderPath(null);
+        }}
       />
       <input
         ref={fileInputRef}

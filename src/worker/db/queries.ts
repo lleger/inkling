@@ -1,12 +1,14 @@
 import { and, eq, isNull, isNotNull, like, lt, or, sql, asc, desc, inArray } from "drizzle-orm";
 import { makeDb } from "./client";
-import { notes, noteVersions, noteRefs } from "./schema";
+import { notes, noteVersions, noteRefs, folderMetadata } from "./schema";
 import type {
   Note,
   NoteMeta,
   DeletedNoteMeta,
   NoteVersionMeta,
   NoteVersion,
+  FolderMetadata,
+  FolderIconType,
 } from "../../shared/types";
 
 // Re-export for consumers that import from queries
@@ -460,7 +462,61 @@ export async function renameFolder(
     .where(
       and(eq(notes.userId, userId), like(notes.folder, oldPath + "/%"), isNull(notes.deletedAt)),
     );
+
+  await db
+    .update(folderMetadata)
+    .set({ path: newPath, updatedAt: new Date() })
+    .where(and(eq(folderMetadata.userId, userId), eq(folderMetadata.path, oldPath)));
+  await db
+    .update(folderMetadata)
+    .set({
+      path: sql`${newPath} || substr(${folderMetadata.path}, ${oldPath.length + 1})`,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(folderMetadata.userId, userId), like(folderMetadata.path, oldPath + "/%")));
+
   return (exact.meta?.changes ?? 0) + (children.meta?.changes ?? 0);
+}
+
+export async function listFolderMetadata(
+  d1: D1Database,
+  userId: string,
+): Promise<FolderMetadata[]> {
+  const db = makeDb(d1);
+  const rows = await db
+    .select()
+    .from(folderMetadata)
+    .where(eq(folderMetadata.userId, userId))
+    .orderBy(asc(folderMetadata.path));
+  return rows.map((row) => ({
+    path: row.path,
+    icon_type: row.iconType,
+    icon_value: row.iconValue,
+  }));
+}
+
+export async function setFolderIcon(
+  d1: D1Database,
+  userId: string,
+  path: string,
+  iconType: FolderIconType,
+  iconValue: string,
+): Promise<void> {
+  const db = makeDb(d1);
+  await db
+    .insert(folderMetadata)
+    .values({ userId, path, iconType, iconValue, updatedAt: new Date() })
+    .onConflictDoUpdate({
+      target: [folderMetadata.userId, folderMetadata.path],
+      set: { iconType, iconValue, updatedAt: new Date() },
+    });
+}
+
+export async function clearFolderIcon(d1: D1Database, userId: string, path: string): Promise<void> {
+  const db = makeDb(d1);
+  await db
+    .delete(folderMetadata)
+    .where(and(eq(folderMetadata.userId, userId), eq(folderMetadata.path, path)));
 }
 
 // --- Version History ---

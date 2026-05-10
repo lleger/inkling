@@ -6,6 +6,7 @@ import { notesRoutes } from "./routes/notes";
 import { userRoutes } from "./routes/user";
 import { settingsRoutes } from "./routes/settings";
 import { ogRoutes } from "./routes/og";
+import { foldersRoutes } from "./routes/folders";
 
 type AuthVars = { userId: string; userEmail: string };
 
@@ -64,5 +65,6 @@ app.route("/api/user", userRoutes);
 app.route("/api/notes", notesRoutes);
 app.route("/api/settings", settingsRoutes);
 app.route("/api/og", ogRoutes);
+app.route("/api/folders", foldersRoutes);
 
 export default app;

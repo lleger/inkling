@@ -11,6 +11,7 @@ export const queryKeys = {
   settings: ["settings"] as const,
   ogPreview: (url: string) => ["og", url] as const,
   backlinks: (noteId: string) => ["backlinks", noteId] as const,
+  folderMetadata: ["folder-metadata"] as const,
 };
 
 export const notesQuery = () =>
@@ -77,4 +78,10 @@ export const backlinksQuery = (noteId: string) =>
     queryKey: queryKeys.backlinks(noteId),
     queryFn: () => api.fetchBacklinks(noteId),
     enabled: !!noteId,
+  });
+
+export const folderMetadataQuery = () =>
+  queryOptions({
+    queryKey: queryKeys.folderMetadata,
+    queryFn: () => api.fetchFolderMetadata(),
   });

@@ -11,4 +11,6 @@ export type {
   Settings,
   OgPreview,
   BacklinkMeta,
+  FolderIconType,
+  FolderMetadata,
 } from "../../shared/types";

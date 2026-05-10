@@ -19,6 +19,8 @@ const baseProps = {
   userEmail: null,
   open: true,
   saveStatus: "saved" as const,
+  folderMetadata: {},
+  onCustomizeFolder: vi.fn(),
 };
 
 const notes = [

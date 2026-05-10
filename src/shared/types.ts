@@ -83,6 +83,14 @@ export interface BacklinkMeta {
   updated_at: string;
 }
 
+export type FolderIconType = "emoji" | "lucide";
+
+export interface FolderMetadata {
+  path: string;
+  icon_type: FolderIconType;
+  icon_value: string;
+}
+
 export interface OgPreview {
   url: string;
   finalUrl: string;

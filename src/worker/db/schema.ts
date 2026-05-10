@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, index, primaryKey } from "drizzle-orm/sqlite-core";
 
 // All timestamp columns use Drizzle's standard timestamp_ms mode: stored as
 // INTEGER (Unix milliseconds) and surfaced to JS as Date objects. This matches
@@ -61,6 +61,21 @@ export const userSettings = sqliteTable("user_settings", {
   userId: text("user_id").primaryKey(),
   settings: text("settings").notNull().default("{}"),
 });
+
+export const folderMetadata = sqliteTable(
+  "folder_metadata",
+  {
+    userId: text("user_id").notNull(),
+    path: text("path").notNull(),
+    iconType: text("icon_type", { enum: ["emoji", "lucide"] }).notNull(),
+    iconValue: text("icon_value").notNull(),
+    updatedAt: ts("updated_at").notNull().default(nowMs),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.path] }),
+    index("idx_folder_metadata_user").on(t.userId),
+  ],
+);
 
 // Note → note references, populated on every save by parsing wiki-link
 // markdown out of the saved content. Keyed by (noteId, refId) so a note

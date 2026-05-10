@@ -7,11 +7,11 @@ import {
   Settings,
   Trash2,
   Pin,
-  Folder,
-  FolderOpen,
   ChevronRight,
+  Paintbrush,
 } from "lucide-react";
-import type { NoteMeta, SaveStatus } from "../types";
+import { renderFolderIcon } from "../lib/folder-icons";
+import type { FolderMetadata, NoteMeta, SaveStatus } from "../types";
 
 function timeAgo(dateStr: string): string {
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -87,6 +87,8 @@ interface SidebarProps {
   userEmail: string | null;
   open: boolean;
   saveStatus: SaveStatus;
+  folderMetadata: Record<string, FolderMetadata>;
+  onCustomizeFolder: (path: string) => void;
 }
 
 export function Sidebar({
@@ -106,6 +108,8 @@ export function Sidebar({
   userEmail,
   open,
   saveStatus,
+  folderMetadata,
+  onCustomizeFolder,
 }: SidebarProps) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(["__all__"]));
   const { tree, unfiled } = buildFolderTree(notes);
@@ -187,25 +191,30 @@ export function Sidebar({
 
     return (
       <div key={folder.path}>
-        <button
-          onClick={() => toggleFolder(folder.path)}
-          className="flex min-h-10 w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-[12px] font-medium text-text-secondary transition-colors hover:bg-surface-hover hover:text-text md:min-h-0"
-          style={{ paddingLeft: `${8 + depth * 16}px` }}
-        >
-          <ChevronRight
-            size={12}
-            className={`shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`}
-          />
-          {isExpanded ? (
-            <FolderOpen size={13} className="shrink-0" />
-          ) : (
-            <Folder size={13} className="shrink-0" />
-          )}
-          <span className="truncate">{folder.name}</span>
-          {hasContent && (
-            <span className="ml-auto text-[10px] text-text-muted">{folder.notes.length}</span>
-          )}
-        </button>
+        <div className="group flex min-h-10 items-center rounded-md text-[12px] font-medium text-text-secondary transition-colors hover:bg-surface-hover hover:text-text md:min-h-0">
+          <button
+            onClick={() => toggleFolder(folder.path)}
+            className="flex min-w-0 flex-1 items-center gap-1.5 px-2 py-1.5 text-left"
+            style={{ paddingLeft: `${8 + depth * 16}px` }}
+          >
+            <ChevronRight
+              size={12}
+              className={`shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+            />
+            {renderFolderIcon(folderMetadata[folder.path], isExpanded)}
+            <span className="truncate">{folder.name}</span>
+            {hasContent && (
+              <span className="ml-auto text-[10px] text-text-muted">{folder.notes.length}</span>
+            )}
+          </button>
+          <button
+            onClick={() => onCustomizeFolder(folder.path)}
+            className="mr-1 flex size-8 shrink-0 items-center justify-center rounded text-text-muted opacity-100 transition-opacity hover:bg-surface-active hover:text-text md:size-5 md:opacity-0 md:group-hover:opacity-100"
+            title={`Customize ${folder.name} icon`}
+          >
+            <Paintbrush size={11} />
+          </button>
+        </div>
         {isExpanded && (
           <div>
             {folder.children.map((child) => renderFolder(child, depth + 1))}

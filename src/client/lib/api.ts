@@ -8,6 +8,8 @@ import type {
   Settings,
   OgPreview,
   BacklinkMeta,
+  FolderMetadata,
+  FolderIconType,
 } from "../types";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -133,4 +135,23 @@ export async function fetchOgPreview(
 export async function fetchBacklinks(noteId: string): Promise<BacklinkMeta[]> {
   const data = await request<{ backlinks: BacklinkMeta[] }>(`/api/notes/${noteId}/backlinks`);
   return data.backlinks;
+}
+
+export async function fetchFolderMetadata(): Promise<FolderMetadata[]> {
+  const data = await request<{ folders: FolderMetadata[] }>("/api/folders");
+  return data.folders;
+}
+
+export async function saveFolderIcon(
+  path: string,
+  icon: { icon_type: FolderIconType; icon_value: string } | null,
+): Promise<void> {
+  await request("/api/folders/icon", {
+    method: "PUT",
+    body: JSON.stringify({
+      path,
+      icon_type: icon?.icon_type ?? null,
+      icon_value: icon?.icon_value ?? null,
+    }),
+  });
 }

@@ -11,6 +11,10 @@
 - Folder shows a chevron, folder icon, and name
 - Clicking a folder expands/collapses it
 - Pinned notes appear at the top with a separator below
+- Clicking the paintbrush control on a folder opens folder icon customization
+- Selecting an emoji changes that folder's sidebar icon and persists after refresh
+- Selecting a Lucide icon changes that folder's sidebar icon and persists after refresh
+- Resetting the icon returns the folder to the default open/closed folder icon
 
 ## Collapse/Expand
 - Click the collapse button (PanelLeftClose icon) in the sidebar header
