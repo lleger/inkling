@@ -125,9 +125,14 @@ describe("/api/og — input validation", () => {
     });
 
     it("returns 502 when fetch throws (timeout, abort)", async () => {
+      const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
       fetchSpy.mockRejectedValueOnce(new Error("aborted"));
+
       const res = await req("/api/og?url=https://example.com/page");
+
       expect(res.status).toBe(502);
+      expect(consoleError).toHaveBeenCalledWith("[og] fetchTarget threw:", expect.any(Error));
+      consoleError.mockRestore();
     });
 
     it("absolutizes relative og:image", async () => {

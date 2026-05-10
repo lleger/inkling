@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render as rtlRender, cleanup } from "@testing-library/react";
+import { useState } from "react";
+import { render as rtlRender, cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
 import { Editor } from "./Editor";
 import { makeQueryWrapper } from "../hooks/test-utils";
+import type { EditorMode } from "../types";
 
 afterEach(cleanup);
 
@@ -48,5 +50,41 @@ describe("Editor", () => {
     const { container } = render(<Editor {...baseProps} mode="split" />);
     const richInput = container.querySelector(".editor-rich [contenteditable]");
     expect(richInput?.getAttribute("contenteditable")).toBe("false");
+  });
+
+  it("preserves controlled content while switching editor modes", async () => {
+    function ModeHarness() {
+      const [mode, setMode] = useState<EditorMode>("markdown");
+      const [content, setContent] = useState("# Fast Flow\n\n- item one");
+
+      return (
+        <>
+          <button onClick={() => setMode("markdown")}>Markdown</button>
+          <button onClick={() => setMode("split")}>Split</button>
+          <button onClick={() => setMode("richtext")}>Rich Text</button>
+          <Editor content={content} onChange={setContent} mode={mode} />
+        </>
+      );
+    }
+
+    const { container } = render(<ModeHarness />);
+
+    await waitFor(() => {
+      expect(container.querySelector(".editor-mono")?.textContent).toContain("# Fast Flow");
+    });
+
+    fireEvent.click(screen.getByText("Split"));
+    await waitFor(() => {
+      expect(container.querySelector(".editor-mono")?.textContent).toContain("# Fast Flow");
+      expect(container.querySelector(".editor-heading-h1")?.textContent).toBe("Fast Flow");
+      expect(container.querySelector(".editor-listitem")?.textContent).toBe("item one");
+    });
+
+    fireEvent.click(screen.getByText("Rich Text"));
+    await waitFor(() => {
+      expect(container.querySelector(".editor-mono")).toBeNull();
+      expect(container.querySelector(".editor-heading-h1")?.textContent).toBe("Fast Flow");
+      expect(container.querySelector(".editor-listitem")?.textContent).toBe("item one");
+    });
   });
 });
