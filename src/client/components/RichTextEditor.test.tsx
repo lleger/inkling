@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render as rtlRender, cleanup, waitFor } from "@testing-library/react";
+import { render as rtlRender, cleanup, fireEvent, waitFor } from "@testing-library/react";
 import { RichTextEditor } from "./RichTextEditor";
 import { RichTextPreview } from "./RichTextPreview";
 import { makeQueryWrapper } from "../hooks/test-utils";
@@ -42,6 +42,23 @@ describe("RichTextEditor", () => {
     await waitFor(() => {
       const items = container.querySelectorAll(".editor-listitem");
       expect(items.length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  it("toggles checklist items when clicking their accessible checkbox", async () => {
+    const { container } = render(<RichTextEditor initialContent="- [ ] task" onChange={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(container.querySelector('[role="checkbox"]')).toBeTruthy();
+    });
+
+    const checkbox = container.querySelector('[role="checkbox"]');
+    expect(checkbox?.getAttribute("aria-checked")).toBe("false");
+
+    fireEvent.click(checkbox!);
+
+    await waitFor(() => {
+      expect(checkbox?.getAttribute("aria-checked")).toBe("true");
     });
   });
 

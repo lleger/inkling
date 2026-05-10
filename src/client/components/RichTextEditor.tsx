@@ -23,6 +23,7 @@ import { FloatingToolbar } from "./FloatingToolbar";
 import { UrlChipNode, UrlChipPlugin } from "./UrlChipNode";
 import { WikiLinkNode, WikiLinkPlugin } from "./WikiLinkNode";
 import { AutoFocusPlugin } from "./editor/plugins/AutoFocusPlugin";
+import { ChecklistClickPlugin } from "./editor/plugins/ChecklistClickPlugin";
 import { ChecklistShortcutPlugin } from "./editor/plugins/ChecklistShortcutPlugin";
 import { ClickableLinkPlugin } from "./editor/plugins/ClickableLinkPlugin";
 import { CopyAsMarkdownPlugin } from "./editor/plugins/CopyAsMarkdownPlugin";
@@ -105,6 +106,7 @@ export function RichTextEditor({
         <OnChangePlugin onChange={handleChange} ignoreSelectionChange />
         {smartTypography && <SmartTypographyPlugin />}
         <TagZonePlugin />
+        <ChecklistClickPlugin />
         <ChecklistShortcutPlugin />
         <FloatingToolbar />
         <ScrollIntoViewPlugin />
