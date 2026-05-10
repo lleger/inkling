@@ -1,7 +1,12 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import * as api from "../lib/api";
 import { notesQuery, settingsQuery, queryKeys } from "../lib/queries";
-import { todayTitle } from "../hooks/useDailyNote";
+import {
+  dailyFolder,
+  dailyTitle,
+  findDailyNote,
+  renderDailyNoteTemplate,
+} from "../lib/daily-notes";
 
 export const Route = createFileRoute("/_app/today")({
   beforeLoad: async ({ context }) => {
@@ -13,15 +18,19 @@ export const Route = createFileRoute("/_app/today")({
       qc.ensureQueryData(settingsQuery()),
     ]);
 
-    const title = todayTitle();
-    const folder = (settings as any)?.dailyNoteFolder || "Daily";
+    const date = new Date();
+    const title = dailyTitle(date);
+    const folder = dailyFolder(settings);
 
-    const existing = notes.find((n) => n.title === title && n.folder === folder);
+    const existing = findDailyNote(notes, date, folder);
     if (existing) {
       throw redirect({ to: "/notes/$id", params: { id: existing.id } });
     }
 
-    const note = await api.createNote({ title, content: `# ${title}\n\n` });
+    const note = await api.createNote({
+      title,
+      content: renderDailyNoteTemplate(settings.dailyNoteTemplate, date),
+    });
     if (folder) {
       await api.moveNoteToFolder(note.id, folder);
     }

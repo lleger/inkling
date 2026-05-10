@@ -4,6 +4,7 @@ import {
   PanelLeftClose,
   X,
   Home,
+  CalendarRange,
   Settings,
   Trash2,
   Pin,
@@ -11,6 +12,7 @@ import {
   Paintbrush,
 } from "lucide-react";
 import { renderFolderIcon } from "../lib/folder-icons";
+import { addDays, dailyLabel, dailyTitle, findDailyNote } from "../lib/daily-notes";
 import type { FolderMetadata, NoteMeta, SaveStatus } from "../types";
 
 function timeAgo(dateStr: string): string {
@@ -31,12 +33,17 @@ interface FolderTree {
   children: FolderTree[];
 }
 
-function buildFolderTree(notes: NoteMeta[]): { tree: FolderTree[]; unfiled: NoteMeta[] } {
+function buildFolderTree(
+  notes: NoteMeta[],
+  excludedFolder: string | null,
+): { tree: FolderTree[]; unfiled: NoteMeta[] } {
   const folders = new Map<string, FolderTree>();
   const unfiled: NoteMeta[] = [];
 
   // Collect all folder paths
   for (const note of notes) {
+    if (note.folder === excludedFolder) continue;
+
     if (!note.folder) {
       unfiled.push(note);
       continue;
@@ -78,6 +85,8 @@ interface SidebarProps {
   onDeleteNote: (id: string) => void;
   onCollapse: () => void;
   onHome: () => void;
+  onOpenDailyDate: (date?: Date) => void;
+  onOpenDailyNotes: () => void;
   onOpenSettings: () => void;
   onOpenTrash: () => void;
   onTogglePin: (id: string) => void;
@@ -89,6 +98,7 @@ interface SidebarProps {
   saveStatus: SaveStatus;
   folderMetadata: Record<string, FolderMetadata>;
   onCustomizeFolder: (path: string) => void;
+  dailyNoteFolder: string;
 }
 
 export function Sidebar({
@@ -99,6 +109,8 @@ export function Sidebar({
   onDeleteNote,
   onCollapse,
   onHome,
+  onOpenDailyDate,
+  onOpenDailyNotes,
   onOpenSettings,
   onOpenTrash,
   onTogglePin,
@@ -110,9 +122,10 @@ export function Sidebar({
   saveStatus,
   folderMetadata,
   onCustomizeFolder,
+  dailyNoteFolder,
 }: SidebarProps) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(["__all__"]));
-  const { tree, unfiled } = buildFolderTree(notes);
+  const { tree, unfiled } = buildFolderTree(notes, dailyNoteFolder);
 
   const toggleFolder = (path: string) => {
     setExpandedFolders((prev) => {
@@ -125,6 +138,57 @@ export function Sidebar({
 
   // Auto-expand folder containing active note
   const activeFolder = notes.find((n) => n.id === activeNoteId)?.folder;
+  const dailyDates = [new Date(), addDays(new Date(), -1), addDays(new Date(), -2)];
+
+  const renderDailySection = () => (
+    <div className="mx-1 my-1 rounded-lg border border-border bg-surface/60 p-1">
+      <div className="flex items-center justify-between px-2 py-1">
+        <button
+          onClick={() => onOpenDailyNotes()}
+          className="flex min-w-0 items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-text-muted transition-colors hover:text-text-secondary"
+        >
+          <CalendarRange size={12} />
+          <span>Daily</span>
+        </button>
+      </div>
+      {dailyDates.map((date) => {
+        const note = findDailyNote(notes, date, dailyNoteFolder);
+        const isActive = note?.id === activeNoteId;
+        return (
+          <div
+            key={dailyTitle(date)}
+            onClick={() => onOpenDailyDate(date)}
+            className={`group relative flex w-full min-h-10 cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors md:min-h-0 ${
+              isActive
+                ? "bg-surface-active text-text"
+                : "text-text-secondary hover:bg-surface-hover hover:text-text"
+            }`}
+          >
+            {isActive && (
+              <div className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-accent" />
+            )}
+            <span className="min-w-0 flex-1 truncate text-[13px] font-medium">
+              {dailyLabel(date)}
+            </span>
+            <span className="shrink-0 text-[11px] text-text-muted">{dailyTitle(date)}</span>
+            {note && (
+              <button
+                type="button"
+                title="Delete"
+                className="flex size-7 shrink-0 items-center justify-center rounded text-text-muted opacity-100 transition-opacity hover:bg-surface-active hover:text-text md:size-5 md:opacity-0 md:group-hover:opacity-100"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteNote(note.id);
+                }}
+              >
+                <X size={12} />
+              </button>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 
   const renderNoteItem = (note: NoteMeta, depth = 0) => {
     const isActive = note.id === activeNoteId;
@@ -291,6 +355,8 @@ export function Sidebar({
             <div className="mx-2 my-1 h-px bg-border" />
           </>
         )}
+
+        {renderDailySection()}
 
         {/* Folders */}
         {tree.map((folder) => renderFolder(folder))}

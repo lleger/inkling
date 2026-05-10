@@ -4,6 +4,7 @@ import { todayTitle, useDailyNote } from "./useDailyNote";
 import { makeQueryWrapper } from "./test-utils";
 import { queryKeys } from "../lib/queries";
 import * as api from "../lib/api";
+import { DEFAULT_DAILY_NOTE_TEMPLATE } from "../lib/daily-notes";
 import type { NoteMeta, Note } from "../types";
 
 vi.mock("../lib/api");
@@ -68,6 +69,7 @@ beforeEach(() => {
     defaultMode: "richtext",
     smartTypography: true,
     dailyNoteFolder: "Daily",
+    dailyNoteTemplate: DEFAULT_DAILY_NOTE_TEMPLATE,
   });
   vi.mocked(api.createNote).mockResolvedValue(newDailyNote);
   vi.mocked(api.moveNoteToFolder).mockResolvedValue(undefined);
@@ -118,7 +120,7 @@ describe("useDailyNote", () => {
 
     expect(api.createNote).toHaveBeenCalledWith({
       title: today,
-      content: `# ${today}\n\n`,
+      content: `# ${today}\n\n## Notes\n\n## Tasks\n`,
     });
     expect(navigateMock).toHaveBeenCalledWith({
       to: "/notes/$id",
@@ -136,6 +138,7 @@ describe("useDailyNote", () => {
       defaultMode: "richtext" as const,
       smartTypography: true,
       dailyNoteFolder: "Journal",
+      dailyNoteTemplate: "# {{label}}\n",
     });
 
     const { result } = renderHook(() => useDailyNote(), { wrapper: Wrapper });

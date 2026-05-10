@@ -74,6 +74,7 @@ export interface Settings {
   defaultMode: EditorMode;
   smartTypography: boolean;
   dailyNoteFolder: string;
+  dailyNoteTemplate: string;
 }
 
 export interface BacklinkMeta {

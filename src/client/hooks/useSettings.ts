@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "../lib/queries";
 import { fetchSettings, saveSettings } from "../lib/api";
+import { DEFAULT_DAILY_NOTE_TEMPLATE } from "../lib/daily-notes";
 import type { Settings } from "../types";
 
 export type { Settings, AccentColor } from "../types";
@@ -14,6 +15,7 @@ const DEFAULTS: Settings = {
   defaultMode: "richtext",
   smartTypography: true,
   dailyNoteFolder: "Daily",
+  dailyNoteTemplate: DEFAULT_DAILY_NOTE_TEMPLATE,
 };
 
 function getLocalCache(): Settings {

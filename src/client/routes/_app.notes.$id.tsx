@@ -1,16 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Type, Code, Columns2, Maximize, Info } from "lucide-react";
+import { Type, Code, Columns2, Maximize, Info, ChevronLeft, ChevronRight } from "lucide-react";
 import { Editor } from "../components/Editor";
 import { MetaPanel } from "../components/MetaPanel";
 import { useUI } from "../context/UIContext";
 import { useSettings } from "../hooks/useSettings";
+import { useDailyNote } from "../hooks/useDailyNote";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { noteQuery, queryKeys } from "../lib/queries";
 import { updateNote } from "../lib/api";
 import { normalizeMarkdown } from "../lib/normalize-markdown";
 import { clearDoneTasks } from "../lib/clear-done-tasks";
+import { addDays, dailyFolder, dailyLabel, isAfterDay, parseDailyTitle } from "../lib/daily-notes";
 import type { EditorMode } from "../types";
 
 export const Route = createFileRoute("/_app/notes/$id")({
@@ -23,6 +25,7 @@ function NoteRoute() {
   const { id } = Route.useParams();
   const ui = useUI();
   const { settings } = useSettings();
+  const { openDailyNote } = useDailyNote();
   const qc = useQueryClient();
   const { data: note } = useQuery(noteQuery(id));
   useDocumentTitle(note?.title);
@@ -174,8 +177,42 @@ function NoteRoute() {
 
   if (!note) return null;
 
+  const dailyDate = note.folder === dailyFolder(settings) ? parseDailyTitle(note.title) : null;
+  const nextDailyDate = dailyDate ? addDays(dailyDate, 1) : null;
+  const canOpenNextDailyDate = nextDailyDate ? !isAfterDay(nextDailyDate) : false;
+
   return (
     <>
+      {dailyDate && !ui.focusMode && (
+        <div className="fixed top-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-lg border border-border bg-surface-secondary/90 p-0.5 shadow-sm backdrop-blur-sm">
+          <button
+            onClick={() => openDailyNote(addDays(dailyDate, -1))}
+            title="Open previous day"
+            className="flex h-8 items-center gap-1 rounded-md px-2 text-[12px] font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary"
+          >
+            <ChevronLeft size={14} />
+            <span className="hidden sm:inline">Previous</span>
+          </button>
+          <button
+            onClick={() => openDailyNote()}
+            title="Open today"
+            className="rounded-md px-3 py-1.5 text-[12px] font-semibold text-text transition-colors hover:bg-surface-hover"
+          >
+            {dailyLabel(dailyDate)}
+          </button>
+          {canOpenNextDailyDate && nextDailyDate && (
+            <button
+              onClick={() => openDailyNote(nextDailyDate)}
+              title="Open next day"
+              className="flex h-8 items-center gap-1 rounded-md px-2 text-[12px] font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary"
+            >
+              <span className="hidden sm:inline">Next</span>
+              <ChevronRight size={14} />
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Mode switcher */}
       <div
         className={`fixed top-3 right-3 z-10 flex items-center rounded-lg border border-border bg-surface-secondary/90 p-0.5 shadow-sm backdrop-blur-sm transition-opacity duration-200 md:flex-col md:bg-surface-secondary md:shadow-none md:backdrop-blur-none ${ui.focusMode ? "opacity-0 pointer-events-none" : "opacity-100"}`}

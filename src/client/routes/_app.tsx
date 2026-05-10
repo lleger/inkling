@@ -30,6 +30,7 @@ import {
   Maximize,
   PanelLeftClose,
   CalendarDays,
+  CalendarRange,
 } from "lucide-react";
 import { useNotes } from "../hooks/useNotes";
 import { useUser } from "../hooks/useUser";
@@ -38,6 +39,7 @@ import { useSettings } from "../hooks/useSettings";
 import { useDailyNote } from "../hooks/useDailyNote";
 import { useFolderMetadata } from "../hooks/useFolderMetadata";
 import { applyAccent } from "../lib/accent-colors";
+import { dailyFolder } from "../lib/daily-notes";
 import { useUI } from "../context/UIContext";
 import { authClient } from "../lib/auth-client";
 
@@ -200,6 +202,16 @@ function AppLayout() {
     closeSidebarOnMobile();
   };
 
+  const goDailyNotes = () => {
+    navigate({ to: "/daily" });
+    closeSidebarOnMobile();
+  };
+
+  const handleOpenDailyDate = async (date?: Date) => {
+    await openDailyNote(date);
+    closeSidebarOnMobile();
+  };
+
   const openSettings = () => {
     ui.setSettingsOpen(true);
     closeSidebarOnMobile();
@@ -228,6 +240,13 @@ function AppLayout() {
       icon: <CalendarDays size={15} />,
       category: "action",
       onSelect: openDailyNote,
+    },
+    {
+      id: "daily-notes",
+      label: "Browse daily notes",
+      icon: <CalendarRange size={15} />,
+      category: "action",
+      onSelect: () => navigate({ to: "/daily" }),
     },
     {
       id: "duplicate-note",
@@ -361,6 +380,8 @@ function AppLayout() {
           onDeleteNote={handleDeleteNote}
           onCollapse={() => ui.setSidebarOpen(false)}
           onHome={goHome}
+          onOpenDailyDate={handleOpenDailyDate}
+          onOpenDailyNotes={goDailyNotes}
           onOpenSettings={openSettings}
           onOpenTrash={goTrash}
           onTogglePin={(id) => {
@@ -375,6 +396,7 @@ function AppLayout() {
           onSelectTag={() => {}}
           folderMetadata={folderMetadataByPath}
           onCustomizeFolder={setIconFolderPath}
+          dailyNoteFolder={dailyFolder(settings)}
         />
       </div>
 

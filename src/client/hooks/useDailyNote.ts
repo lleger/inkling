@@ -3,13 +3,16 @@ import { useNavigate } from "@tanstack/react-router";
 import { useNotes } from "./useNotes";
 import { useSettings } from "./useSettings";
 import { queryKeys } from "../lib/queries";
+import {
+  dailyFolder,
+  dailyTitle,
+  findDailyNote,
+  renderDailyNoteTemplate,
+} from "../lib/daily-notes";
 import type { NoteMeta } from "../types";
 
 export function todayTitle(d: Date = new Date()): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
+  return dailyTitle(d);
 }
 
 /**
@@ -22,18 +25,21 @@ export function useDailyNote() {
   const { notes, create, move } = useNotes();
   const { settings } = useSettings();
 
-  const openDailyNote = async () => {
-    const title = todayTitle();
-    const folder = settings.dailyNoteFolder || "Daily";
+  const openDailyNote = async (date: Date = new Date()) => {
+    const title = dailyTitle(date);
+    const folder = dailyFolder(settings);
 
-    const existing = notes.find((n: NoteMeta) => n.title === title && n.folder === folder);
+    const existing = findDailyNote(notes as NoteMeta[], date, folder);
 
     if (existing) {
       navigate({ to: "/notes/$id", params: { id: existing.id } });
       return;
     }
 
-    const note = await create({ title, content: `# ${title}\n\n` });
+    const note = await create({
+      title,
+      content: renderDailyNoteTemplate(settings.dailyNoteTemplate, date),
+    });
     if (folder) {
       await move(note.id, folder);
     }

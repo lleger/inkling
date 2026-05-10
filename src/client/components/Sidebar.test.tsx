@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { Sidebar } from "./Sidebar";
+import { dailyTitle } from "../lib/daily-notes";
 
 afterEach(cleanup);
 
@@ -10,6 +11,8 @@ const baseProps = {
   onDeleteNote: vi.fn(),
   onCollapse: vi.fn(),
   onHome: vi.fn(),
+  onOpenDailyDate: vi.fn(),
+  onOpenDailyNotes: vi.fn(),
   onOpenSettings: vi.fn(),
   onOpenTrash: vi.fn(),
   onTogglePin: vi.fn(),
@@ -21,6 +24,7 @@ const baseProps = {
   saveStatus: "saved" as const,
   folderMetadata: {},
   onCustomizeFolder: vi.fn(),
+  dailyNoteFolder: "Daily",
 };
 
 const notes = [
@@ -76,6 +80,55 @@ describe("Sidebar", () => {
     render(<Sidebar {...baseProps} notes={[]} activeNoteId={null} onCreateNote={onCreate} />);
     fireEvent.click(screen.getByTitle("New note"));
     expect(onCreate).toHaveBeenCalledOnce();
+  });
+
+  it("shows the daily section under pinned notes", () => {
+    render(<Sidebar {...baseProps} notes={[]} activeNoteId={null} />);
+    expect(screen.getByText("Daily")).toBeTruthy();
+    expect(screen.getByText("Today")).toBeTruthy();
+  });
+
+  it("excludes the daily folder from the normal folder tree", () => {
+    render(
+      <Sidebar
+        {...baseProps}
+        activeNoteId={null}
+        notes={[{ ...notes[0], title: "2026-04-11", folder: "Daily" }]}
+      />,
+    );
+
+    expect(screen.queryByText("2026-04-11")).toBeNull();
+    expect(screen.queryAllByText("Daily")).toHaveLength(1);
+  });
+
+  it("deletes an existing daily note without opening it", () => {
+    const onDelete = vi.fn();
+    const onOpenDailyDate = vi.fn();
+    render(
+      <Sidebar
+        {...baseProps}
+        activeNoteId={null}
+        onDeleteNote={onDelete}
+        onOpenDailyDate={onOpenDailyDate}
+        notes={[{ ...notes[0], id: "today", title: dailyTitle(), folder: "Daily" }]}
+      />,
+    );
+
+    fireEvent.click(screen.getByTitle("Delete"));
+
+    expect(onDelete).toHaveBeenCalledWith("today");
+    expect(onOpenDailyDate).not.toHaveBeenCalled();
+  });
+
+  it("opens daily notes from the Daily section header", () => {
+    const onOpenDailyNotes = vi.fn();
+    render(
+      <Sidebar {...baseProps} notes={[]} activeNoteId={null} onOpenDailyNotes={onOpenDailyNotes} />,
+    );
+
+    fireEvent.click(screen.getByText("Daily"));
+
+    expect(onOpenDailyNotes).toHaveBeenCalledOnce();
   });
 
   it("calls onCollapse when clicking collapse button", () => {
