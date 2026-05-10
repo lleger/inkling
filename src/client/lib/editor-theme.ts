@@ -33,6 +33,7 @@ export const richTextTheme: EditorThemeClasses = {
   tableCell: "editor-table-cell",
   tableCellHeader: "editor-table-cell-header",
   tableRow: "editor-table-row",
+  hr: "editor-horizontal-rule",
   code: "editor-code",
   codeHighlight: {
     atrule: "editor-tokenAttr",

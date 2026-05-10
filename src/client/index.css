@@ -216,6 +216,62 @@ button:focus-visible {
   color: var(--color-text-secondary);
   font-style: italic;
 }
+.editor-horizontal-rule {
+  position: relative;
+  height: 2.75rem;
+  border: 0;
+  margin: 1.1em 0 1.35em;
+  overflow: visible;
+  background: transparent;
+  cursor: pointer;
+}
+.editor-horizontal-rule::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 12%;
+  left: 12%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-border) 18%,
+    color-mix(in srgb, var(--color-accent), transparent 72%) 50%,
+    var(--color-border) 82%,
+    transparent
+  );
+  transform: translateY(-50%);
+}
+.editor-horizontal-rule::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--color-border);
+  border-radius: 9999px;
+  background: var(--color-surface);
+  box-shadow: 0 0 0 7px var(--color-surface);
+  transform: translate(-50%, -50%);
+}
+.editor-horizontal-rule.selected::before {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-accent), transparent 45%) 18%,
+    var(--color-accent) 50%,
+    color-mix(in srgb, var(--color-accent), transparent 45%) 82%,
+    transparent
+  );
+}
+.editor-horizontal-rule.selected::after {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  box-shadow:
+    0 0 0 6px var(--color-surface),
+    0 0 0 9px color-mix(in srgb, var(--color-accent), transparent 78%);
+}
 .editor-link {
   color: var(--color-accent);
   text-decoration: underline;
