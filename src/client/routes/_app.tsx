@@ -191,6 +191,11 @@ function AppLayout() {
     closeSidebarOnMobile();
   };
 
+  const openSettings = () => {
+    ui.setSettingsOpen(true);
+    closeSidebarOnMobile();
+  };
+
   // Mode switcher state lives here so the palette can switch modes from any route
   // (we'll use a custom event the note route listens for)
   const setEditorMode = (mode: "richtext" | "markdown" | "split") => {
@@ -347,7 +352,7 @@ function AppLayout() {
           onDeleteNote={handleDeleteNote}
           onCollapse={() => ui.setSidebarOpen(false)}
           onHome={goHome}
-          onOpenSettings={() => ui.setSettingsOpen(true)}
+          onOpenSettings={openSettings}
           onOpenTrash={goTrash}
           onTogglePin={(id) => {
             const note = notes.find((n) => n.id === id);
