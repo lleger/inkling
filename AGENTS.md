@@ -102,3 +102,10 @@ user using whatever `QA_EMAIL` / `QA_PASSWORD` are currently in `.env`.
 
 - `npm run fmt` — oxfmt
 - `npm run lint` — oxlint
+
+# Cloudflare
+
+You have access to local Cloudflare services (KV, R2, D1, Durable Objects, and Workflows) for this app via the Explorer API.
+API endpoint: http://localhost:5173/cdn-cgi/explorer/api.
+
+Fetch the OpenAPI schema from http://localhost:5173/cdn-cgi/explorer/api to discover available operations. Use these endpoints to list, query, and manage local resources during development.
