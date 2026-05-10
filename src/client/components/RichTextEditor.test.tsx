@@ -45,7 +45,7 @@ describe("RichTextEditor", () => {
     });
   });
 
-  it("toggles checklist items when clicking their accessible checkbox", async () => {
+  it("toggles checklist items from the visual checkbox hit zone", async () => {
     const { container } = render(<RichTextEditor initialContent="- [ ] task" onChange={vi.fn()} />);
 
     await waitFor(() => {
@@ -55,7 +55,10 @@ describe("RichTextEditor", () => {
     const checkbox = container.querySelector('[role="checkbox"]');
     expect(checkbox?.getAttribute("aria-checked")).toBe("false");
 
-    fireEvent.click(checkbox!);
+    fireEvent.click(checkbox!, { clientX: 40, pageX: 40 });
+    expect(checkbox?.getAttribute("aria-checked")).toBe("false");
+
+    fireEvent.click(checkbox!, { clientX: 10, pageX: 10 });
 
     await waitFor(() => {
       expect(checkbox?.getAttribute("aria-checked")).toBe("true");
