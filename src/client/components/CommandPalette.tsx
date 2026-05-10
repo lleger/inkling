@@ -29,7 +29,14 @@ function fuzzyMatch(text: string, query: string): boolean {
   return qi === q.length;
 }
 
-export function CommandPalette({ open, onClose, notes, actions, onSelectNote, onCreateWithTitle }: CommandPaletteProps) {
+export function CommandPalette({
+  open,
+  onClose,
+  notes,
+  actions,
+  onSelectNote,
+  onCreateWithTitle,
+}: CommandPaletteProps) {
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -130,7 +137,10 @@ export function CommandPalette({ open, onClose, notes, actions, onSelectNote, on
   if (!open) return null;
 
   // Build render list: items with section headers inserted
-  const renderItems: ({ type: "header"; label: string } | { type: "item"; item: PaletteAction; index: number })[] = [];
+  const renderItems: (
+    | { type: "header"; label: string }
+    | { type: "item"; item: PaletteAction; index: number }
+  )[] = [];
   let lastCategory: string | null = null;
   for (let i = 0; i < results.length; i++) {
     const item = results[i];
@@ -170,15 +180,16 @@ export function CommandPalette({ open, onClose, notes, actions, onSelectNote, on
         {/* Results */}
         <div ref={listRef} className="max-h-72 overflow-y-auto py-1">
           {results.length === 0 && (
-            <div className="px-3 py-6 text-center text-sm text-text-muted">
-              No results
-            </div>
+            <div className="px-3 py-6 text-center text-sm text-text-muted">No results</div>
           )}
 
           {renderItems.map((entry, i) => {
             if (entry.type === "header") {
               return (
-                <div key={`header-${i}`} className={`px-3 ${i === 0 ? "pt-1.5" : "pt-2.5"} pb-1 text-[10px] font-medium uppercase tracking-widest text-text-muted`}>
+                <div
+                  key={`header-${i}`}
+                  className={`px-3 ${i === 0 ? "pt-1.5" : "pt-2.5"} pb-1 text-[10px] font-medium uppercase tracking-widest text-text-muted`}
+                >
                   {entry.label}
                 </div>
               );

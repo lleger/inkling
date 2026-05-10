@@ -22,7 +22,11 @@ import {
 } from "lexical";
 import { ScrollIntoViewPlugin } from "./ScrollIntoViewPlugin";
 import { plainTextTheme } from "../lib/editor-theme";
-import { parseMarkdownSegments, parseTagLineSegments, type Segment } from "../lib/markdown-highlight";
+import {
+  parseMarkdownSegments,
+  parseTagLineSegments,
+  type Segment,
+} from "../lib/markdown-highlight";
 import { isTagZoneLine } from "../lib/parse-tags";
 import { plainifyTypography } from "../lib/plain-typography";
 
@@ -230,7 +234,9 @@ function MarkdownHighlightPlugin() {
       const fullText = textChildren.map((c) => c.getTextContent()).join("");
 
       // Use tag line segments if in the tag zone, otherwise standard markdown segments
-      const segments = isInTagZone(parent) ? parseTagLineSegments(fullText) : parseMarkdownSegments(fullText);
+      const segments = isInTagZone(parent)
+        ? parseTagLineSegments(fullText)
+        : parseMarkdownSegments(fullText);
 
       // Already correct?
       if (segmentsMatchChildren(segments, textChildren)) return;
@@ -268,7 +274,11 @@ interface MarkdownEditorProps {
   autoFocus?: boolean;
 }
 
-export function MarkdownEditor({ initialContent, onChange, autoFocus = true }: MarkdownEditorProps) {
+export function MarkdownEditor({
+  initialContent,
+  onChange,
+  autoFocus = true,
+}: MarkdownEditorProps) {
   const initialConfig = {
     namespace: "markdown-editor",
     theme: plainTextTheme,

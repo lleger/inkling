@@ -72,11 +72,12 @@ describe("/api/og — input validation", () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch");
     beforeEach(() => {
       fetchSpy.mockReset();
-      fetchSpy.mockImplementation(async () =>
-        new Response(
-          '<html><head><meta property="og:title" content="Hello"><meta property="og:description" content="World"></head><body></body></html>',
-          { status: 200, headers: { "content-type": "text/html" } },
-        ),
+      fetchSpy.mockImplementation(
+        async () =>
+          new Response(
+            '<html><head><meta property="og:title" content="Hello"><meta property="og:description" content="World"></head><body></body></html>',
+            { status: 200, headers: { "content-type": "text/html" } },
+          ),
       );
       // Also mock caches.default which the route uses
       (globalThis as unknown as { caches: { default: Cache } }).caches = {
@@ -97,10 +98,10 @@ describe("/api/og — input validation", () => {
 
     it("falls back to <title> when og:title absent", async () => {
       fetchSpy.mockResolvedValueOnce(
-        new Response(
-          "<html><head><title>Plain Title</title></head><body></body></html>",
-          { status: 200, headers: { "content-type": "text/html" } },
-        ),
+        new Response("<html><head><title>Plain Title</title></head><body></body></html>", {
+          status: 200,
+          headers: { "content-type": "text/html" },
+        }),
       );
       const res = await req("/api/og?url=https://example.com/page");
       const body = (await res.json()) as { title: string };

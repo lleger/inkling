@@ -80,7 +80,10 @@ export function MetaPanel({ note, wordCount, taskStats }: MetaPanelProps) {
             {tags.length > 0 ? (
               <div className="flex flex-wrap gap-1">
                 {tags.map((t) => (
-                  <span key={t} className="rounded bg-surface-secondary px-1.5 py-0.5 text-[11px] text-text-secondary">
+                  <span
+                    key={t}
+                    className="rounded bg-surface-secondary px-1.5 py-0.5 text-[11px] text-text-secondary"
+                  >
                     #{t}
                   </span>
                 ))}
@@ -126,9 +129,7 @@ export function MetaPanel({ note, wordCount, taskStats }: MetaPanelProps) {
                       {bl.title || "Untitled"}
                     </div>
                     {bl.preview && (
-                      <div className="line-clamp-1 text-[11px] text-text-muted">
-                        {bl.preview}
-                      </div>
+                      <div className="line-clamp-1 text-[11px] text-text-muted">{bl.preview}</div>
                     )}
                   </Link>
                 </li>

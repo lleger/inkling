@@ -56,15 +56,24 @@ export function UIProvider({ children }: { children: ReactNode }) {
   }, [focusMode]);
 
   return (
-    <UIContext.Provider value={{
-      sidebarOpen, setSidebarOpen,
-      focusMode, setFocusMode,
-      paletteOpen, setPaletteOpen,
-      settingsOpen, setSettingsOpen,
-      folderModalOpen, setFolderModalOpen,
-      metaPanelOpen, setMetaPanelOpen,
-      toast, setToast,
-    }}>
+    <UIContext.Provider
+      value={{
+        sidebarOpen,
+        setSidebarOpen,
+        focusMode,
+        setFocusMode,
+        paletteOpen,
+        setPaletteOpen,
+        settingsOpen,
+        setSettingsOpen,
+        folderModalOpen,
+        setFolderModalOpen,
+        metaPanelOpen,
+        setMetaPanelOpen,
+        toast,
+        setToast,
+      }}
+    >
       {children}
     </UIContext.Provider>
   );

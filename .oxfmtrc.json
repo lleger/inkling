@@ -1,0 +1,8 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "ignorePatterns": [
+    "dist/**",
+    "src/client/routeTree.gen.ts",
+    "worker-configuration.d.ts"
+  ]
+}

@@ -26,7 +26,16 @@ interface HomePageProps {
   onSelectTag: (tag: string | null) => void;
 }
 
-export function HomePage({ notes, onSelectNote, onCreateNote, onDeleteNote, onImportFiles, allTags, selectedTag, onSelectTag }: HomePageProps) {
+export function HomePage({
+  notes,
+  onSelectNote,
+  onCreateNote,
+  onDeleteNote,
+  onImportFiles,
+  allTags,
+  selectedTag,
+  onSelectTag,
+}: HomePageProps) {
   const [query, setQuery] = useState("");
   const [dragFiles, setDragFiles] = useState<string[]>([]);
   const dragCountRef = useRef(0);
@@ -78,7 +87,11 @@ export function HomePage({ notes, onSelectNote, onCreateNote, onDeleteNote, onIm
     let result = notes;
     if (selectedTag) {
       result = result.filter((n) => {
-        try { return (JSON.parse(n.tags) as string[]).includes(selectedTag); } catch { return false; }
+        try {
+          return (JSON.parse(n.tags) as string[]).includes(selectedTag);
+        } catch {
+          return false;
+        }
       });
     }
     if (query.trim()) {
@@ -170,7 +183,9 @@ export function HomePage({ notes, onSelectNote, onCreateNote, onDeleteNote, onIm
       <div className="mb-8 flex items-center gap-2">
         <div className="flex items-center gap-1.5 rounded-md bg-surface-tertiary px-2.5 py-1 text-[12px] text-text-secondary">
           <FileText size={13} />
-          <span>{notes.length} {notes.length === 1 ? "note" : "notes"}</span>
+          <span>
+            {notes.length} {notes.length === 1 ? "note" : "notes"}
+          </span>
         </div>
         <div className="rounded-md bg-surface-tertiary px-2.5 py-1 text-[12px] text-text-secondary">
           {stats.totalWords.toLocaleString()} words
@@ -178,7 +193,9 @@ export function HomePage({ notes, onSelectNote, onCreateNote, onDeleteNote, onIm
         {stats.totalTasks > 0 && (
           <div className="flex items-center gap-1.5 rounded-md bg-surface-tertiary px-2.5 py-1 text-[12px] text-text-secondary">
             <CheckSquare size={13} />
-            <span>{stats.totalTaskDone}/{stats.totalTasks} tasks</span>
+            <span>
+              {stats.totalTaskDone}/{stats.totalTasks} tasks
+            </span>
           </div>
         )}
       </div>
@@ -237,13 +254,18 @@ export function HomePage({ notes, onSelectNote, onCreateNote, onDeleteNote, onIm
                   return (
                     <div className="mt-2 flex flex-wrap gap-1">
                       {tags.map((tag) => (
-                        <span key={tag} className="rounded-full bg-accent/10 px-2 py-px text-[10px] font-medium text-accent">
+                        <span
+                          key={tag}
+                          className="rounded-full bg-accent/10 px-2 py-px text-[10px] font-medium text-accent"
+                        >
                           #{tag}
                         </span>
                       ))}
                     </div>
                   );
-                } catch { return null; }
+                } catch {
+                  return null;
+                }
               })()}
             </div>
           ))}
@@ -252,10 +274,7 @@ export function HomePage({ notes, onSelectNote, onCreateNote, onDeleteNote, onIm
         <div className="flex flex-col items-center gap-3 pt-16 text-text-muted">
           <Search size={32} strokeWidth={1} />
           <p className="text-sm">No notes matching &ldquo;{query}&rdquo;</p>
-          <button
-            onClick={() => setQuery("")}
-            className="text-xs text-accent hover:underline"
-          >
+          <button onClick={() => setQuery("")} className="text-xs text-accent hover:underline">
             Clear search
           </button>
         </div>

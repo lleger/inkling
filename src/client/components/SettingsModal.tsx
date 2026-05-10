@@ -85,7 +85,9 @@ export function SettingsModal({
 
           {/* Accent color */}
           <div>
-            <label className="block text-[12px] font-medium text-text-secondary mb-2">Accent color</label>
+            <label className="block text-[12px] font-medium text-text-secondary mb-2">
+              Accent color
+            </label>
             <div className="flex gap-2">
               {ACCENT_NAMES.map((color) => (
                 <button
@@ -105,7 +107,9 @@ export function SettingsModal({
 
           {/* Default editor mode */}
           <div>
-            <label className="block text-[12px] font-medium text-text-secondary mb-2">Default editor</label>
+            <label className="block text-[12px] font-medium text-text-secondary mb-2">
+              Default editor
+            </label>
             <div className="flex gap-1 rounded-md bg-surface-secondary p-0.5 border border-border">
               {modeOptions.map((opt) => (
                 <button
@@ -125,7 +129,9 @@ export function SettingsModal({
 
           {/* Daily note folder */}
           <div>
-            <label className="block text-[12px] font-medium text-text-secondary mb-2">Daily note folder</label>
+            <label className="block text-[12px] font-medium text-text-secondary mb-2">
+              Daily note folder
+            </label>
             <input
               type="text"
               value={settings.dailyNoteFolder}
@@ -133,13 +139,17 @@ export function SettingsModal({
               placeholder="Daily"
               className="w-full rounded-md border border-border bg-surface-secondary px-2.5 py-1.5 text-[12px] text-text outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20"
             />
-            <span className="mt-1 block text-[11px] text-text-muted">Where Cmd+Shift+D notes are filed</span>
+            <span className="mt-1 block text-[11px] text-text-muted">
+              Where Cmd+Shift+D notes are filed
+            </span>
           </div>
 
           {/* Smart typography */}
           <div className="flex items-center justify-between">
             <div>
-              <label className="block text-[12px] font-medium text-text-secondary">Smart typography</label>
+              <label className="block text-[12px] font-medium text-text-secondary">
+                Smart typography
+              </label>
               <span className="text-[11px] text-text-muted">Curly quotes, em-dashes, ellipsis</span>
             </div>
             <button
@@ -159,7 +169,9 @@ export function SettingsModal({
           {/* Account */}
           {userEmail && (
             <div className="border-t border-border pt-4">
-              <label className="block text-[12px] font-medium text-text-secondary mb-1">Account</label>
+              <label className="block text-[12px] font-medium text-text-secondary mb-1">
+                Account
+              </label>
               <div className="flex items-center justify-between">
                 <span className="text-[12px] text-text-muted">{userEmail}</span>
                 <button

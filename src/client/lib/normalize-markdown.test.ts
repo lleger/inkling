@@ -63,12 +63,16 @@ describe("normalizeMarkdown", () => {
 
   it("compacts table rows separated by blank lines", () => {
     const input = "| Name | Status |\n\n| --- | --- |\n\n| A | Done |\n\n| B | WIP |";
-    expect(normalizeMarkdown(input)).toBe("| Name | Status |\n| --- | --- |\n| A | Done |\n| B | WIP |");
+    expect(normalizeMarkdown(input)).toBe(
+      "| Name | Status |\n| --- | --- |\n| A | Done |\n| B | WIP |",
+    );
   });
 
   it("preserves blank line between table and surrounding content", () => {
     const input = "Some text.\n\n| A | B |\n\n| --- | --- |\n\n| 1 | 2 |\n\nMore text.";
-    expect(normalizeMarkdown(input)).toBe("Some text.\n\n| A | B |\n| --- | --- |\n| 1 | 2 |\n\nMore text.");
+    expect(normalizeMarkdown(input)).toBe(
+      "Some text.\n\n| A | B |\n| --- | --- |\n| 1 | 2 |\n\nMore text.",
+    );
   });
 
   it("handles table after heading", () => {

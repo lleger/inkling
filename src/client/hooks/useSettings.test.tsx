@@ -27,9 +27,13 @@ describe("useSettings", () => {
   });
 
   it("hydrates from localStorage cache synchronously", () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      theme: "dark", accent: "purple",
-    }));
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        theme: "dark",
+        accent: "purple",
+      }),
+    );
     vi.mocked(api.fetchSettings).mockResolvedValue({} as any);
     const { Wrapper } = makeQueryWrapper();
     const { result } = renderHook(() => useSettings(), { wrapper: Wrapper });

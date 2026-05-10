@@ -16,21 +16,48 @@ vi.mock("@tanstack/react-router", () => ({
 const today = todayTitle();
 
 const existingDailyNote: NoteMeta = {
-  id: "daily-1", title: today, preview: "", word_count: 0, task_done: 0, task_total: 0,
-  tags: "[]", pinned: 0, folder: "Daily",
-  created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:00Z",
+  id: "daily-1",
+  title: today,
+  preview: "",
+  word_count: 0,
+  task_done: 0,
+  task_total: 0,
+  tags: "[]",
+  pinned: 0,
+  folder: "Daily",
+  created_at: "2026-01-01T00:00:00Z",
+  updated_at: "2026-01-01T00:00:00Z",
 };
 
 const otherNote: NoteMeta = {
-  id: "other", title: "Other", preview: "", word_count: 0, task_done: 0, task_total: 0,
-  tags: "[]", pinned: 0, folder: null,
-  created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:00Z",
+  id: "other",
+  title: "Other",
+  preview: "",
+  word_count: 0,
+  task_done: 0,
+  task_total: 0,
+  tags: "[]",
+  pinned: 0,
+  folder: null,
+  created_at: "2026-01-01T00:00:00Z",
+  updated_at: "2026-01-01T00:00:00Z",
 };
 
 const newDailyNote: Note = {
-  id: "new-daily", user_id: "u", title: today, content: "", preview: "", word_count: 0,
-  task_done: 0, task_total: 0, tags: "[]", pinned: 0, folder: null, deleted_at: null,
-  created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:00Z",
+  id: "new-daily",
+  user_id: "u",
+  title: today,
+  content: "",
+  preview: "",
+  word_count: 0,
+  task_done: 0,
+  task_total: 0,
+  tags: "[]",
+  pinned: 0,
+  folder: null,
+  deleted_at: null,
+  created_at: "2026-01-01T00:00:00Z",
+  updated_at: "2026-01-01T00:00:00Z",
 };
 
 beforeEach(() => {

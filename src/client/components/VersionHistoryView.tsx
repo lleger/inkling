@@ -24,7 +24,12 @@ interface VersionHistoryViewProps {
   onRestore: (note: Note) => void;
 }
 
-export function VersionHistoryView({ noteId, noteTitle, onClose, onRestore }: VersionHistoryViewProps) {
+export function VersionHistoryView({
+  noteId,
+  noteTitle,
+  onClose,
+  onRestore,
+}: VersionHistoryViewProps) {
   const [versions, setVersions] = useState<NoteVersionMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);

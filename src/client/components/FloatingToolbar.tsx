@@ -22,7 +22,13 @@ import {
   ListChecks,
 } from "lucide-react";
 import { $isLinkNode, TOGGLE_LINK_COMMAND } from "@lexical/link";
-import { $isListNode, INSERT_UNORDERED_LIST_COMMAND, INSERT_ORDERED_LIST_COMMAND, INSERT_CHECK_LIST_COMMAND, REMOVE_LIST_COMMAND } from "@lexical/list";
+import {
+  $isListNode,
+  INSERT_UNORDERED_LIST_COMMAND,
+  INSERT_ORDERED_LIST_COMMAND,
+  INSERT_CHECK_LIST_COMMAND,
+  REMOVE_LIST_COMMAND,
+} from "@lexical/list";
 import { $setBlocksType } from "@lexical/selection";
 import { $createHeadingNode, $createQuoteNode } from "@lexical/rich-text";
 import { $createParagraphNode } from "lexical";
@@ -65,9 +71,8 @@ export function FloatingToolbar() {
 
     // Check block type
     const anchorNode = selection.anchor.getNode();
-    const topLevelElement = anchorNode.getKey() === "root"
-      ? anchorNode
-      : anchorNode.getTopLevelElementOrThrow();
+    const topLevelElement =
+      anchorNode.getKey() === "root" ? anchorNode : anchorNode.getTopLevelElementOrThrow();
     if ($isHeadingNode(topLevelElement)) {
       setBlockType(topLevelElement.getTag());
     } else if ($isListNode(topLevelElement)) {
@@ -170,18 +175,73 @@ export function FloatingToolbar() {
   if (!show) return null;
 
   const buttons: ToolbarButton[] = [
-    { icon: <Bold size={14} />, title: "Bold", action: () => toggleFormat("bold"), isActive: formats.has("bold") },
-    { icon: <Italic size={14} />, title: "Italic", action: () => toggleFormat("italic"), isActive: formats.has("italic") },
-    { icon: <Strikethrough size={14} />, title: "Strikethrough", action: () => toggleFormat("strikethrough"), isActive: formats.has("strikethrough") },
-    { icon: <Code size={14} />, title: "Code", action: () => toggleFormat("code"), isActive: formats.has("code") },
+    {
+      icon: <Bold size={14} />,
+      title: "Bold",
+      action: () => toggleFormat("bold"),
+      isActive: formats.has("bold"),
+    },
+    {
+      icon: <Italic size={14} />,
+      title: "Italic",
+      action: () => toggleFormat("italic"),
+      isActive: formats.has("italic"),
+    },
+    {
+      icon: <Strikethrough size={14} />,
+      title: "Strikethrough",
+      action: () => toggleFormat("strikethrough"),
+      isActive: formats.has("strikethrough"),
+    },
+    {
+      icon: <Code size={14} />,
+      title: "Code",
+      action: () => toggleFormat("code"),
+      isActive: formats.has("code"),
+    },
     { icon: <Link size={14} />, title: "Link", action: toggleLink, isActive: isLink },
-    { icon: <Heading1 size={14} />, title: "Heading 1", action: () => setHeading("h1"), isActive: blockType === "h1" },
-    { icon: <Heading2 size={14} />, title: "Heading 2", action: () => setHeading("h2"), isActive: blockType === "h2" },
-    { icon: <Heading3 size={14} />, title: "Heading 3", action: () => setHeading("h3"), isActive: blockType === "h3" },
-    { icon: <Quote size={14} />, title: "Quote", action: setQuote, isActive: blockType === "quote" },
-    { icon: <List size={14} />, title: "Bullet list", action: () => toggleList("bullet"), isActive: blockType === "bullet" },
-    { icon: <ListOrdered size={14} />, title: "Numbered list", action: () => toggleList("number"), isActive: blockType === "number" },
-    { icon: <ListChecks size={14} />, title: "Task list", action: () => toggleList("check"), isActive: blockType === "check" },
+    {
+      icon: <Heading1 size={14} />,
+      title: "Heading 1",
+      action: () => setHeading("h1"),
+      isActive: blockType === "h1",
+    },
+    {
+      icon: <Heading2 size={14} />,
+      title: "Heading 2",
+      action: () => setHeading("h2"),
+      isActive: blockType === "h2",
+    },
+    {
+      icon: <Heading3 size={14} />,
+      title: "Heading 3",
+      action: () => setHeading("h3"),
+      isActive: blockType === "h3",
+    },
+    {
+      icon: <Quote size={14} />,
+      title: "Quote",
+      action: setQuote,
+      isActive: blockType === "quote",
+    },
+    {
+      icon: <List size={14} />,
+      title: "Bullet list",
+      action: () => toggleList("bullet"),
+      isActive: blockType === "bullet",
+    },
+    {
+      icon: <ListOrdered size={14} />,
+      title: "Numbered list",
+      action: () => toggleList("number"),
+      isActive: blockType === "number",
+    },
+    {
+      icon: <ListChecks size={14} />,
+      title: "Task list",
+      action: () => toggleList("check"),
+      isActive: blockType === "check",
+    },
   ];
 
   return (

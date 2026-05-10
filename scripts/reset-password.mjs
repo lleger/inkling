@@ -26,5 +26,5 @@ const safeEmail = email.replace(/'/g, "''");
 const safeHash = hash.replace(/'/g, "''");
 
 console.log(
-  `UPDATE account SET password='${safeHash}' WHERE providerId='credential' AND accountId IN (SELECT id FROM user WHERE email='${safeEmail}');`
+  `UPDATE account SET password='${safeHash}' WHERE providerId='credential' AND accountId IN (SELECT id FROM user WHERE email='${safeEmail}');`,
 );

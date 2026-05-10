@@ -2,7 +2,22 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import type { Env } from "../types";
-import { listNotes, getNote, createNote, updateNote, deleteNote, restoreNote, listDeletedNotes, permanentlyDeleteNote, purgeOldDeletedNotes, togglePinNote, moveToFolder, listNoteVersions, getNoteVersion, listBacklinks } from "../db/queries";
+import {
+  listNotes,
+  getNote,
+  createNote,
+  updateNote,
+  deleteNote,
+  restoreNote,
+  listDeletedNotes,
+  permanentlyDeleteNote,
+  purgeOldDeletedNotes,
+  togglePinNote,
+  moveToFolder,
+  listNoteVersions,
+  getNoteVersion,
+  listBacklinks,
+} from "../db/queries";
 
 type AuthVars = { userId: string; userEmail: string };
 
@@ -27,15 +42,11 @@ notesRoutes.get("/", async (c) => {
   return c.json({ notes });
 });
 
-notesRoutes.post(
-  "/",
-  zValidator("json", noteBodySchema),
-  async (c) => {
-    const body = c.req.valid("json");
-    const note = await createNote(c.env.DB, c.get("userId"), body.title, body.content);
-    return c.json({ note }, 201);
-  },
-);
+notesRoutes.post("/", zValidator("json", noteBodySchema), async (c) => {
+  const body = c.req.valid("json");
+  const note = await createNote(c.env.DB, c.get("userId"), body.title, body.content);
+  return c.json({ note }, 201);
+});
 
 // Trash list — must be before /:id to avoid matching "trash" as an id
 notesRoutes.get("/trash/list", async (c) => {
@@ -50,16 +61,12 @@ notesRoutes.get("/:id", async (c) => {
   return c.json({ note });
 });
 
-notesRoutes.put(
-  "/:id",
-  zValidator("json", noteBodySchema),
-  async (c) => {
-    const body = c.req.valid("json");
-    const note = await updateNote(c.env.DB, c.get("userId"), c.req.param("id"), body);
-    if (!note) return c.json({ error: "Not found" }, 404);
-    return c.json({ note });
-  },
-);
+notesRoutes.put("/:id", zValidator("json", noteBodySchema), async (c) => {
+  const body = c.req.valid("json");
+  const note = await updateNote(c.env.DB, c.get("userId"), c.req.param("id"), body);
+  if (!note) return c.json({ error: "Not found" }, 404);
+  return c.json({ note });
+});
 
 notesRoutes.delete("/:id", async (c) => {
   const deleted = await deleteNote(c.env.DB, c.get("userId"), c.req.param("id"));
@@ -67,27 +74,19 @@ notesRoutes.delete("/:id", async (c) => {
   return c.json({ success: true });
 });
 
-notesRoutes.put(
-  "/:id/pin",
-  zValidator("json", pinSchema),
-  async (c) => {
-    const { pinned } = c.req.valid("json");
-    const updated = await togglePinNote(c.env.DB, c.get("userId"), c.req.param("id"), pinned);
-    if (!updated) return c.json({ error: "Not found" }, 404);
-    return c.json({ success: true });
-  },
-);
+notesRoutes.put("/:id/pin", zValidator("json", pinSchema), async (c) => {
+  const { pinned } = c.req.valid("json");
+  const updated = await togglePinNote(c.env.DB, c.get("userId"), c.req.param("id"), pinned);
+  if (!updated) return c.json({ error: "Not found" }, 404);
+  return c.json({ success: true });
+});
 
-notesRoutes.put(
-  "/:id/folder",
-  zValidator("json", folderSchema),
-  async (c) => {
-    const { folder } = c.req.valid("json");
-    const updated = await moveToFolder(c.env.DB, c.get("userId"), c.req.param("id"), folder);
-    if (!updated) return c.json({ error: "Not found" }, 404);
-    return c.json({ success: true });
-  },
-);
+notesRoutes.put("/:id/folder", zValidator("json", folderSchema), async (c) => {
+  const { folder } = c.req.valid("json");
+  const updated = await moveToFolder(c.env.DB, c.get("userId"), c.req.param("id"), folder);
+  if (!updated) return c.json({ error: "Not found" }, 404);
+  return c.json({ success: true });
+});
 
 notesRoutes.post("/:id/restore", async (c) => {
   const restored = await restoreNote(c.env.DB, c.get("userId"), c.req.param("id"));
@@ -114,15 +113,27 @@ notesRoutes.get("/:id/backlinks", async (c) => {
 });
 
 notesRoutes.get("/:id/versions/:vid", async (c) => {
-  const version = await getNoteVersion(c.env.DB, c.get("userId"), c.req.param("id"), c.req.param("vid"));
+  const version = await getNoteVersion(
+    c.env.DB,
+    c.get("userId"),
+    c.req.param("id"),
+    c.req.param("vid"),
+  );
   if (!version) return c.json({ error: "Not found" }, 404);
   return c.json({ version });
 });
 
 notesRoutes.post("/:id/versions/:vid/restore", async (c) => {
-  const version = await getNoteVersion(c.env.DB, c.get("userId"), c.req.param("id"), c.req.param("vid"));
+  const version = await getNoteVersion(
+    c.env.DB,
+    c.get("userId"),
+    c.req.param("id"),
+    c.req.param("vid"),
+  );
   if (!version) return c.json({ error: "Version not found" }, 404);
-  const note = await updateNote(c.env.DB, c.get("userId"), c.req.param("id"), { content: version.content });
+  const note = await updateNote(c.env.DB, c.get("userId"), c.req.param("id"), {
+    content: version.content,
+  });
   if (!note) return c.json({ error: "Note not found" }, 404);
   return c.json({ note });
 });

@@ -1,7 +1,13 @@
 import { and, eq, isNull, isNotNull, like, lt, or, sql, asc, desc, inArray } from "drizzle-orm";
 import { makeDb } from "./client";
 import { notes, noteVersions, noteRefs } from "./schema";
-import type { Note, NoteMeta, DeletedNoteMeta, NoteVersionMeta, NoteVersion } from "../../shared/types";
+import type {
+  Note,
+  NoteMeta,
+  DeletedNoteMeta,
+  NoteVersionMeta,
+  NoteVersion,
+} from "../../shared/types";
 
 // Re-export for consumers that import from queries
 export type { NoteMeta, DeletedNoteMeta, NoteVersionMeta, NoteVersion };
@@ -100,8 +106,7 @@ function computeStats(content: string) {
 
 // Date columns are returned as JS Date by Drizzle. The wire format is ISO
 // strings; convert at the boundary so the JSON contract stays stable.
-const iso = (d: Date | null | undefined): string | null =>
-  d == null ? null : d.toISOString();
+const iso = (d: Date | null | undefined): string | null => (d == null ? null : d.toISOString());
 
 function mapMeta(row: typeof notes.$inferSelect): NoteMeta {
   return {
@@ -164,7 +169,11 @@ function mapVersion(row: typeof noteVersions.$inferSelect): NoteVersion {
 
 // --- Notes ---
 
-export async function listNotes(d1: D1Database, userId: string, query?: string): Promise<NoteMeta[]> {
+export async function listNotes(
+  d1: D1Database,
+  userId: string,
+  query?: string,
+): Promise<NoteMeta[]> {
   const db = makeDb(d1);
   let where = and(eq(notes.userId, userId), isNull(notes.deletedAt));
   if (query && query.trim()) {
@@ -179,7 +188,11 @@ export async function listNotes(d1: D1Database, userId: string, query?: string):
   return rows.map(mapMeta);
 }
 
-export async function getNote(d1: D1Database, userId: string, noteId: string): Promise<NoteRow | null> {
+export async function getNote(
+  d1: D1Database,
+  userId: string,
+  noteId: string,
+): Promise<NoteRow | null> {
   const db = makeDb(d1);
   const [row] = await db
     .select()
@@ -328,7 +341,11 @@ export async function deleteNote(d1: D1Database, userId: string, noteId: string)
   return (result.meta?.changes ?? 0) > 0;
 }
 
-export async function restoreNote(d1: D1Database, userId: string, noteId: string): Promise<boolean> {
+export async function restoreNote(
+  d1: D1Database,
+  userId: string,
+  noteId: string,
+): Promise<boolean> {
   const db = makeDb(d1);
   const result = await db
     .update(notes)
@@ -357,7 +374,11 @@ export async function listDeletedNotes(d1: D1Database, userId: string): Promise<
   }));
 }
 
-export async function permanentlyDeleteNote(d1: D1Database, userId: string, noteId: string): Promise<boolean> {
+export async function permanentlyDeleteNote(
+  d1: D1Database,
+  userId: string,
+  noteId: string,
+): Promise<boolean> {
   const db = makeDb(d1);
   await db
     .delete(noteVersions)
@@ -368,18 +389,17 @@ export async function permanentlyDeleteNote(d1: D1Database, userId: string, note
   await db
     .delete(noteRefs)
     .where(
-      and(
-        eq(noteRefs.userId, userId),
-        or(eq(noteRefs.noteId, noteId), eq(noteRefs.refId, noteId)),
-      ),
+      and(eq(noteRefs.userId, userId), or(eq(noteRefs.noteId, noteId), eq(noteRefs.refId, noteId))),
     );
-  const result = await db
-    .delete(notes)
-    .where(and(eq(notes.id, noteId), eq(notes.userId, userId)));
+  const result = await db.delete(notes).where(and(eq(notes.id, noteId), eq(notes.userId, userId)));
   return (result.meta?.changes ?? 0) > 0;
 }
 
-export async function purgeOldDeletedNotes(d1: D1Database, userId: string, daysOld = 30): Promise<number> {
+export async function purgeOldDeletedNotes(
+  d1: D1Database,
+  userId: string,
+  daysOld = 30,
+): Promise<number> {
   const db = makeDb(d1);
   const result = await db
     .delete(notes)
@@ -393,7 +413,12 @@ export async function purgeOldDeletedNotes(d1: D1Database, userId: string, daysO
   return result.meta?.changes ?? 0;
 }
 
-export async function togglePinNote(d1: D1Database, userId: string, noteId: string, pinned: boolean): Promise<boolean> {
+export async function togglePinNote(
+  d1: D1Database,
+  userId: string,
+  noteId: string,
+  pinned: boolean,
+): Promise<boolean> {
   const db = makeDb(d1);
   const result = await db
     .update(notes)
@@ -404,7 +429,12 @@ export async function togglePinNote(d1: D1Database, userId: string, noteId: stri
 
 // --- Folders ---
 
-export async function moveToFolder(d1: D1Database, userId: string, noteId: string, folder: string | null): Promise<boolean> {
+export async function moveToFolder(
+  d1: D1Database,
+  userId: string,
+  noteId: string,
+  folder: string | null,
+): Promise<boolean> {
   const db = makeDb(d1);
   const result = await db
     .update(notes)
@@ -413,7 +443,12 @@ export async function moveToFolder(d1: D1Database, userId: string, noteId: strin
   return (result.meta?.changes ?? 0) > 0;
 }
 
-export async function renameFolder(d1: D1Database, userId: string, oldPath: string, newPath: string): Promise<number> {
+export async function renameFolder(
+  d1: D1Database,
+  userId: string,
+  oldPath: string,
+  newPath: string,
+): Promise<number> {
   const db = makeDb(d1);
   const exact = await db
     .update(notes)
@@ -422,7 +457,9 @@ export async function renameFolder(d1: D1Database, userId: string, oldPath: stri
   const children = await db
     .update(notes)
     .set({ folder: sql`${newPath} || substr(${notes.folder}, ${oldPath.length + 1})` })
-    .where(and(eq(notes.userId, userId), like(notes.folder, oldPath + "/%"), isNull(notes.deletedAt)));
+    .where(
+      and(eq(notes.userId, userId), like(notes.folder, oldPath + "/%"), isNull(notes.deletedAt)),
+    );
   return (exact.meta?.changes ?? 0) + (children.meta?.changes ?? 0);
 }
 
@@ -432,7 +469,12 @@ const VERSION_THROTTLE_MS = 5 * 60 * 1000;
 const VERSION_MAX_AGE_DAYS = 30;
 const VERSION_MAX_COUNT = 100;
 
-async function createVersionSnapshot(d1: D1Database, userId: string, noteId: string, note: NoteRow): Promise<void> {
+async function createVersionSnapshot(
+  d1: D1Database,
+  userId: string,
+  noteId: string,
+  note: NoteRow,
+): Promise<void> {
   const db = makeDb(d1);
   const [last] = await db
     .select({ createdAt: noteVersions.createdAt })
@@ -458,7 +500,11 @@ async function createVersionSnapshot(d1: D1Database, userId: string, noteId: str
   });
 }
 
-export async function listNoteVersions(d1: D1Database, userId: string, noteId: string): Promise<NoteVersionMeta[]> {
+export async function listNoteVersions(
+  d1: D1Database,
+  userId: string,
+  noteId: string,
+): Promise<NoteVersionMeta[]> {
   const db = makeDb(d1);
 
   // Lazy cleanup: drop versions older than VERSION_MAX_AGE_DAYS
@@ -468,7 +514,10 @@ export async function listNoteVersions(d1: D1Database, userId: string, noteId: s
       and(
         eq(noteVersions.noteId, noteId),
         eq(noteVersions.userId, userId),
-        lt(noteVersions.createdAt, new Date(Date.now() - VERSION_MAX_AGE_DAYS * 24 * 60 * 60 * 1000)),
+        lt(
+          noteVersions.createdAt,
+          new Date(Date.now() - VERSION_MAX_AGE_DAYS * 24 * 60 * 60 * 1000),
+        ),
       ),
     );
 
@@ -487,7 +536,12 @@ export async function listNoteVersions(d1: D1Database, userId: string, noteId: s
       .orderBy(asc(noteVersions.createdAt))
       .limit(excess);
     if (oldest.length > 0) {
-      await db.delete(noteVersions).where(inArray(noteVersions.id, oldest.map((r) => r.id)));
+      await db.delete(noteVersions).where(
+        inArray(
+          noteVersions.id,
+          oldest.map((r) => r.id),
+        ),
+      );
     }
   }
 
@@ -499,12 +553,23 @@ export async function listNoteVersions(d1: D1Database, userId: string, noteId: s
   return rows.map(mapVersionMeta);
 }
 
-export async function getNoteVersion(d1: D1Database, userId: string, noteId: string, versionId: string): Promise<NoteVersion | null> {
+export async function getNoteVersion(
+  d1: D1Database,
+  userId: string,
+  noteId: string,
+  versionId: string,
+): Promise<NoteVersion | null> {
   const db = makeDb(d1);
   const [row] = await db
     .select()
     .from(noteVersions)
-    .where(and(eq(noteVersions.id, versionId), eq(noteVersions.noteId, noteId), eq(noteVersions.userId, userId)))
+    .where(
+      and(
+        eq(noteVersions.id, versionId),
+        eq(noteVersions.noteId, noteId),
+        eq(noteVersions.userId, userId),
+      ),
+    )
     .limit(1);
   return row ? mapVersion(row) : null;
 }

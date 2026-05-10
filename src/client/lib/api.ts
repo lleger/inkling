@@ -1,4 +1,14 @@
-import type { Note, NoteMeta, User, DeletedNoteMeta, NoteVersionMeta, NoteVersion, Settings, OgPreview, BacklinkMeta } from "../types";
+import type {
+  Note,
+  NoteMeta,
+  User,
+  DeletedNoteMeta,
+  NoteVersionMeta,
+  NoteVersion,
+  Settings,
+  OgPreview,
+  BacklinkMeta,
+} from "../types";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -86,12 +96,16 @@ export async function fetchVersions(noteId: string): Promise<NoteVersionMeta[]> 
 }
 
 export async function fetchVersion(noteId: string, versionId: string): Promise<NoteVersion> {
-  const data = await request<{ version: NoteVersion }>(`/api/notes/${noteId}/versions/${versionId}`);
+  const data = await request<{ version: NoteVersion }>(
+    `/api/notes/${noteId}/versions/${versionId}`,
+  );
   return data.version;
 }
 
 export async function restoreVersion(noteId: string, versionId: string): Promise<Note> {
-  const data = await request<{ note: Note }>(`/api/notes/${noteId}/versions/${versionId}/restore`, { method: "POST" });
+  const data = await request<{ note: Note }>(`/api/notes/${noteId}/versions/${versionId}/restore`, {
+    method: "POST",
+  });
   return data.note;
 }
 
@@ -107,7 +121,10 @@ export async function saveSettings(settings: Settings): Promise<void> {
   });
 }
 
-export async function fetchOgPreview(url: string, opts?: { refresh?: boolean }): Promise<OgPreview> {
+export async function fetchOgPreview(
+  url: string,
+  opts?: { refresh?: boolean },
+): Promise<OgPreview> {
   const qs = new URLSearchParams({ url });
   if (opts?.refresh) qs.set("refresh", "1");
   return request<OgPreview>(`/api/og?${qs.toString()}`);

@@ -6,13 +6,49 @@ import { FileText } from "lucide-react";
 afterEach(cleanup);
 
 const notes = [
-  { id: "1", title: "First Note", preview: "hello world", word_count: 10, task_done: 0, task_total: 0, tags: "[]", pinned: 0, folder: null, created_at: "2026-04-11T10:00:00Z", updated_at: "2026-04-11T12:00:00Z" },
-  { id: "2", title: "Second Note", preview: "foo bar", word_count: 5, task_done: 0, task_total: 0, tags: "[]", pinned: 0, folder: null, created_at: "2026-04-11T09:00:00Z", updated_at: "2026-04-11T11:00:00Z" },
+  {
+    id: "1",
+    title: "First Note",
+    preview: "hello world",
+    word_count: 10,
+    task_done: 0,
+    task_total: 0,
+    tags: "[]",
+    pinned: 0,
+    folder: null,
+    created_at: "2026-04-11T10:00:00Z",
+    updated_at: "2026-04-11T12:00:00Z",
+  },
+  {
+    id: "2",
+    title: "Second Note",
+    preview: "foo bar",
+    word_count: 5,
+    task_done: 0,
+    task_total: 0,
+    tags: "[]",
+    pinned: 0,
+    folder: null,
+    created_at: "2026-04-11T09:00:00Z",
+    updated_at: "2026-04-11T11:00:00Z",
+  },
 ];
 
 const actions: PaletteAction[] = [
-  { id: "new-note", label: "New note", icon: <FileText size={15} />, category: "action", onSelect: vi.fn() },
-  { id: "settings", label: "Settings", icon: <FileText size={15} />, category: "action", onSelect: vi.fn() },
+  {
+    id: "new-note",
+    label: "New note",
+    icon: <FileText size={15} />,
+    category: "action",
+    onSelect: vi.fn(),
+  },
+  {
+    id: "settings",
+    label: "Settings",
+    icon: <FileText size={15} />,
+    category: "action",
+    onSelect: vi.fn(),
+  },
 ];
 
 const baseProps = {
@@ -78,7 +114,9 @@ describe("CommandPalette", () => {
   it("calls onClose on Escape", () => {
     const onClose = vi.fn();
     render(<CommandPalette {...baseProps} onClose={onClose} />);
-    fireEvent.keyDown(screen.getByPlaceholderText("Search notes and actions..."), { key: "Escape" });
+    fireEvent.keyDown(screen.getByPlaceholderText("Search notes and actions..."), {
+      key: "Escape",
+    });
     expect(onClose).toHaveBeenCalledOnce();
   });
 

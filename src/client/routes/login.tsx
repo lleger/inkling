@@ -93,7 +93,9 @@ function LoginPage() {
             />
           </div>
           <div>
-            <label className="block text-[12px] font-medium text-text-secondary mb-1">Password</label>
+            <label className="block text-[12px] font-medium text-text-secondary mb-1">
+              Password
+            </label>
             <input
               type="password"
               value={password}

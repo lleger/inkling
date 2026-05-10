@@ -202,9 +202,7 @@ export function WikiLinkPlugin() {
     const q = pickerState.query.toLowerCase();
     const all = notes ?? [];
     if (!q) return all.slice(0, 8);
-    return all
-      .filter((n) => n.title.toLowerCase().includes(q))
-      .slice(0, 8);
+    return all.filter((n) => n.title.toLowerCase().includes(q)).slice(0, 8);
   }, [pickerState, notes]);
 
   // Detect [[query at the cursor on every editor update.
@@ -420,7 +418,10 @@ function Picker({ rect, query, results, selectedIndex, onSelect, onHover, onClos
             role="option"
             aria-selected={i === selectedIndex}
             onMouseEnter={() => onHover(i)}
-            onMouseDown={(e) => { e.preventDefault(); onSelect(i); }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              onSelect(i);
+            }}
             className={`flex cursor-pointer items-center gap-2 px-3 py-1.5 text-[13px] ${
               i === selectedIndex ? "bg-surface-hover text-accent" : "text-text"
             }`}

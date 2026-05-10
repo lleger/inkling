@@ -273,12 +273,7 @@ export function UrlChipPlugin() {
   return null;
 }
 
-function replaceWithChip(
-  textNode: TextNode,
-  before: string,
-  url: string,
-  after: string,
-) {
+function replaceWithChip(textNode: TextNode, before: string, url: string, after: string) {
   const chip = $createUrlChipNode(url);
   if (before.length > 0) {
     textNode.setTextContent(before);

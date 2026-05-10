@@ -9,7 +9,13 @@ interface MoveToFolderModalProps {
   allFolders: string[];
 }
 
-export function MoveToFolderModal({ open, onClose, onSelect, currentFolder, allFolders }: MoveToFolderModalProps) {
+export function MoveToFolderModal({
+  open,
+  onClose,
+  onSelect,
+  currentFolder,
+  allFolders,
+}: MoveToFolderModalProps) {
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -41,9 +47,7 @@ export function MoveToFolderModal({ open, onClose, onSelect, currentFolder, allF
 
     // Filter existing folders
     const q = query.toLowerCase().trim();
-    const matched = q
-      ? allFolders.filter((f) => f.toLowerCase().includes(q))
-      : allFolders;
+    const matched = q ? allFolders.filter((f) => f.toLowerCase().includes(q)) : allFolders;
 
     for (const f of matched) {
       if (f === currentFolder) continue; // skip current
@@ -119,7 +123,10 @@ export function MoveToFolderModal({ open, onClose, onSelect, currentFolder, allF
           {options.map((opt, i) => (
             <button
               key={opt.value ?? "__root__"}
-              onClick={() => { onSelect(opt.value); onClose(); }}
+              onClick={() => {
+                onSelect(opt.value);
+                onClose();
+              }}
               className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors ${
                 i === selectedIndex
                   ? "bg-surface-hover text-text"
@@ -134,9 +141,7 @@ export function MoveToFolderModal({ open, onClose, onSelect, currentFolder, allF
               <span className="flex-1 truncate">
                 {opt.isNew ? `Create "${opt.label}"` : opt.label}
               </span>
-              {opt.value === null && (
-                <span className="text-[11px] text-text-muted">unfiled</span>
-              )}
+              {opt.value === null && <span className="text-[11px] text-text-muted">unfiled</span>}
             </button>
           ))}
         </div>

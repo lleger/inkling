@@ -47,8 +47,11 @@ describe("clearDoneTasks", () => {
   });
 
   it("handles multiple separate checklists", () => {
-    const input = "## Section A\n\n- [x] a done\n- [ ] a todo\n\n## Section B\n\n- [ ] b todo\n- [x] b done";
-    expect(clearDoneTasks(input)).toBe("## Section A\n\n- [ ] a todo\n\n## Section B\n\n- [ ] b todo");
+    const input =
+      "## Section A\n\n- [x] a done\n- [ ] a todo\n\n## Section B\n\n- [ ] b todo\n- [x] b done";
+    expect(clearDoneTasks(input)).toBe(
+      "## Section A\n\n- [ ] a todo\n\n## Section B\n\n- [ ] b todo",
+    );
   });
 
   it("preserves heading and tag zone", () => {

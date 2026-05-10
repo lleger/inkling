@@ -117,13 +117,24 @@ function validateUrl(raw: string): URL | null {
   const v4 = host.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
   if (v4) {
     const [, a, b] = v4.map(Number);
-    if (a === 10 || a === 127 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || a === 169) {
+    if (
+      a === 10 ||
+      a === 127 ||
+      (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168) ||
+      a === 169
+    ) {
       return null;
     }
   }
   // IPv6 literals: block obvious loopback / link-local / unique-local
   if (host.includes(":")) {
-    if (host === "::1" || host.startsWith("fe80:") || host.startsWith("fc") || host.startsWith("fd")) {
+    if (
+      host === "::1" ||
+      host.startsWith("fe80:") ||
+      host.startsWith("fc") ||
+      host.startsWith("fd")
+    ) {
       return null;
     }
   }
@@ -170,7 +181,11 @@ async function readBodyCapped(res: Response, max: number): Promise<string> {
     out += decoder.decode(value, { stream: true });
   }
   out += decoder.decode();
-  try { reader.cancel(); } catch { /* ignore */ }
+  try {
+    reader.cancel();
+  } catch {
+    /* ignore */
+  }
   return out;
 }
 

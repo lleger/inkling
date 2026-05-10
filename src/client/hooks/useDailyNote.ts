@@ -26,9 +26,7 @@ export function useDailyNote() {
     const title = todayTitle();
     const folder = settings.dailyNoteFolder || "Daily";
 
-    const existing = notes.find(
-      (n: NoteMeta) => n.title === title && n.folder === folder,
-    );
+    const existing = notes.find((n: NoteMeta) => n.title === title && n.folder === folder);
 
     if (existing) {
       navigate({ to: "/notes/$id", params: { id: existing.id } });

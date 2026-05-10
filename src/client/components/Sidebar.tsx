@@ -1,5 +1,16 @@
 import { useState } from "react";
-import { Plus, PanelLeftClose, X, Home, Settings, Trash2, Pin, Folder, FolderOpen, ChevronRight } from "lucide-react";
+import {
+  Plus,
+  PanelLeftClose,
+  X,
+  Home,
+  Settings,
+  Trash2,
+  Pin,
+  Folder,
+  FolderOpen,
+  ChevronRight,
+} from "lucide-react";
 import type { NoteMeta, SaveStatus } from "../types";
 
 function timeAgo(dateStr: string): string {
@@ -135,26 +146,28 @@ export function Sidebar({
             title={saveStatus === "saving" ? "Saving..." : "Unsaved changes"}
           />
         )}
-        {note.pinned === 1 && (
-          <Pin size={11} className="shrink-0 text-text-muted" />
-        )}
-        <span className="flex-1 truncate text-[13px]">
-          {note.title || "Untitled"}
-        </span>
+        {note.pinned === 1 && <Pin size={11} className="shrink-0 text-text-muted" />}
+        <span className="flex-1 truncate text-[13px]">{note.title || "Untitled"}</span>
         <span className="shrink-0 text-[11px] text-text-muted transition-opacity group-hover:opacity-0">
           {timeAgo(note.updated_at)}
         </span>
         <div className="absolute right-1.5 flex items-center gap-0.5 opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-hover:pointer-events-auto">
           <button
             className="flex size-5 items-center justify-center rounded text-text-muted hover:bg-surface-active hover:text-text"
-            onClick={(e) => { e.stopPropagation(); onTogglePin(note.id); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onTogglePin(note.id);
+            }}
             title={note.pinned ? "Unpin" : "Pin"}
           >
             <Pin size={11} className={note.pinned ? "text-accent" : ""} />
           </button>
           <button
             className="flex size-5 items-center justify-center rounded text-text-muted hover:bg-surface-active hover:text-text"
-            onClick={(e) => { e.stopPropagation(); onDeleteNote(note.id); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeleteNote(note.id);
+            }}
             title="Delete"
           >
             <X size={12} />
@@ -165,7 +178,8 @@ export function Sidebar({
   };
 
   const renderFolder = (folder: FolderTree, depth = 0) => {
-    const isExpanded = expandedFolders.has(folder.path) ||
+    const isExpanded =
+      expandedFolders.has(folder.path) ||
       (activeFolder !== undefined && activeFolder !== null && activeFolder.startsWith(folder.path));
     const hasContent = folder.notes.length > 0 || folder.children.length > 0;
 
@@ -180,7 +194,11 @@ export function Sidebar({
             size={12}
             className={`shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`}
           />
-          {isExpanded ? <FolderOpen size={13} className="shrink-0" /> : <Folder size={13} className="shrink-0" />}
+          {isExpanded ? (
+            <FolderOpen size={13} className="shrink-0" />
+          ) : (
+            <Folder size={13} className="shrink-0" />
+          )}
           <span className="truncate">{folder.name}</span>
           {hasContent && (
             <span className="ml-auto text-[10px] text-text-muted">{folder.notes.length}</span>

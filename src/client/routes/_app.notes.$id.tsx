@@ -74,37 +74,43 @@ function NoteRoute() {
     },
   });
 
-  const saveContent = useCallback(async (content: string) => {
-    try {
-      await saveMutation.mutateAsync(content);
-    } catch {
-      retryCountRef.current++;
-      if (retryCountRef.current < 3) {
-        const delay = 2000 * Math.pow(2, retryCountRef.current - 1);
-        setTimeout(() => {
-          if (pendingContentRef.current !== null) return;
-          saveContent(content);
-        }, delay);
-      } else {
-        retryCountRef.current = 0;
-        ui.setToast({ message: "Failed to save. Check your connection." });
+  const saveContent = useCallback(
+    async (content: string) => {
+      try {
+        await saveMutation.mutateAsync(content);
+      } catch {
+        retryCountRef.current++;
+        if (retryCountRef.current < 3) {
+          const delay = 2000 * Math.pow(2, retryCountRef.current - 1);
+          setTimeout(() => {
+            if (pendingContentRef.current !== null) return;
+            saveContent(content);
+          }, delay);
+        } else {
+          retryCountRef.current = 0;
+          ui.setToast({ message: "Failed to save. Check your connection." });
+        }
       }
-    }
-  }, [saveMutation, ui]);
+    },
+    [saveMutation, ui],
+  );
 
-  const handleContentChange = useCallback((content: string) => {
-    currentContentRef.current = content;
-    updateStats(content);
-    if (content === lastSavedContentRef.current) return;
-    pendingContentRef.current = content;
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(async () => {
-      if (pendingContentRef.current === null) return;
-      const c = pendingContentRef.current;
-      pendingContentRef.current = null;
-      await saveContent(c);
-    }, 1500);
-  }, [updateStats, saveContent]);
+  const handleContentChange = useCallback(
+    (content: string) => {
+      currentContentRef.current = content;
+      updateStats(content);
+      if (content === lastSavedContentRef.current) return;
+      pendingContentRef.current = content;
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(async () => {
+        if (pendingContentRef.current === null) return;
+        const c = pendingContentRef.current;
+        pendingContentRef.current = null;
+        await saveContent(c);
+      }, 1500);
+    },
+    [updateStats, saveContent],
+  );
 
   const flushSave = useCallback(() => {
     if (pendingContentRef.current === null) return;
@@ -116,7 +122,9 @@ function NoteRoute() {
 
   // Flush on tab switch
   useEffect(() => {
-    const handler = () => { if (document.hidden) flushSave(); };
+    const handler = () => {
+      if (document.hidden) flushSave();
+    };
     document.addEventListener("visibilitychange", handler);
     return () => document.removeEventListener("visibilitychange", handler);
   }, [flushSave]);
@@ -155,7 +163,9 @@ function NoteRoute() {
       onClick={() => setModeTo(mode)}
       title={title}
       className={`flex size-8 items-center justify-center rounded-md transition-all ${
-        editorMode === mode ? "text-accent" : "text-text-muted hover:bg-surface-hover hover:text-text-secondary"
+        editorMode === mode
+          ? "text-accent"
+          : "text-text-muted hover:bg-surface-hover hover:text-text-secondary"
       }`}
     >
       {icon}
@@ -167,7 +177,9 @@ function NoteRoute() {
   return (
     <>
       {/* Mode switcher */}
-      <div className={`fixed top-3 right-3 z-10 flex flex-col items-center rounded-lg bg-surface-secondary border border-border p-0.5 transition-opacity duration-200 ${ui.focusMode ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+      <div
+        className={`fixed top-3 right-3 z-10 flex flex-col items-center rounded-lg bg-surface-secondary border border-border p-0.5 transition-opacity duration-200 ${ui.focusMode ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+      >
         <div className="flex flex-col gap-0.5">
           {modeBtn("richtext", <Type size={15} />, "Rich Text")}
           {modeBtn("markdown", <Code size={15} />, "Markdown")}
@@ -178,7 +190,9 @@ function NoteRoute() {
           onClick={() => ui.setMetaPanelOpen((o) => !o)}
           title="Note details"
           className={`flex size-8 items-center justify-center rounded-md transition-colors ${
-            ui.metaPanelOpen ? "text-accent" : "text-text-muted hover:bg-surface-hover hover:text-text-secondary"
+            ui.metaPanelOpen
+              ? "text-accent"
+              : "text-text-muted hover:bg-surface-hover hover:text-text-secondary"
           }`}
         >
           <Info size={15} />
@@ -195,15 +209,22 @@ function NoteRoute() {
       <MetaPanel note={note} wordCount={wordCount} taskStats={taskStats} />
 
       {/* Stats — bottom right */}
-      <div className={`fixed bottom-4 right-4 z-10 flex items-center gap-2 rounded-lg bg-surface-secondary/80 backdrop-blur-sm border border-border px-3 py-1.5 text-[11px] text-text-muted select-none transition-opacity duration-200 ${ui.focusMode ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
+      <div
+        className={`fixed bottom-4 right-4 z-10 flex items-center gap-2 rounded-lg bg-surface-secondary/80 backdrop-blur-sm border border-border px-3 py-1.5 text-[11px] text-text-muted select-none transition-opacity duration-200 ${ui.focusMode ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+      >
         {taskStats && (
           <>
             {taskStats.done > 0 ? (
-              <button onClick={handleClearDoneTasks} className="transition-colors hover:text-text-secondary">
+              <button
+                onClick={handleClearDoneTasks}
+                className="transition-colors hover:text-text-secondary"
+              >
                 {taskStats.done}/{taskStats.total} tasks
               </button>
             ) : (
-              <span>{taskStats.done}/{taskStats.total} tasks</span>
+              <span>
+                {taskStats.done}/{taskStats.total} tasks
+              </span>
             )}
             <span className="text-border">·</span>
           </>

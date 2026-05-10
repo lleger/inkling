@@ -43,10 +43,15 @@ function InlineChip({ url }: { url: string }) {
           loading="lazy"
           referrerPolicy="no-referrer"
           className="h-3.5 w-3.5 flex-shrink-0"
-          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).style.display = "none";
+          }}
         />
       ) : (
-        <LinkIcon size={12} className={`flex-shrink-0 text-text-muted ${isLoading ? "animate-pulse" : ""}`} />
+        <LinkIcon
+          size={12}
+          className={`flex-shrink-0 text-text-muted ${isLoading ? "animate-pulse" : ""}`}
+        />
       )}
       <span className="truncate">{display}</span>
     </a>
@@ -61,7 +66,11 @@ function CardChip({ url }: { url: string }) {
     e.preventDefault();
     e.stopPropagation();
     setRefreshing(true);
-    try { await refresh(); } finally { setRefreshing(false); }
+    try {
+      await refresh();
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   if (isLoading) {
@@ -108,7 +117,9 @@ function CardChip({ url }: { url: string }) {
           loading="lazy"
           referrerPolicy="no-referrer"
           className="h-auto w-24 flex-shrink-0 object-cover"
-          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).style.display = "none";
+          }}
         />
       )}
       <div className="flex min-w-0 flex-1 flex-col justify-between gap-0.5 p-3">
@@ -120,14 +131,14 @@ function CardChip({ url }: { url: string }) {
               loading="lazy"
               referrerPolicy="no-referrer"
               className="h-3 w-3 flex-shrink-0"
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+              }}
             />
           )}
           <span className="truncate">{preview.siteName ?? host}</span>
         </div>
-        {preview.title && (
-          <div className="line-clamp-1 font-medium text-text">{preview.title}</div>
-        )}
+        {preview.title && <div className="line-clamp-1 font-medium text-text">{preview.title}</div>}
         {preview.description && (
           <div className="line-clamp-2 text-[12px] text-text-secondary">{preview.description}</div>
         )}

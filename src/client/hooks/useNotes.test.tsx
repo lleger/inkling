@@ -9,14 +9,49 @@ import type { NoteMeta, Note } from "../types";
 vi.mock("../lib/api");
 
 const sampleNotes: NoteMeta[] = [
-  { id: "1", title: "First", preview: "", word_count: 0, task_done: 0, task_total: 0, tags: "[]", pinned: 0, folder: null, created_at: "2026-01-01T00:00:00Z", updated_at: "2026-01-01T00:00:00Z" },
-  { id: "2", title: "Second", preview: "", word_count: 0, task_done: 0, task_total: 0, tags: "[]", pinned: 1, folder: "Work", created_at: "2026-01-02T00:00:00Z", updated_at: "2026-01-02T00:00:00Z" },
+  {
+    id: "1",
+    title: "First",
+    preview: "",
+    word_count: 0,
+    task_done: 0,
+    task_total: 0,
+    tags: "[]",
+    pinned: 0,
+    folder: null,
+    created_at: "2026-01-01T00:00:00Z",
+    updated_at: "2026-01-01T00:00:00Z",
+  },
+  {
+    id: "2",
+    title: "Second",
+    preview: "",
+    word_count: 0,
+    task_done: 0,
+    task_total: 0,
+    tags: "[]",
+    pinned: 1,
+    folder: "Work",
+    created_at: "2026-01-02T00:00:00Z",
+    updated_at: "2026-01-02T00:00:00Z",
+  },
 ];
 
 const newNote: Note = {
-  id: "3", user_id: "u", title: "New", content: "", preview: "", word_count: 0,
-  task_done: 0, task_total: 0, tags: "[]", pinned: 0, folder: null, deleted_at: null,
-  created_at: "2026-01-03T00:00:00Z", updated_at: "2026-01-03T00:00:00Z",
+  id: "3",
+  user_id: "u",
+  title: "New",
+  content: "",
+  preview: "",
+  word_count: 0,
+  task_done: 0,
+  task_total: 0,
+  tags: "[]",
+  pinned: 0,
+  folder: null,
+  deleted_at: null,
+  created_at: "2026-01-03T00:00:00Z",
+  updated_at: "2026-01-03T00:00:00Z",
 };
 
 beforeEach(() => {
@@ -46,9 +81,17 @@ describe("useNotes", () => {
 
   it("create() inserts the new note into the cache and invalidates notes", async () => {
     const newMeta: NoteMeta = {
-      id: "3", title: "New", preview: "", word_count: 0, task_done: 0, task_total: 0,
-      tags: "[]", pinned: 0, folder: null,
-      created_at: "2026-01-03T00:00:00Z", updated_at: "2026-01-03T00:00:00Z",
+      id: "3",
+      title: "New",
+      preview: "",
+      word_count: 0,
+      task_done: 0,
+      task_total: 0,
+      tags: "[]",
+      pinned: 0,
+      folder: null,
+      created_at: "2026-01-03T00:00:00Z",
+      updated_at: "2026-01-03T00:00:00Z",
     };
     // The post-success refetch should see the new note from the server
     vi.mocked(api.fetchNotes).mockResolvedValue([newMeta, ...sampleNotes]);
@@ -144,7 +187,10 @@ describe("useNotes", () => {
       // Make the API hang so we can inspect the cache mid-mutation
       let resolve!: () => void;
       vi.mocked(api.deleteNote).mockImplementation(
-        () => new Promise<void>((r) => { resolve = r; }),
+        () =>
+          new Promise<void>((r) => {
+            resolve = r;
+          }),
       );
       const { qc, Wrapper } = makeQueryWrapper();
       qc.setQueryData(queryKeys.notes, sampleNotes);
@@ -153,7 +199,9 @@ describe("useNotes", () => {
 
       // Fire the mutation but don't await yet
       let p!: Promise<void>;
-      act(() => { p = result.current.remove("1"); });
+      act(() => {
+        p = result.current.remove("1");
+      });
 
       // Cache reflects the removal immediately
       await waitFor(() => {
@@ -165,7 +213,9 @@ describe("useNotes", () => {
       expect(trash?.find((n) => n.id === "1")).toBeTruthy();
 
       resolve();
-      await act(async () => { await p; });
+      await act(async () => {
+        await p;
+      });
     });
 
     it("remove() rolls back when the server fails", async () => {
@@ -185,14 +235,19 @@ describe("useNotes", () => {
     it("pin() flips the pinned field optimistically", async () => {
       let resolve!: () => void;
       vi.mocked(api.pinNote).mockImplementation(
-        () => new Promise<void>((r) => { resolve = r; }),
+        () =>
+          new Promise<void>((r) => {
+            resolve = r;
+          }),
       );
       const { qc, Wrapper } = makeQueryWrapper();
       qc.setQueryData(queryKeys.notes, sampleNotes);
       const { result } = renderHook(() => useNotes(), { wrapper: Wrapper });
 
       let p!: Promise<void>;
-      act(() => { p = result.current.pin("1", true); });
+      act(() => {
+        p = result.current.pin("1", true);
+      });
 
       await waitFor(() => {
         const cached = qc.getQueryData<NoteMeta[]>(queryKeys.notes);
@@ -200,20 +255,27 @@ describe("useNotes", () => {
       });
 
       resolve();
-      await act(async () => { await p; });
+      await act(async () => {
+        await p;
+      });
     });
 
     it("move() updates folder optimistically", async () => {
       let resolve!: () => void;
       vi.mocked(api.moveNoteToFolder).mockImplementation(
-        () => new Promise<void>((r) => { resolve = r; }),
+        () =>
+          new Promise<void>((r) => {
+            resolve = r;
+          }),
       );
       const { qc, Wrapper } = makeQueryWrapper();
       qc.setQueryData(queryKeys.notes, sampleNotes);
       const { result } = renderHook(() => useNotes(), { wrapper: Wrapper });
 
       let p!: Promise<void>;
-      act(() => { p = result.current.move("1", "Personal"); });
+      act(() => {
+        p = result.current.move("1", "Personal");
+      });
 
       await waitFor(() => {
         const cached = qc.getQueryData<NoteMeta[]>(queryKeys.notes);
@@ -221,23 +283,34 @@ describe("useNotes", () => {
       });
 
       resolve();
-      await act(async () => { await p; });
+      await act(async () => {
+        await p;
+      });
     });
 
     it("restore() removes from trash optimistically", async () => {
       let resolve!: () => void;
       vi.mocked(api.restoreNote).mockImplementation(
-        () => new Promise<void>((r) => { resolve = r; }),
+        () =>
+          new Promise<void>((r) => {
+            resolve = r;
+          }),
       );
       const { qc, Wrapper } = makeQueryWrapper();
-      qc.setQueryData(queryKeys.trash, [{
-        id: "trashed-1", title: "Old", deleted_at: "2026-01-01T00:00:00Z",
-        created_at: "2026-01-01T00:00:00Z",
-      }]);
+      qc.setQueryData(queryKeys.trash, [
+        {
+          id: "trashed-1",
+          title: "Old",
+          deleted_at: "2026-01-01T00:00:00Z",
+          created_at: "2026-01-01T00:00:00Z",
+        },
+      ]);
       const { result } = renderHook(() => useNotes(), { wrapper: Wrapper });
 
       let p!: Promise<void>;
-      act(() => { p = result.current.restore("trashed-1"); });
+      act(() => {
+        p = result.current.restore("trashed-1");
+      });
 
       await waitFor(() => {
         const trash = qc.getQueryData<any[]>(queryKeys.trash);
@@ -245,7 +318,9 @@ describe("useNotes", () => {
       });
 
       resolve();
-      await act(async () => { await p; });
+      await act(async () => {
+        await p;
+      });
     });
   });
 });

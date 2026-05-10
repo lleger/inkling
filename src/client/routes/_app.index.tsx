@@ -17,7 +17,9 @@ function HomeRoute() {
   const allTags = useMemo(() => {
     const set = new Set<string>();
     for (const n of notes) {
-      try { for (const t of JSON.parse(n.tags) as string[]) set.add(t); } catch {}
+      try {
+        for (const t of JSON.parse(n.tags) as string[]) set.add(t);
+      } catch {}
     }
     return [...set].sort();
   }, [notes]);

@@ -48,11 +48,12 @@ let db: D1Database;
 
 beforeAll(async () => {
   db = createTestD1();
-  for (const stmt of SCHEMA_SQL.split(";").map((s) => s.trim()).filter(Boolean)) {
+  for (const stmt of SCHEMA_SQL.split(";")
+    .map((s) => s.trim())
+    .filter(Boolean)) {
     await db.prepare(stmt).run();
   }
 });
-
 
 // Tests bypass real session creation via TEST_AUTH_BYPASS=1 in env.
 // Real auth (better-auth sessions) is exercised by acceptance tests.
@@ -159,7 +160,9 @@ describe("API", () => {
       const res = await req(`/api/notes/${note.id}`, {
         method: "PUT",
         headers: authHeaders(),
-        body: JSON.stringify({ content: "# New Title\n\n- [ ] task one\n- [x] task two\n\nupdated content here" }),
+        body: JSON.stringify({
+          content: "# New Title\n\n- [ ] task one\n- [x] task two\n\nupdated content here",
+        }),
       });
       expect(res.status).toBe(200);
       const body = (await res.json()) as { note: Record<string, unknown> };
@@ -176,7 +179,10 @@ describe("API", () => {
       });
       const { note } = (await createRes.json()) as { note: { id: string } };
 
-      const delRes = await req(`/api/notes/${note.id}`, { method: "DELETE", headers: authHeaders() });
+      const delRes = await req(`/api/notes/${note.id}`, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
       expect(delRes.status).toBe(200);
 
       const getRes = await req(`/api/notes/${note.id}`, { headers: authHeaders() });
@@ -197,7 +203,10 @@ describe("API", () => {
       expect(((await listRes.json()) as { notes: unknown[] }).notes).toHaveLength(0);
 
       // Restore
-      const restoreRes = await req(`/api/notes/${note.id}/restore`, { method: "POST", headers: authHeaders() });
+      const restoreRes = await req(`/api/notes/${note.id}/restore`, {
+        method: "POST",
+        headers: authHeaders(),
+      });
       expect(restoreRes.status).toBe(200);
 
       // Should be back
@@ -230,11 +239,17 @@ describe("API", () => {
       const { note } = (await createRes.json()) as { note: { id: string } };
       await req(`/api/notes/${note.id}`, { method: "DELETE", headers: authHeaders() });
 
-      const permRes = await req(`/api/notes/${note.id}/permanent`, { method: "DELETE", headers: authHeaders() });
+      const permRes = await req(`/api/notes/${note.id}/permanent`, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
       expect(permRes.status).toBe(200);
 
       // Can't restore anymore
-      const restoreRes = await req(`/api/notes/${note.id}/restore`, { method: "POST", headers: authHeaders() });
+      const restoreRes = await req(`/api/notes/${note.id}/restore`, {
+        method: "POST",
+        headers: authHeaders(),
+      });
       expect(restoreRes.status).toBe(404);
     });
 
@@ -425,7 +440,9 @@ describe("API", () => {
       const noteB = await createNote("# B\n\nother");
       const versionId = await createVersion(noteA);
 
-      const res = await req(`/api/notes/${noteB}/versions/${versionId}`, { headers: authHeaders() });
+      const res = await req(`/api/notes/${noteB}/versions/${versionId}`, {
+        headers: authHeaders(),
+      });
       expect(res.status).toBe(404);
     });
 

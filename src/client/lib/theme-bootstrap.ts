@@ -20,9 +20,12 @@ const DEFAULTS: Pick<Settings, "theme" | "accent"> = {
  */
 export function bootstrapTheme() {
   const { theme, accent } = readCache();
-  const resolved = theme === "system"
-    ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
-    : theme;
+  const resolved =
+    theme === "system"
+      ? window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light"
+      : theme;
   document.documentElement.classList.toggle("dark", resolved === "dark");
   applyAccent(accent, resolved);
 }

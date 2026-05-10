@@ -14,7 +14,9 @@ const ts = (name: string) => integer(name, { mode: "timestamp_ms" });
 export const notes = sqliteTable(
   "notes",
   {
-    id: text("id").primaryKey().default(sql`(lower(hex(randomblob(16))))`),
+    id: text("id")
+      .primaryKey()
+      .default(sql`(lower(hex(randomblob(16))))`),
     userId: text("user_id").notNull(),
     title: text("title").notNull().default("Untitled"),
     content: text("content").notNull().default(""),
@@ -38,7 +40,9 @@ export const notes = sqliteTable(
 export const noteVersions = sqliteTable(
   "note_versions",
   {
-    id: text("id").primaryKey().default(sql`(lower(hex(randomblob(16))))`),
+    id: text("id")
+      .primaryKey()
+      .default(sql`(lower(hex(randomblob(16))))`),
     noteId: text("note_id").notNull(),
     userId: text("user_id").notNull(),
     content: text("content").notNull(),
@@ -70,10 +74,7 @@ export const noteRefs = sqliteTable(
     refId: text("ref_id").notNull(),
     userId: text("user_id").notNull(),
   },
-  (t) => [
-    index("idx_refs_note").on(t.noteId),
-    index("idx_refs_target_user").on(t.refId, t.userId),
-  ],
+  (t) => [index("idx_refs_note").on(t.noteId), index("idx_refs_target_user").on(t.refId, t.userId)],
 );
 
 // --- better-auth tables ---
@@ -94,7 +95,9 @@ export const session = sqliteTable(
   "session",
   {
     id: text("id").primaryKey(),
-    userId: text("userId").notNull().references(() => user.id, { onDelete: "cascade" }),
+    userId: text("userId")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
     token: text("token").notNull().unique(),
     expiresAt: ts("expiresAt").notNull(),
     ipAddress: text("ipAddress"),
@@ -102,17 +105,16 @@ export const session = sqliteTable(
     createdAt: ts("createdAt").notNull().default(nowMs),
     updatedAt: ts("updatedAt").notNull().default(nowMs),
   },
-  (t) => [
-    index("idx_session_userId").on(t.userId),
-    index("idx_session_token").on(t.token),
-  ],
+  (t) => [index("idx_session_userId").on(t.userId), index("idx_session_token").on(t.token)],
 );
 
 export const account = sqliteTable(
   "account",
   {
     id: text("id").primaryKey(),
-    userId: text("userId").notNull().references(() => user.id, { onDelete: "cascade" }),
+    userId: text("userId")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
     providerId: text("providerId").notNull(),
     accountId: text("accountId").notNull(),
     accessToken: text("accessToken"),

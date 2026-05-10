@@ -52,7 +52,7 @@ app.post("/api/auth/sign-up/email", async (c) => {
 app.all("/api/auth/*", async (c) => {
   const auth = getAuth(c.env, c.req.url);
   try {
-      return await auth.handler(c.req.raw.clone() as Request);
+    return await auth.handler(c.req.raw.clone() as Request);
   } catch (err) {
     console.error("[auth] handler threw:", err);
     return c.json({ error: "Authentication request failed. Please try again." }, 500);

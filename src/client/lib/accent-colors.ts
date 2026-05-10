@@ -19,5 +19,8 @@ export const ACCENT_NAMES: AccentColor[] = ["green", "blue", "purple", "orange",
 
 export function applyAccent(accent: AccentColor, resolvedTheme: "light" | "dark") {
   const pair = ACCENT_COLORS[accent];
-  document.documentElement.style.setProperty("--color-accent", resolvedTheme === "dark" ? pair.dark : pair.light);
+  document.documentElement.style.setProperty(
+    "--color-accent",
+    resolvedTheme === "dark" ? pair.dark : pair.light,
+  );
 }

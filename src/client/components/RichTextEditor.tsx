@@ -306,30 +306,45 @@ function CopyAsMarkdownPlugin() {
         // Inline-only selections (within a single paragraph) come back as text/link
         // nodes which can't be root-level. Wrap them in a paragraph.
         const ELEMENT_OR_DECORATOR_TYPES = new Set([
-          "paragraph", "heading", "quote", "list", "code", "table", "horizontalrule",
+          "paragraph",
+          "heading",
+          "quote",
+          "list",
+          "code",
+          "table",
+          "horizontalrule",
         ]);
-        const wrappedChildren = (json.nodes as any[]).every(
-          (n) => ELEMENT_OR_DECORATOR_TYPES.has(n.type),
+        const wrappedChildren = (json.nodes as any[]).every((n) =>
+          ELEMENT_OR_DECORATOR_TYPES.has(n.type),
         )
           ? json.nodes
-          : [{
-              type: "paragraph",
-              version: 1,
-              direction: null,
-              format: "",
-              indent: 0,
-              children: json.nodes,
-            }];
+          : [
+              {
+                type: "paragraph",
+                version: 1,
+                direction: null,
+                format: "",
+                indent: 0,
+                children: json.nodes,
+              },
+            ];
 
         const headless = createEditor({
           namespace: "inkling-copy",
           nodes: [
-            HeadingNode, QuoteNode,
-            ListNode, ListItemNode,
-            CodeNode, CodeHighlightNode,
-            LinkNode, AutoLinkNode,
-            TableNode, TableRowNode, TableCellNode,
-            HashtagNode, HorizontalRuleNode,
+            HeadingNode,
+            QuoteNode,
+            ListNode,
+            ListItemNode,
+            CodeNode,
+            CodeHighlightNode,
+            LinkNode,
+            AutoLinkNode,
+            TableNode,
+            TableRowNode,
+            TableCellNode,
+            HashtagNode,
+            HorizontalRuleNode,
             UrlChipNode,
             WikiLinkNode,
           ],
@@ -379,7 +394,12 @@ interface RichTextEditorProps {
   smartTypography?: boolean;
 }
 
-export function RichTextEditor({ initialContent, onChange, autoFocus = true, smartTypography = true }: RichTextEditorProps) {
+export function RichTextEditor({
+  initialContent,
+  onChange,
+  autoFocus = true,
+  smartTypography = true,
+}: RichTextEditorProps) {
   const initialConfig = {
     namespace: "richtext-editor",
     theme: richTextTheme,

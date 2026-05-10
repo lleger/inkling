@@ -76,9 +76,11 @@ npm run dev
 | `npm run dev` | Local dev server with Workers runtime + D1 |
 | `npm run build` | Production build |
 | `npm run deploy` | Build and deploy to Cloudflare |
+| `npm run check` | Run format check, lint, typecheck, and tests |
 | `npm run typecheck` | Run TypeScript with `--noEmit` |
 | `npm test` | Run all tests |
 | `npm run lint` | Lint with oxlint |
+| `npm run lint:fix` | Auto-fix lint issues where safe |
 | `npm run fmt` | Format with oxfmt |
 | `npm run db:generate` | Generate Drizzle migrations from `schema.ts` |
 | `npm run db:migrate:local` | Apply D1 migrations locally |

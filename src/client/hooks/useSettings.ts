@@ -38,15 +38,18 @@ export function useSettings() {
     }
   }, [isSuccess, remote]);
 
-  const update = useCallback((partial: Partial<Settings>) => {
-    setSettings((prev) => {
-      const next = { ...prev, ...partial };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      saveSettings(next).catch(() => {});
-      qc.setQueryData(queryKeys.settings, next);
-      return next;
-    });
-  }, [qc]);
+  const update = useCallback(
+    (partial: Partial<Settings>) => {
+      setSettings((prev) => {
+        const next = { ...prev, ...partial };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        saveSettings(next).catch(() => {});
+        qc.setQueryData(queryKeys.settings, next);
+        return next;
+      });
+    },
+    [qc],
+  );
 
   return { settings, update, loaded: isSuccess };
 }

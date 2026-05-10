@@ -23,7 +23,10 @@ export function normalizeMarkdown(text: string): string {
   prev = "";
   while (prev !== result) {
     prev = result;
-    result = result.replace(/(^#[a-zA-Z0-9_-]+(?:\s+#[a-zA-Z0-9_-]+)*)\n\n(#[a-zA-Z0-9_-]+)/gm, "$1\n$2");
+    result = result.replace(
+      /(^#[a-zA-Z0-9_-]+(?:\s+#[a-zA-Z0-9_-]+)*)\n\n(#[a-zA-Z0-9_-]+)/gm,
+      "$1\n$2",
+    );
   }
 
   // Compact table rows: \n\n between consecutive | ... | lines → \n

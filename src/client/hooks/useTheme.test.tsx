@@ -49,9 +49,12 @@ describe("useTheme", () => {
   });
 
   it("re-resolves when preference changes", () => {
-    const { result, rerender } = renderHook(({ pref }: { pref: ThemePreference }) => useTheme(pref), {
-      initialProps: { pref: "light" },
-    });
+    const { result, rerender } = renderHook(
+      ({ pref }: { pref: ThemePreference }) => useTheme(pref),
+      {
+        initialProps: { pref: "light" },
+      },
+    );
     expect(result.current).toBe("light");
 
     rerender({ pref: "dark" as const });
