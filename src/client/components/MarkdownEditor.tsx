@@ -203,7 +203,7 @@ function isInTagZone(parent: LexicalNode): boolean {
   if (headingIdx === -1) return false;
 
   // Check if parent is in the tag zone (consecutive tag lines after heading)
-  const parentIdx = allParagraphs.indexOf(parent as any);
+  const parentIdx = allParagraphs.findIndex((node) => node.is(parent));
   if (parentIdx <= headingIdx) return false;
 
   // Every paragraph between heading+1 and parent must be a tag zone line

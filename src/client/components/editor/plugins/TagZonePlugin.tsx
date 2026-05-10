@@ -13,6 +13,12 @@ import { isTagZoneLine } from "../../../lib/parse-tags";
 
 const TAG_TOKEN_RE = /#([a-zA-Z0-9_-]+)/g;
 
+function hasChildren(
+  node: LexicalNode,
+): node is LexicalNode & { getChildren: () => LexicalNode[] } {
+  return "getChildren" in node && typeof node.getChildren === "function";
+}
+
 export function TagZonePlugin() {
   const [editor] = useLexicalComposerContext();
 
@@ -101,7 +107,7 @@ function convertTextToHashtags(paragraph: LexicalNode) {
 }
 
 function convertHashtagsToText(node: LexicalNode) {
-  const children = "getChildren" in node ? (node as any).getChildren() : [];
+  const children = hasChildren(node) ? node.getChildren() : [];
   for (const child of children) {
     if (child.getType() === "hashtag") {
       const textNode = $createTextNode(child.getTextContent());

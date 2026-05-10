@@ -14,11 +14,20 @@ import {
   COMMAND_PRIORITY_HIGH,
   COPY_COMMAND,
   createEditor,
+  type SerializedEditorState,
+  type SerializedLexicalNode,
 } from "lexical";
 import { $generateJSONFromSelectedNodes } from "@lexical/clipboard";
 import { UrlChipNode } from "../../UrlChipNode";
 import { WikiLinkNode } from "../../WikiLinkNode";
 import { TRANSFORMERS } from "../../../lib/markdown-transformers";
+
+type SerializedParagraph = SerializedLexicalNode & {
+  children: SerializedLexicalNode[];
+  direction: null;
+  format: "";
+  indent: 0;
+};
 
 export function CopyAsMarkdownPlugin() {
   const [editor] = useLexicalComposerContext();
@@ -33,7 +42,7 @@ export function CopyAsMarkdownPlugin() {
 
         // Serialize the selection to JSON, hydrate it in a headless editor,
         // then ask the markdown transformers to render it.
-        const json = $generateJSONFromSelectedNodes(editor, selection);
+        const json = $generateJSONFromSelectedNodes<SerializedLexicalNode>(editor, selection);
 
         // Inline-only selections (within a single paragraph) come back as text/link
         // nodes which can't be root-level. Wrap them in a paragraph.
@@ -46,9 +55,8 @@ export function CopyAsMarkdownPlugin() {
           "table",
           "horizontalrule",
         ]);
-        const wrappedChildren = (json.nodes as any[]).every((n) =>
-          ELEMENT_OR_DECORATOR_TYPES.has(n.type),
-        )
+        const selectedNodes = json.nodes;
+        const wrappedChildren = selectedNodes.every((n) => ELEMENT_OR_DECORATOR_TYPES.has(n.type))
           ? json.nodes
           : [
               {
@@ -58,7 +66,7 @@ export function CopyAsMarkdownPlugin() {
                 format: "",
                 indent: 0,
                 children: json.nodes,
-              },
+              } satisfies SerializedParagraph,
             ];
 
         const headless = createEditor({
@@ -81,7 +89,7 @@ export function CopyAsMarkdownPlugin() {
             WikiLinkNode,
           ],
         });
-        const state = headless.parseEditorState({
+        const serializedRoot: SerializedEditorState = {
           root: {
             type: "root",
             children: wrappedChildren,
@@ -90,7 +98,8 @@ export function CopyAsMarkdownPlugin() {
             indent: 0,
             version: 1,
           },
-        } as any);
+        };
+        const state = headless.parseEditorState(serializedRoot);
         headless.setEditorState(state);
 
         let md = "";
