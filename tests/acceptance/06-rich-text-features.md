@@ -27,6 +27,18 @@
 - Create a link in the editor
 - Cmd+click the link — it should open in a new tab
 
+## URL Chips
+- Paste or type a standalone `https://` URL in rich text mode
+- It should convert to an inline URL chip showing fetched page metadata when available
+- Backspace next to the chip should remove the whole chip
+- Copying or switching modes should preserve the URL in markdown form
+
+## Wiki Links And Backlinks
+- Type `[[` in rich text mode
+- A picker should appear with matching notes
+- Selecting a note inserts an inline wiki-link chip that navigates to that note when clicked
+- Opening the linked note's details panel should show the source note under Backlinks
+
 ## Tables
 - In markdown mode, type a markdown table
 - Switch to rich text mode — table should render with headers and borders

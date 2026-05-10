@@ -35,9 +35,10 @@
 - The /api/notes endpoint scopes by session.userId on the server
 
 ## Email Allowlist
-- The `ALLOWED_EMAILS` env var (comma-separated) restricts who can sign up
+- `SIGNUP_MODE` is required and must be `allowlist` or `open`
+- When `SIGNUP_MODE=allowlist`, the `ALLOWED_EMAILS` env var (comma-separated) restricts who can sign up
 - Allowlist matching is case-insensitive (`Logan@example.com` matches `logan@example.com`)
-- If `ALLOWED_EMAILS` is unset, signup is open to anyone
+- When `SIGNUP_MODE=open`, signup is open to anyone and `ALLOWED_EMAILS` is not required
 - Existing users can still sign in regardless of the allowlist (it only gates new accounts)
 
 ## Sign-Up Anti-Enumeration

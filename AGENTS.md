@@ -2,7 +2,7 @@
 
 ## Architecture
 
-React 18 + TanStack Router + TanStack Query frontend, Hono API on Cloudflare Workers with D1 (SQLite).
+React 19 + TanStack Router + TanStack Query frontend, Hono API on Cloudflare Workers with D1 (SQLite).
 
 - **Routes**: `src/client/routes/` — file-based, generated route tree at `src/client/routeTree.gen.ts`
   - `__root.tsx` — outermost suspense boundary
@@ -10,17 +10,22 @@ React 18 + TanStack Router + TanStack Query frontend, Hono API on Cloudflare Wor
   - `_app.index.tsx` — `/` (home)
   - `_app.notes.$id.tsx` — `/notes/:id` (editor)
   - `_app.notes.$id_.versions.tsx` — `/notes/:id/versions` (trailing `_` breaks out of parent layout)
+  - `_app.today.tsx` — `/today` (find/create today's daily note, then redirect)
   - `_app.trash.tsx` — `/trash`
+  - `login.tsx` — `/login` (sign in / sign up)
 - **Components**: `src/client/components/` — Lexical editor, sidebar, modals, etc.
 - **Hooks**: `src/client/hooks/` — `useNotes`, `useUser`, `useSettings`, `useTheme`. Built on TanStack Query.
 - **Queries**: `src/client/lib/queries.ts` — central query keys and `queryOptions` factories
-- **UI Context**: `src/client/context/UIContext.tsx` — ephemeral UI state shared across routes (sidebar/focus/palette/settings/folder modal toggles, toast)
+- **UI Context**: `src/client/context/UIContext.tsx` — ephemeral UI state shared across routes (sidebar/focus/palette/settings/folder/meta panel toggles, toast)
 - **Backend**: `src/worker/` — Hono API + Drizzle ORM, auth middleware
-  - `src/worker/db/schema.ts` — Drizzle table definitions (notes, versions, settings, better-auth tables)
+  - `src/worker/routes/` — authenticated Hono routes for notes, folders, settings, user, and OG previews
+  - `src/worker/middleware/auth.ts` — better-auth session middleware for `/api/*`
+  - `src/worker/db/schema.ts` — Drizzle table definitions (notes, versions, settings, folder metadata, note refs, better-auth tables)
   - `src/worker/db/queries.ts` — query functions, all Drizzle
   - `src/worker/db/client.ts` — `makeDb(env.DB)` builds a Drizzle client per request
   - `src/worker/db/test-d1.ts` — better-sqlite3-backed D1 shim for unit tests
-  - `src/worker/db/migrate-*.sql` — historical SQL migrations applied by hand. New schema changes go in `schema.ts` then `npx drizzle-kit generate` produces a migration in `src/worker/db/migrations/`.
+  - `src/worker/db/migrate-*.sql` — historical SQL migrations applied by hand
+  - `src/worker/db/migrations/` — active Wrangler D1 migrations. New schema changes go in `schema.ts` then `npm run db:generate` produces a migration here.
 - **Shared types**: `src/shared/types.ts`
 - **Pure lib**: `src/client/lib/` — framework-agnostic utilities
 
@@ -37,6 +42,10 @@ queryClient.invalidateQueries({ queryKey: queryKeys.notes });
 ```
 
 When adding a new mutation, set `onSuccess` to invalidate the relevant queries. Don't write manual `refresh()` callbacks.
+
+### Auth config
+
+`BETTER_AUTH_SECRET` is required. `SIGNUP_MODE` is also required and must be `allowlist` or `open`; when `SIGNUP_MODE=allowlist`, `ALLOWED_EMAILS` is required and matched case-insensitively. Optional Google OAuth uses `GOOGLE_CLIENT_ID` plus `GOOGLE_CLIENT_SECRET`.
 
 ## Acceptance Tests
 
@@ -70,7 +79,7 @@ Specs describe user-visible behavior, not implementation details. They should be
 - `03-sidebar.md` — note list, folders, collapse/expand, home
 - `04-command-palette.md` — Cmd+K, actions, note search, create with title
 - `05-note-operations.md` — auto-save, delete/undo, pin, folder, duplicate, clear tasks
-- `06-rich-text-features.md` — floating toolbar, checklists, tab indent, smart typography, links, tables
+- `06-rich-text-features.md` — floating toolbar, checklists, tab indent, smart typography, links, URL chips, wiki links, tables
 - `07-settings-and-theme.md` — theme, accent color, settings persistence
 - `08-focus-mode.md` — enter/exit, editor works in focus
 - `09-trash.md` — view, restore, permanent delete

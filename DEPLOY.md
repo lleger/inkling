@@ -13,7 +13,7 @@ Step-by-step for the first deploy of Inkling to Cloudflare Workers at `inkling.p
 npx wrangler d1 create inkling-db
 ```
 
-Copy the `database_id` from the output and replace `local-dev-placeholder` in `wrangler.jsonc`:
+Copy the `database_id` from the output and set it in `wrangler.jsonc`:
 
 ```jsonc
 "d1_databases": [
@@ -41,9 +41,22 @@ Verify:
 npx wrangler d1 execute inkling-db --remote --command "SELECT name FROM sqlite_master WHERE type='table';"
 ```
 
-You should see `notes`, `note_versions`, `user_settings`, `user`, `session`, `account`, `verification`.
+You should see `notes`, `note_versions`, `user_settings`, `folder_metadata`, `note_refs`, `user`, `session`, `account`, `verification`.
 
-## 3. Set the auth secret
+## 3. Configure auth
+
+Choose the sign-up mode explicitly in `wrangler.jsonc` vars or via deployed env vars:
+
+```jsonc
+"vars": {
+  "SIGNUP_MODE": "allowlist",
+  "ALLOWED_EMAILS": "you@example.com"
+}
+```
+
+Use `SIGNUP_MODE=open` to allow anyone to sign up. `ALLOWED_EMAILS` is required only for allowlist mode and is matched case-insensitively.
+
+Then set the auth secret.
 
 Generate a fresh, strong, hex secret (do NOT reuse the one in `.dev.vars`):
 
@@ -56,6 +69,8 @@ Verify:
 ```bash
 npx wrangler secret list
 ```
+
+Optional Google OAuth requires `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
 
 ## 4. Verify the custom domain
 
@@ -91,7 +106,7 @@ curl https://inkling.page/api/health
 # {"ok":true}
 ```
 
-Then in a browser: visit `https://inkling.page/`, sign up with an email on `ALLOWED_EMAILS`, create a note.
+Then in a browser: visit `https://inkling.page/`, sign up with an allowed email when using allowlist mode, and create a note.
 
 ## Updating later
 
@@ -115,6 +130,6 @@ npx wrangler tail --format=pretty
 # then trigger any auth request and watch logs
 ```
 
-(Or check `wrangler.jsonc` directly — they're non-sensitive `vars`.)
+(Or check `wrangler.jsonc` directly if they are configured as non-sensitive `vars`.)
 
 **Rotate `BETTER_AUTH_SECRET`:** running `wrangler secret put BETTER_AUTH_SECRET` again invalidates all existing sessions on next deploy. Users will need to sign in again.
