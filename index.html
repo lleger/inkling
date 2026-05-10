@@ -5,9 +5,82 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Inkling</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script>
+      (() => {
+        try {
+          const raw = localStorage.getItem("inkling-settings");
+          const settings = raw ? JSON.parse(raw) : {};
+          const theme = settings.theme ?? "system";
+          const dark =
+            theme === "dark" ||
+            (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.classList.toggle("dark", dark);
+        } catch {}
+      })();
+    </script>
+    <style>
+      :root {
+        --color-surface: #fafaf9;
+        --color-surface-secondary: #f5f3f0;
+        --color-surface-tertiary: #ede8e3;
+        --color-border: #d8d5d0;
+        --color-text: #1b1b18;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --color-surface: #1a1a1a;
+          --color-surface-secondary: #0f0f0f;
+          --color-surface-tertiary: #2a2a2a;
+          --color-border: #323232;
+          --color-text: #ececec;
+        }
+      }
+      .dark {
+        --color-surface: #1a1a1a;
+        --color-surface-secondary: #0f0f0f;
+        --color-surface-tertiary: #2a2a2a;
+        --color-border: #323232;
+        --color-text: #ececec;
+      }
+      html,
+      body,
+      #root {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        background: var(--color-surface);
+        color: var(--color-text);
+        overflow: hidden;
+      }
+      .initial-shell {
+        display: flex;
+        height: 100%;
+        background: var(--color-surface);
+      }
+      .initial-shell__sidebar {
+        width: 17rem;
+        border-right: 1px solid var(--color-border);
+        background: var(--color-surface-secondary);
+      }
+      .initial-shell__main {
+        flex: 1;
+        background: var(--color-surface);
+      }
+      @media (max-width: 767px) {
+        .initial-shell__sidebar {
+          display: none;
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="initial-shell" aria-label="Loading Inkling">
+        <div class="initial-shell__sidebar"></div>
+        <div class="initial-shell__main"></div>
+      </div>
+    </div>
     <script type="module" src="/src/client/main.tsx"></script>
   </body>
 </html>

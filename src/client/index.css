@@ -61,6 +61,190 @@ body {
   box-sizing: border-box;
 }
 
+.app-shell-fallback {
+  display: flex;
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.app-shell-fallback__sidebar {
+  display: flex;
+  width: 17rem;
+  flex: none;
+  flex-direction: column;
+  gap: 1.25rem;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-surface-secondary);
+  padding: 1rem;
+}
+
+.app-shell-fallback__brand,
+.app-shell-fallback__toolbar,
+.app-shell-fallback__actions {
+  display: flex;
+  align-items: center;
+}
+
+.app-shell-fallback__brand,
+.app-shell-fallback__toolbar {
+  justify-content: space-between;
+}
+
+.app-shell-fallback__brand {
+  justify-content: flex-start;
+  gap: 0.625rem;
+}
+
+.app-shell-fallback__mark,
+.app-shell-fallback__dot,
+.app-shell-fallback__pill,
+.app-shell-fallback__button,
+.app-shell-fallback__line,
+.app-shell-fallback__title,
+.app-shell-fallback__body-line {
+  position: relative;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--color-surface-tertiary);
+}
+
+.app-shell-fallback__mark::after,
+.app-shell-fallback__dot::after,
+.app-shell-fallback__pill::after,
+.app-shell-fallback__button::after,
+.app-shell-fallback__line::after,
+.app-shell-fallback__title::after,
+.app-shell-fallback__body-line::after {
+  position: absolute;
+  inset: 0;
+  animation: app-shell-shimmer 1.45s ease-in-out infinite;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-text), transparent 94%),
+    transparent
+  );
+  content: "";
+  transform: translateX(-100%);
+}
+
+.app-shell-fallback__mark {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.5rem;
+}
+
+.app-shell-fallback__line {
+  width: 82%;
+  height: 0.625rem;
+}
+
+.app-shell-fallback__line--brand {
+  width: 5rem;
+}
+
+.app-shell-fallback__line--short {
+  width: 48%;
+}
+
+.app-shell-fallback__line--mid {
+  width: 68%;
+}
+
+.app-shell-fallback__button {
+  height: 2.25rem;
+  border-radius: 0.625rem;
+  background: color-mix(in srgb, var(--color-accent), var(--color-surface-tertiary) 88%);
+}
+
+.app-shell-fallback__group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.app-shell-fallback__group--lower {
+  margin-top: auto;
+}
+
+.app-shell-fallback__main {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  background: var(--color-surface);
+}
+
+.app-shell-fallback__toolbar {
+  height: 3.5rem;
+  border-bottom: 1px solid var(--color-border);
+  padding: 0 1rem;
+}
+
+.app-shell-fallback__pill {
+  width: 8rem;
+  height: 1.75rem;
+}
+
+.app-shell-fallback__actions {
+  gap: 0.625rem;
+}
+
+.app-shell-fallback__dot {
+  width: 1.875rem;
+  height: 1.875rem;
+  border-radius: 0.5rem;
+}
+
+.app-shell-fallback__page {
+  width: min(42rem, calc(100% - 2rem));
+  margin: 13vh auto 0;
+}
+
+.app-shell-fallback__title {
+  width: 58%;
+  height: 2rem;
+  margin-bottom: 2rem;
+  border-radius: 0.75rem;
+}
+
+.app-shell-fallback__body-line {
+  width: 72%;
+  height: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.app-shell-fallback__body-line--wide {
+  width: 92%;
+}
+
+.app-shell-fallback__body-line--narrow {
+  width: 46%;
+}
+
+@keyframes app-shell-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (max-width: 767px) {
+  .app-shell-fallback__sidebar {
+    display: none;
+  }
+
+  .app-shell-fallback__toolbar {
+    height: 3rem;
+  }
+
+  .app-shell-fallback__page {
+    margin-top: 10vh;
+  }
+}
+
 /* All buttons should have pointer cursor */
 button {
   cursor: pointer;
