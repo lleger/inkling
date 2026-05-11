@@ -6,6 +6,8 @@ import { bootstrapTheme } from "../lib/theme-bootstrap";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   component: RootLayout,
+  pendingComponent: AppShellFallback,
+  pendingMs: 0,
 });
 
 function RootLayout() {
