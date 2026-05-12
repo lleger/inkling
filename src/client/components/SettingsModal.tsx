@@ -6,6 +6,7 @@ import type { EditorMode } from "../types";
 import { Dialog, DialogClose } from "./ui/Dialog";
 import { IconButton } from "./ui/IconButton";
 import { Input } from "./ui/Input";
+import { SegmentedControl } from "./ui/SegmentedControl";
 import { Switch } from "./ui/Switch";
 import { Textarea } from "./ui/Textarea";
 
@@ -58,22 +59,11 @@ export function SettingsModal({
         {/* Theme */}
         <div>
           <label className="block text-[12px] font-medium text-text-secondary mb-2">Theme</label>
-          <div className="flex gap-1 rounded-md bg-surface-secondary p-0.5 border border-border">
-            {themeOptions.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => onUpdateSettings({ theme: opt.value })}
-                className={`flex flex-1 items-center justify-center gap-1.5 rounded py-1.5 text-[12px] font-medium transition-all ${
-                  settings.theme === opt.value
-                    ? "bg-surface text-text shadow-sm"
-                    : "text-text-muted hover:text-text-secondary"
-                }`}
-              >
-                {opt.icon}
-                {opt.label}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            value={settings.theme}
+            options={themeOptions}
+            onValueChange={(theme) => onUpdateSettings({ theme })}
+          />
         </div>
 
         {/* Accent color */}
@@ -103,21 +93,11 @@ export function SettingsModal({
           <label className="block text-[12px] font-medium text-text-secondary mb-2">
             Default editor
           </label>
-          <div className="flex gap-1 rounded-md bg-surface-secondary p-0.5 border border-border">
-            {modeOptions.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => onUpdateSettings({ defaultMode: opt.value })}
-                className={`flex flex-1 items-center justify-center rounded py-1.5 text-[12px] font-medium transition-all ${
-                  settings.defaultMode === opt.value
-                    ? "bg-surface text-text shadow-sm"
-                    : "text-text-muted hover:text-text-secondary"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            value={settings.defaultMode}
+            options={modeOptions}
+            onValueChange={(defaultMode) => onUpdateSettings({ defaultMode })}
+          />
         </div>
 
         {/* Daily note folder */}
