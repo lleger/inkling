@@ -1,14 +1,11 @@
 import { Switch as BaseSwitch } from "@base-ui/react/switch";
+import { cx } from "../../lib/cx";
 
 type SwitchProps = {
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   "aria-label": string;
 };
-
-function cx(...classes: Array<string | false | null | undefined>) {
-  return classes.filter(Boolean).join(" ");
-}
 
 export function Switch({ checked, onCheckedChange, "aria-label": ariaLabel }: SwitchProps) {
   return (

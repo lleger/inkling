@@ -1,5 +1,6 @@
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import type { ReactNode } from "react";
+import { cx } from "../../lib/cx";
 
 type DialogProps = {
   open: boolean;
@@ -14,10 +15,6 @@ type DialogProps = {
   contentClassName?: string;
   initialFocus?: BaseDialog.Popup.Props["initialFocus"];
 };
-
-function cx(...classes: Array<string | false | null | undefined>) {
-  return classes.filter(Boolean).join(" ");
-}
 
 export function Dialog({
   open,
