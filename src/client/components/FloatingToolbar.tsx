@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
+import { Toolbar } from "@base-ui/react/toolbar";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
   $getSelection,
@@ -32,6 +33,7 @@ import {
 import { $setBlocksType } from "@lexical/selection";
 import { $createHeadingNode, $createQuoteNode } from "@lexical/rich-text";
 import { $createParagraphNode } from "lexical";
+import { cx } from "../lib/cx";
 
 interface ToolbarButton {
   icon: React.ReactNode;
@@ -245,7 +247,7 @@ export function FloatingToolbar() {
   ];
 
   return (
-    <div
+    <Toolbar.Root
       ref={toolbarRef}
       className="fixed z-30 flex max-w-[calc(100vw-1rem)] items-center gap-0.5 overflow-x-auto rounded-lg border border-border bg-surface px-1 py-0.5 shadow-lg animate-[fade-in_0.1s_ease-out]"
       style={{
@@ -257,20 +259,22 @@ export function FloatingToolbar() {
     >
       {buttons.map((btn, i) => (
         <span key={btn.title} className="contents">
-          {(i === 5 || i === 9) && <div className="mx-0.5 h-4 w-px bg-border" />}
-          <button
+          {(i === 5 || i === 9) && <Toolbar.Separator className="mx-0.5 h-4 w-px bg-border" />}
+          <Toolbar.Button
             onClick={btn.action}
             title={btn.title}
-            className={`flex size-7 items-center justify-center rounded-md transition-colors ${
+            aria-pressed={btn.isActive}
+            className={cx(
+              "flex size-7 items-center justify-center rounded-md transition-colors",
               btn.isActive
                 ? "text-accent bg-accent/10"
-                : "text-text-secondary hover:bg-surface-hover hover:text-text"
-            }`}
+                : "text-text-secondary hover:bg-surface-hover hover:text-text",
+            )}
           >
             {btn.icon}
-          </button>
+          </Toolbar.Button>
         </span>
       ))}
-    </div>
+    </Toolbar.Root>
   );
 }
