@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { X, Folder, FolderPlus } from "lucide-react";
 import { Dialog, DialogClose } from "./ui/Dialog";
+import { Input } from "./ui/Input";
+import { Kbd } from "./ui/Kbd";
 
 interface MoveToFolderModalProps {
   open: boolean;
@@ -88,11 +90,11 @@ export function MoveToFolderModal({
       footer={
         <div className="flex items-center gap-3 px-3 py-2 text-[10px] text-text-muted">
           <span className="flex items-center gap-1">
-            <kbd className="rounded border border-border bg-surface-secondary px-1 py-px">↑↓</kbd>
+            <Kbd size="xs">↑↓</Kbd>
             navigate
           </span>
           <span className="flex items-center gap-1">
-            <kbd className="rounded border border-border bg-surface-secondary px-1 py-px">↵</kbd>
+            <Kbd size="xs">↵</Kbd>
             select
           </span>
         </div>
@@ -101,13 +103,14 @@ export function MoveToFolderModal({
       <div onKeyDown={handleKeyDown}>
         <div className="flex items-center gap-2 border-b border-border px-3 py-2.5">
           <Folder size={15} className="shrink-0 text-text-muted" />
-          <input
+          <Input
             ref={inputRef}
+            variant="ghost"
+            inputSize="md"
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search or create folder..."
-            className="flex-1 bg-transparent text-sm text-text placeholder:text-text-muted outline-none"
           />
           <DialogClose className="flex size-5 items-center justify-center rounded text-text-muted hover:text-text-secondary">
             <X size={12} />

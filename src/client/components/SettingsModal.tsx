@@ -4,7 +4,9 @@ import type { Settings } from "../hooks/useSettings";
 import { ACCENT_COLORS, ACCENT_NAMES } from "../lib/accent-colors";
 import type { EditorMode } from "../types";
 import { Dialog, DialogClose } from "./ui/Dialog";
+import { Input } from "./ui/Input";
 import { Switch } from "./ui/Switch";
+import { Textarea } from "./ui/Textarea";
 
 interface SettingsModalProps {
   open: boolean;
@@ -122,12 +124,11 @@ export function SettingsModal({
           <label className="block text-[12px] font-medium text-text-secondary mb-2">
             Daily note folder
           </label>
-          <input
+          <Input
             type="text"
             value={settings.dailyNoteFolder}
             onChange={(e) => onUpdateSettings({ dailyNoteFolder: e.target.value })}
             placeholder="Daily"
-            className="w-full rounded-md border border-border bg-surface-secondary px-2.5 py-1.5 text-[12px] text-text outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20"
           />
           <span className="mt-1 block text-[11px] text-text-muted">
             Where Cmd+Shift+D notes are filed
@@ -139,11 +140,11 @@ export function SettingsModal({
           <label className="block text-[12px] font-medium text-text-secondary mb-2">
             Daily note template
           </label>
-          <textarea
+          <Textarea
             value={settings.dailyNoteTemplate}
             onChange={(e) => onUpdateSettings({ dailyNoteTemplate: e.target.value })}
             rows={6}
-            className="w-full resize-y rounded-md border border-border bg-surface-secondary px-2.5 py-1.5 font-mono text-[12px] text-text outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20"
+            className="font-mono"
           />
           <span className="mt-1 block text-[11px] text-text-muted">
             Supports {"{{date}}"}, {"{{label}}"}, and {"{{weekday}}"}

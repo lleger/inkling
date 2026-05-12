@@ -3,6 +3,7 @@ import { Folder, Smile, X } from "lucide-react";
 import { COMMON_FOLDER_EMOJIS, LUCIDE_FOLDER_ICONS } from "../lib/folder-icons";
 import type { FolderIconType, FolderMetadata } from "../types";
 import { Dialog, DialogClose } from "./ui/Dialog";
+import { Input } from "./ui/Input";
 
 interface FolderIconPickerModalProps {
   open: boolean;
@@ -85,8 +86,9 @@ export function FolderIconPickerModal({
             Custom emoji
           </label>
           <div className="flex gap-2">
-            <input
+            <Input
               ref={inputRef}
+              inputSize="md"
               value={emoji}
               onChange={(e) => setEmoji(e.target.value)}
               onKeyDown={(e) => {
@@ -94,7 +96,7 @@ export function FolderIconPickerModal({
               }}
               maxLength={8}
               placeholder="Paste an emoji"
-              className="min-w-0 flex-1 rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-text outline-none focus:border-accent"
+              className="min-w-0 flex-1 bg-surface px-2 py-1.5"
             />
             <button
               onClick={() => saveEmoji(emoji)}

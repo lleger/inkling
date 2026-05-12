@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { Dialog, DialogClose } from "./ui/Dialog";
+import { Kbd } from "./ui/Kbd";
 
 interface ShortcutsHudProps {
   open: boolean;
@@ -54,9 +55,7 @@ export function ShortcutsHud({ open, onClose }: ShortcutsHudProps) {
                   </span>
                 )}
               </span>
-              <kbd className="rounded border border-border bg-surface-secondary px-1.5 py-0.5 text-[11px] font-medium text-text-muted">
-                {s.keys}
-              </kbd>
+              <Kbd>{s.keys}</Kbd>
             </div>
           ),
         )}

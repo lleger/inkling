@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Search, FileText, FilePlus } from "lucide-react";
 import type { NoteMeta } from "../types";
 import { Dialog } from "./ui/Dialog";
+import { Input } from "./ui/Input";
+import { Kbd } from "./ui/Kbd";
 
 export interface PaletteAction {
   id: string;
@@ -161,11 +163,11 @@ export function CommandPalette({
       footer={
         <div className="flex items-center gap-3 px-3 py-2 text-[10px] text-text-muted">
           <span className="flex items-center gap-1">
-            <kbd className="rounded border border-border bg-surface-secondary px-1 py-px">↑↓</kbd>
+            <Kbd size="xs">↑↓</Kbd>
             navigate
           </span>
           <span className="flex items-center gap-1">
-            <kbd className="rounded border border-border bg-surface-secondary px-1 py-px">↵</kbd>
+            <Kbd size="xs">↵</Kbd>
             select
           </span>
         </div>
@@ -175,17 +177,18 @@ export function CommandPalette({
         {/* Search input */}
         <div className="flex items-center gap-2 border-b border-border px-3 py-2.5">
           <Search size={15} className="shrink-0 text-text-muted" />
-          <input
+          <Input
             ref={inputRef}
+            variant="ghost"
+            inputSize="md"
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search notes and actions..."
-            className="flex-1 bg-transparent text-sm text-text placeholder:text-text-muted outline-none"
           />
-          <kbd className="shrink-0 rounded border border-border bg-surface-secondary px-1.5 py-0.5 text-[10px] text-text-muted">
+          <Kbd size="xs" className="shrink-0">
             Esc
-          </kbd>
+          </Kbd>
         </div>
 
         {/* Results */}
