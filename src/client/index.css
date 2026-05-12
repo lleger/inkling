@@ -50,11 +50,16 @@ body,
 }
 
 body {
+  position: relative;
   background: var(--color-surface);
   color: var(--color-text);
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  isolation: isolate;
 }
 
 * {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { X, Folder, FolderPlus } from "lucide-react";
+import { Dialog, DialogClose } from "./ui/Dialog";
 
 interface MoveToFolderModalProps {
   open: boolean;
@@ -27,15 +28,6 @@ export function MoveToFolderModal({
       requestAnimationFrame(() => inputRef.current?.focus());
     }
   }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [open, onClose]);
 
   const options = useMemo(() => {
     const items: { label: string; value: string | null; isNew: boolean }[] = [];
@@ -83,18 +75,30 @@ export function MoveToFolderModal({
     [options, selectedIndex, onSelect, onClose],
   );
 
-  if (!open) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-surface-overlay px-3 pt-[max(4rem,env(safe-area-inset-top))] animate-[fade-in_0.1s_ease-out] sm:pt-[20vh]"
-      onClick={onClose}
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onClose();
+      }}
+      title="Move note to folder"
+      description="Search existing folders or create a new folder."
+      initialFocus={inputRef}
+      contentClassName="max-h-[calc(100dvh-5rem)] overflow-hidden"
+      footer={
+        <div className="flex items-center gap-3 px-3 py-2 text-[10px] text-text-muted">
+          <span className="flex items-center gap-1">
+            <kbd className="rounded border border-border bg-surface-secondary px-1 py-px">↑↓</kbd>
+            navigate
+          </span>
+          <span className="flex items-center gap-1">
+            <kbd className="rounded border border-border bg-surface-secondary px-1 py-px">↵</kbd>
+            select
+          </span>
+        </div>
+      }
     >
-      <div
-        className="max-h-[calc(100dvh-5rem)] w-full max-w-sm overflow-hidden rounded-xl border border-border bg-surface shadow-2xl animate-[scale-in_0.1s_ease-out] sm:max-h-none"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={handleKeyDown}
-      >
+      <div onKeyDown={handleKeyDown}>
         <div className="flex items-center gap-2 border-b border-border px-3 py-2.5">
           <Folder size={15} className="shrink-0 text-text-muted" />
           <input
@@ -105,12 +109,9 @@ export function MoveToFolderModal({
             placeholder="Search or create folder..."
             className="flex-1 bg-transparent text-sm text-text placeholder:text-text-muted outline-none"
           />
-          <button
-            onClick={onClose}
-            className="flex size-5 items-center justify-center rounded text-text-muted hover:text-text-secondary"
-          >
+          <DialogClose className="flex size-5 items-center justify-center rounded text-text-muted hover:text-text-secondary">
             <X size={12} />
-          </button>
+          </DialogClose>
         </div>
 
         <div className="max-h-[min(15rem,50dvh)] overflow-y-auto py-1">
@@ -145,18 +146,7 @@ export function MoveToFolderModal({
             </button>
           ))}
         </div>
-
-        <div className="flex items-center gap-3 border-t border-border px-3 py-2 text-[10px] text-text-muted">
-          <span className="flex items-center gap-1">
-            <kbd className="rounded border border-border bg-surface-secondary px-1 py-px">↑↓</kbd>
-            navigate
-          </span>
-          <span className="flex items-center gap-1">
-            <kbd className="rounded border border-border bg-surface-secondary px-1 py-px">↵</kbd>
-            select
-          </span>
-        </div>
       </div>
-    </div>
+    </Dialog>
   );
 }

@@ -64,9 +64,12 @@ describe("findDailyNote", () => {
 
 describe("renderDailyNoteTemplate", () => {
   it("renders supported placeholders", () => {
-    expect(
-      renderDailyNoteTemplate("# {{label}}\n{{date}} {{weekday}}", new Date(2026, 4, 10)),
-    ).toBe("# Today\n2026-05-10 Sunday\n");
+    const today = new Date();
+    const weekday = new Intl.DateTimeFormat(undefined, { weekday: "long" }).format(today);
+
+    expect(renderDailyNoteTemplate("# {{label}}\n{{date}} {{weekday}}", today)).toBe(
+      `# Today\n${dailyTitle(today)} ${weekday}\n`,
+    );
   });
 });
 

@@ -79,7 +79,9 @@ function NoteRoute() {
       lastSavedContentRef.current = content;
       retryCountRef.current = 0;
       setSaveStatus(
-        content === currentContentRef.current && pendingContentRef.current === null ? "saved" : "unsaved",
+        content === currentContentRef.current && pendingContentRef.current === null
+          ? "saved"
+          : "unsaved",
       );
       qc.invalidateQueries({ queryKey: queryKeys.notes });
       qc.invalidateQueries({ queryKey: queryKeys.note(id) });

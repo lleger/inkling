@@ -20,6 +20,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@base-ui/react": "^1.4.1",
     "@hono/zod-validator": "^0.7.6",
     "@lexical/code": "^0.22.0",
     "@lexical/history": "^0.22.0",
