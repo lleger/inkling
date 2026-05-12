@@ -1,3 +1,4 @@
+import { PreviewCard } from "@base-ui/react/preview-card";
 import { ExternalLink, RefreshCw, Link as LinkIcon } from "lucide-react";
 import { useState } from "react";
 import { useOgPreview } from "../hooks/useOgPreview";
@@ -28,33 +29,110 @@ function InlineChip({ url }: { url: string }) {
     return prettyHost(url);
   })();
 
+  const href = preview?.finalUrl || preview?.url || url;
+
   return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      data-url-chip="inline"
-      className="inline-flex max-w-full items-center gap-1.5 rounded-md border border-border bg-surface-secondary px-1.5 py-0.5 align-baseline text-[0.95em] text-text no-underline transition-colors hover:border-accent/40 hover:text-accent"
-    >
-      {preview?.favicon ? (
+    <PreviewCard.Root>
+      <PreviewCard.Trigger
+        delay={500}
+        render={
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-url-chip="inline"
+            className="inline-flex max-w-full items-center gap-1.5 rounded-md border border-border bg-surface-secondary px-1.5 py-0.5 align-baseline text-[0.95em] text-text no-underline transition-colors hover:border-accent/40 hover:text-accent"
+          />
+        }
+      >
+        {preview?.favicon ? (
+          <img
+            src={preview.favicon}
+            alt=""
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            className="h-3.5 w-3.5 flex-shrink-0"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = "none";
+            }}
+          />
+        ) : (
+          <LinkIcon
+            size={12}
+            className={`flex-shrink-0 text-text-muted ${isLoading ? "animate-pulse" : ""}`}
+          />
+        )}
+        <span className="truncate">{display}</span>
+      </PreviewCard.Trigger>
+      {!error && (
+        <PreviewCard.Portal>
+          <PreviewCard.Positioner side="top" sideOffset={8} collisionPadding={12}>
+            <PreviewCard.Popup className="z-50 w-[min(22rem,calc(100vw-1.5rem))] overflow-hidden rounded-lg border border-border bg-surface text-sm shadow-xl animate-[fade-in_0.1s_ease-out]">
+              <InlinePreviewPopup url={url} preview={preview} isLoading={isLoading} />
+            </PreviewCard.Popup>
+          </PreviewCard.Positioner>
+        </PreviewCard.Portal>
+      )}
+    </PreviewCard.Root>
+  );
+}
+
+function InlinePreviewPopup({
+  url,
+  preview,
+  isLoading,
+}: {
+  url: string;
+  preview: ReturnType<typeof useOgPreview>["preview"];
+  isLoading: boolean;
+}) {
+  if (isLoading || !preview) {
+    return (
+      <div className="flex items-center gap-2 p-3 text-text-muted">
+        <LinkIcon size={14} className="animate-pulse" />
+        <span className="truncate">{prettyHost(url)}</span>
+      </div>
+    );
+  }
+
+  const host = prettyHost(preview.finalUrl ?? preview.url);
+
+  return (
+    <div className="flex flex-col">
+      {preview.image && (
         <img
-          src={preview.favicon}
+          src={preview.image}
           alt=""
           loading="lazy"
           referrerPolicy="no-referrer"
-          className="h-3.5 w-3.5 flex-shrink-0"
+          className="max-h-40 w-full object-cover"
           onError={(e) => {
             (e.currentTarget as HTMLImageElement).style.display = "none";
           }}
         />
-      ) : (
-        <LinkIcon
-          size={12}
-          className={`flex-shrink-0 text-text-muted ${isLoading ? "animate-pulse" : ""}`}
-        />
       )}
-      <span className="truncate">{display}</span>
-    </a>
+      <div className="flex min-w-0 flex-col gap-1 p-3">
+        <div className="flex items-center gap-1.5 text-[11px] text-text-muted">
+          {preview.favicon && (
+            <img
+              src={preview.favicon}
+              alt=""
+              loading="lazy"
+              referrerPolicy="no-referrer"
+              className="h-3 w-3 flex-shrink-0"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+              }}
+            />
+          )}
+          <span className="truncate">{preview.siteName ?? host}</span>
+        </div>
+        {preview.title && <div className="line-clamp-2 font-medium text-text">{preview.title}</div>}
+        {preview.description && (
+          <div className="line-clamp-3 text-[12px] text-text-secondary">{preview.description}</div>
+        )}
+      </div>
+    </div>
   );
 }
 
