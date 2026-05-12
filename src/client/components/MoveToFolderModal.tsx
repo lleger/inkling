@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { X, Folder, FolderPlus } from "lucide-react";
 import { Dialog, DialogClose } from "./ui/Dialog";
+import { IconButton } from "./ui/IconButton";
 import { Input } from "./ui/Input";
 import { Kbd } from "./ui/Kbd";
 
@@ -112,7 +113,7 @@ export function MoveToFolderModal({
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search or create folder..."
           />
-          <DialogClose className="flex size-5 items-center justify-center rounded text-text-muted hover:text-text-secondary">
+          <DialogClose render={<IconButton buttonSize="xs" hover="text" aria-label="Close" />}>
             <X size={12} />
           </DialogClose>
         </div>

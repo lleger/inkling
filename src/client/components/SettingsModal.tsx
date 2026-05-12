@@ -4,6 +4,7 @@ import type { Settings } from "../hooks/useSettings";
 import { ACCENT_COLORS, ACCENT_NAMES } from "../lib/accent-colors";
 import type { EditorMode } from "../types";
 import { Dialog, DialogClose } from "./ui/Dialog";
+import { IconButton } from "./ui/IconButton";
 import { Input } from "./ui/Input";
 import { Switch } from "./ui/Switch";
 import { Textarea } from "./ui/Textarea";
@@ -48,7 +49,7 @@ export function SettingsModal({
     >
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
         <span className="text-xs font-semibold text-text">Settings</span>
-        <DialogClose className="flex size-5 items-center justify-center rounded text-text-muted hover:bg-surface-hover hover:text-text-secondary">
+        <DialogClose render={<IconButton buttonSize="xs" aria-label="Close" />}>
           <X size={12} />
         </DialogClose>
       </div>

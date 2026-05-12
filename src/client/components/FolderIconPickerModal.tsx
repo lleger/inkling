@@ -3,6 +3,7 @@ import { Folder, Smile, X } from "lucide-react";
 import { COMMON_FOLDER_EMOJIS, LUCIDE_FOLDER_ICONS } from "../lib/folder-icons";
 import type { FolderIconType, FolderMetadata } from "../types";
 import { Dialog, DialogClose } from "./ui/Dialog";
+import { IconButton } from "./ui/IconButton";
 import { Input } from "./ui/Input";
 
 interface FolderIconPickerModalProps {
@@ -71,10 +72,7 @@ export function FolderIconPickerModal({
           <div className="text-sm font-medium text-text">Customize folder icon</div>
           <div className="truncate text-xs text-text-muted">{folderPath}</div>
         </div>
-        <DialogClose
-          className="flex size-7 items-center justify-center rounded text-text-muted hover:bg-surface-hover hover:text-text-secondary"
-          title="Close"
-        >
+        <DialogClose render={<IconButton buttonSize="sm" aria-label="Close" />} title="Close">
           <X size={13} />
         </DialogClose>
       </div>
