@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { IconButton } from "./ui/IconButton";
 
 interface ToastProps {
   message: string;
@@ -41,15 +42,17 @@ export function Toast({ message, action, duration = 5000, onDismiss }: ToastProp
           {action.label}
         </button>
       )}
-      <button
+      <IconButton
+        buttonSize="xs"
+        hover="text"
         onClick={() => {
           setVisible(false);
           setTimeout(onDismiss, 200);
         }}
-        className="flex size-5 items-center justify-center rounded text-text-muted hover:text-text-secondary"
+        aria-label="Dismiss toast"
       >
         <X size={12} />
-      </button>
+      </IconButton>
     </div>
   );
 }

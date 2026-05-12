@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useRef } from "react";
 import { Search, Plus, FileText, CheckSquare, X, Upload } from "lucide-react";
 import type { NoteMeta } from "../types";
+import { IconButton } from "./ui/IconButton";
 
 function timeAgo(dateStr: string): string {
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -151,12 +152,15 @@ export function HomePage({
           className="w-full rounded-lg border border-border bg-surface-secondary py-2.5 pl-9 pr-9 text-sm text-text placeholder:text-text-muted outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20"
         />
         {query && (
-          <button
+          <IconButton
+            buttonSize="xs"
+            hover="text"
             onClick={() => setQuery("")}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 flex size-5 items-center justify-center rounded text-text-muted hover:text-text-secondary"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2"
+            aria-label="Clear search"
           >
             <X size={13} />
-          </button>
+          </IconButton>
         )}
       </div>
 

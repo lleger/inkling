@@ -4,6 +4,7 @@ import { History, RotateCcw, ArrowLeft } from "lucide-react";
 import { restoreVersion } from "../lib/api";
 import { versionQuery, versionsQuery } from "../lib/queries";
 import { RichTextPreview } from "./RichTextPreview";
+import { IconButton } from "./ui/IconButton";
 import type { Note } from "../types";
 
 function timeAgo(dateStr: string): string {
@@ -56,13 +57,14 @@ export function VersionHistoryView({
     <div className="flex min-h-full w-full max-w-[900px] flex-col px-4 pt-16 pb-32 animate-[fade-in_0.2s_ease-out] sm:px-6 sm:pt-10 sm:pb-24">
       {/* Header */}
       <div className="mb-6 flex flex-wrap items-center gap-3">
-        <button
+        <IconButton
+          buttonSize="md"
           onClick={onClose}
-          className="flex size-8 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary"
           title="Back to note"
+          aria-label="Back to note"
         >
           <ArrowLeft size={16} />
-        </button>
+        </IconButton>
         <div className="flex items-center gap-2 text-text-secondary">
           <History size={18} />
           <h2 className="text-lg font-semibold">Version History</h2>
