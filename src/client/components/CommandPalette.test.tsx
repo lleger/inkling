@@ -122,8 +122,8 @@ describe("CommandPalette", () => {
 
   it("calls onClose when clicking backdrop", () => {
     const onClose = vi.fn();
-    const { container } = render(<CommandPalette {...baseProps} onClose={onClose} />);
-    fireEvent.click(container.firstElementChild!);
+    render(<CommandPalette {...baseProps} onClose={onClose} />);
+    fireEvent.click(screen.getByRole("dialog").parentElement!);
     expect(onClose).toHaveBeenCalledOnce();
   });
 

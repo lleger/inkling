@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Search, FileText, FilePlus } from "lucide-react";
 import type { NoteMeta } from "../types";
+import { Dialog } from "./ui/Dialog";
 
 export interface PaletteAction {
   id: string;
@@ -126,15 +127,10 @@ export function CommandPalette({
         e.preventDefault();
         results[selectedIndex].onSelect();
         onClose();
-      } else if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
       }
     },
     [results, selectedIndex, onClose],
   );
-
-  if (!open) return null;
 
   // Build render list: items with section headers inserted
   const renderItems: (
@@ -152,15 +148,30 @@ export function CommandPalette({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-surface-overlay px-3 pt-[max(4rem,env(safe-area-inset-top))] animate-[fade-in_0.1s_ease-out] sm:pt-[20vh]"
-      onClick={onClose}
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onClose();
+      }}
+      title="Command palette"
+      description="Search notes and actions."
+      initialFocus={inputRef}
+      size="md"
+      contentClassName="max-h-[calc(100dvh-5rem)] overflow-hidden"
+      footer={
+        <div className="flex items-center gap-3 px-3 py-2 text-[10px] text-text-muted">
+          <span className="flex items-center gap-1">
+            <kbd className="rounded border border-border bg-surface-secondary px-1 py-px">↑↓</kbd>
+            navigate
+          </span>
+          <span className="flex items-center gap-1">
+            <kbd className="rounded border border-border bg-surface-secondary px-1 py-px">↵</kbd>
+            select
+          </span>
+        </div>
+      }
     >
-      <div
-        className="max-h-[calc(100dvh-5rem)] w-full max-w-md overflow-hidden rounded-xl border border-border bg-surface shadow-2xl animate-[scale-in_0.1s_ease-out] sm:max-h-none"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={handleKeyDown}
-      >
+      <div onKeyDown={handleKeyDown}>
         {/* Search input */}
         <div className="flex items-center gap-2 border-b border-border px-3 py-2.5">
           <Search size={15} className="shrink-0 text-text-muted" />
@@ -214,19 +225,7 @@ export function CommandPalette({
             );
           })}
         </div>
-
-        {/* Footer hint */}
-        <div className="flex items-center gap-3 border-t border-border px-3 py-2 text-[10px] text-text-muted">
-          <span className="flex items-center gap-1">
-            <kbd className="rounded border border-border bg-surface-secondary px-1 py-px">↑↓</kbd>
-            navigate
-          </span>
-          <span className="flex items-center gap-1">
-            <kbd className="rounded border border-border bg-surface-secondary px-1 py-px">↵</kbd>
-            select
-          </span>
-        </div>
       </div>
-    </div>
+    </Dialog>
   );
 }
