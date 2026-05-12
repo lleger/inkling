@@ -24,6 +24,7 @@ import {
   type Spread,
 } from "lexical";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { Popover as BasePopover } from "@base-ui/react/popover";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { FileText } from "lucide-react";
@@ -382,55 +383,65 @@ interface PickerProps {
 }
 
 function Picker({ rect, query, results, selectedIndex, onSelect, onHover, onClose }: PickerProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  // Position below the [[ caret. Constrain to viewport.
-  const style: React.CSSProperties = {
-    top: rect.bottom + 4,
-    left: Math.min(rect.left, window.innerWidth - 320),
-  };
-
-  // Click-outside to close.
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [onClose]);
+  const anchor = useMemo(
+    () => ({
+      getBoundingClientRect: () => rect,
+    }),
+    [rect],
+  );
 
   return (
-    <div
-      ref={ref}
-      role="listbox"
-      style={style}
-      className="fixed z-50 w-72 overflow-hidden rounded-lg border border-border bg-surface shadow-lg"
+    <BasePopover.Root
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
     >
-      <div className="border-b border-border px-3 py-2 text-[11px] text-text-muted">
-        {query ? `Linking note matching "${query}"` : "Type to search notes"}
-      </div>
-      <ul className="max-h-72 overflow-y-auto py-1">
-        {results.length === 0 && (
-          <li className="px-3 py-2 text-[12px] text-text-muted">No matching notes.</li>
-        )}
-        {results.map((n, i) => (
-          <li
-            key={n.id}
-            role="option"
-            aria-selected={i === selectedIndex}
-            onMouseEnter={() => onHover(i)}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              onSelect(i);
-            }}
-            className={`flex cursor-pointer items-center gap-2 px-3 py-1.5 text-[13px] ${
-              i === selectedIndex ? "bg-surface-hover text-accent" : "text-text"
-            }`}
+      <BasePopover.Portal>
+        <BasePopover.Positioner
+          anchor={anchor}
+          positionMethod="fixed"
+          side="bottom"
+          align="start"
+          sideOffset={4}
+          collisionPadding={8}
+          collisionAvoidance={{ side: "flip", align: "shift", fallbackAxisSide: "none" }}
+        >
+          <BasePopover.Popup
+            role="listbox"
+            initialFocus={false}
+            finalFocus={false}
+            className="z-50 w-72 overflow-hidden rounded-lg border border-border bg-surface shadow-lg animate-[fade-in_0.1s_ease-out]"
           >
-            <FileText size={12} className="flex-shrink-0 opacity-60" />
-            <span className="truncate">{n.title || "Untitled"}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
+            <div className="border-b border-border px-3 py-2 text-[11px] text-text-muted">
+              {query ? `Linking note matching "${query}"` : "Type to search notes"}
+            </div>
+            <ul className="max-h-72 overflow-y-auto py-1">
+              {results.length === 0 && (
+                <li className="px-3 py-2 text-[12px] text-text-muted">No matching notes.</li>
+              )}
+              {results.map((n, i) => (
+                <li
+                  key={n.id}
+                  role="option"
+                  aria-selected={i === selectedIndex}
+                  onMouseEnter={() => onHover(i)}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    onSelect(i);
+                  }}
+                  className={`flex cursor-pointer items-center gap-2 px-3 py-1.5 text-[13px] ${
+                    i === selectedIndex ? "bg-surface-hover text-accent" : "text-text"
+                  }`}
+                >
+                  <FileText size={12} className="flex-shrink-0 opacity-60" />
+                  <span className="truncate">{n.title || "Untitled"}</span>
+                </li>
+              ))}
+            </ul>
+          </BasePopover.Popup>
+        </BasePopover.Positioner>
+      </BasePopover.Portal>
+    </BasePopover.Root>
   );
 }
