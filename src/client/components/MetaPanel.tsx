@@ -31,7 +31,7 @@ export function MetaPanel({ note, wordCount, taskStats }: MetaPanelProps) {
       <Drawer.Portal>
         <Drawer.Backdrop className="fixed inset-0 z-40 bg-surface-overlay animate-[fade-in_0.1s_ease-out] sm:hidden" />
         <Drawer.Viewport className="fixed inset-0 z-40 flex items-end justify-center sm:block">
-          <Drawer.Popup className="flex max-h-[min(85dvh,36rem)] w-full flex-col rounded-t-xl border border-b-0 border-border bg-surface shadow-2xl animate-[scale-in_0.1s_ease-out] sm:absolute sm:inset-y-0 sm:right-0 sm:h-full sm:max-h-none sm:w-[min(100vw,22rem)] sm:rounded-none sm:border-y-0 sm:border-r-0 sm:border-l sm:shadow-lg">
+          <Drawer.Popup className="meta-panel-drawer flex max-h-[min(85dvh,36rem)] w-full flex-col rounded-t-xl border border-b-0 border-border bg-surface shadow-2xl sm:absolute sm:inset-y-0 sm:right-0 sm:h-full sm:max-h-none sm:w-[min(100vw,22rem)] sm:rounded-none sm:border-y-0 sm:border-r-0 sm:border-l sm:shadow-lg">
             <header className="flex items-center justify-between border-b border-border px-4 py-3">
               <Drawer.Title className="text-sm font-semibold text-text">Note details</Drawer.Title>
               <Drawer.Close

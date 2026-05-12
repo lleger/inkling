@@ -747,3 +747,31 @@ button:focus-visible {
     opacity: 1;
   }
 }
+
+@keyframes drawer-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes drawer-slide-left {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.meta-panel-drawer {
+  animation: drawer-slide-up 0.2s ease-out;
+}
+
+@media (min-width: 40rem) {
+  .meta-panel-drawer {
+    animation: drawer-slide-left 0.2s ease-out;
+  }
+}
