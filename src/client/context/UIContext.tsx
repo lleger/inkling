@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import type { SaveStatus } from "../types";
 
 export interface ToastState {
   message: string;
@@ -18,6 +19,8 @@ interface UIContextValue {
   setFolderModalOpen: (v: boolean | ((p: boolean) => boolean)) => void;
   metaPanelOpen: boolean;
   setMetaPanelOpen: (v: boolean | ((p: boolean) => boolean)) => void;
+  saveStatus: SaveStatus;
+  setSaveStatus: (v: SaveStatus) => void;
   toast: ToastState | null;
   setToast: (t: ToastState | null) => void;
 }
@@ -39,6 +42,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [folderModalOpen, setFolderModalOpen] = useState(false);
   const [metaPanelOpen, setMetaPanelOpen] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
   const [toast, setToast] = useState<ToastState | null>(null);
 
   // Cmd+K and Escape (focus mode)
@@ -72,6 +76,8 @@ export function UIProvider({ children }: { children: ReactNode }) {
         setFolderModalOpen,
         metaPanelOpen,
         setMetaPanelOpen,
+        saveStatus,
+        setSaveStatus,
         toast,
         setToast,
       }}

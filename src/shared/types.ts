@@ -44,7 +44,7 @@ export interface User {
   email: string;
 }
 
-export type SaveStatus = "saved" | "saving" | "unsaved";
+export type SaveStatus = "saved" | "saving" | "unsaved" | "failed";
 export type EditorMode = "markdown" | "richtext" | "split";
 export type AccentColor = "green" | "blue" | "purple" | "orange" | "rose" | "teal";
 

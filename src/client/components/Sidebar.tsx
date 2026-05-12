@@ -248,9 +248,19 @@ export function Sidebar({
         {isActive && saveStatus !== "saved" && (
           <div
             className={`shrink-0 size-1.5 rounded-full ${
-              saveStatus === "saving" ? "bg-accent animate-pulse" : "bg-text-muted animate-pulse"
+              saveStatus === "saving"
+                ? "bg-accent animate-pulse"
+                : saveStatus === "failed"
+                  ? "bg-red-500"
+                  : "bg-text-muted animate-pulse"
             }`}
-            title={saveStatus === "saving" ? "Saving..." : "Unsaved changes"}
+            title={
+              saveStatus === "saving"
+                ? "Saving..."
+                : saveStatus === "failed"
+                  ? "Save failed"
+                  : "Unsaved changes"
+            }
           />
         )}
         {note.pinned === 1 && <Pin size={11} className="shrink-0 text-text-muted" />}

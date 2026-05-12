@@ -13,7 +13,7 @@ import { updateNote } from "../lib/api";
 import { normalizeMarkdown } from "../lib/normalize-markdown";
 import { clearDoneTasks } from "../lib/clear-done-tasks";
 import { addDays, dailyFolder, dailyLabel, isAfterDay, parseDailyTitle } from "../lib/daily-notes";
-import type { EditorMode } from "../types";
+import type { EditorMode, SaveStatus } from "../types";
 
 export const Route = createFileRoute("/_app/notes/$id")({
   loader: ({ context: { queryClient }, params: { id } }) =>
@@ -24,6 +24,7 @@ export const Route = createFileRoute("/_app/notes/$id")({
 function NoteRoute() {
   const { id } = Route.useParams();
   const ui = useUI();
+  const { setSaveStatus: setGlobalSaveStatus, setToast } = ui;
   const { settings } = useSettings();
   const { openDailyNote } = useDailyNote();
   const qc = useQueryClient();
@@ -34,6 +35,7 @@ function NoteRoute() {
   const [editorKey, setEditorKey] = useState(0);
   const [wordCount, setWordCount] = useState(0);
   const [taskStats, setTaskStats] = useState<{ done: number; total: number } | null>(null);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingContentRef = useRef<string | null>(null);
@@ -59,15 +61,26 @@ function NoteRoute() {
     pendingContentRef.current = null;
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     retryCountRef.current = 0;
+    setSaveStatus("saved");
+    setGlobalSaveStatus("saved");
     updateStats(note.content);
     setEditorKey((k) => k + 1);
-  }, [note, updateStats]);
+  }, [note, updateStats, setGlobalSaveStatus]);
+
+  useEffect(() => {
+    setGlobalSaveStatus(saveStatus);
+  }, [saveStatus, setGlobalSaveStatus]);
+
+  useEffect(() => () => setGlobalSaveStatus("saved"), [setGlobalSaveStatus]);
 
   const saveMutation = useMutation({
     mutationFn: (content: string) => updateNote(id, { content }),
     onSuccess: (_, content) => {
       lastSavedContentRef.current = content;
       retryCountRef.current = 0;
+      setSaveStatus(
+        content === currentContentRef.current && pendingContentRef.current === null ? "saved" : "unsaved",
+      );
       qc.invalidateQueries({ queryKey: queryKeys.notes });
       qc.invalidateQueries({ queryKey: queryKeys.note(id) });
       // Saving may add/remove wiki-links → backlinks for the targets
@@ -79,6 +92,7 @@ function NoteRoute() {
 
   const saveContent = useCallback(
     async (content: string) => {
+      setSaveStatus("saving");
       try {
         await saveMutation.mutateAsync(content);
       } catch {
@@ -91,18 +105,25 @@ function NoteRoute() {
           }, delay);
         } else {
           retryCountRef.current = 0;
-          ui.setToast({ message: "Failed to save. Check your connection." });
+          setSaveStatus("failed");
+          setToast({ message: "Failed to save. Check your connection." });
         }
       }
     },
-    [saveMutation, ui],
+    [saveMutation, setToast],
   );
 
   const handleContentChange = useCallback(
     (content: string) => {
       currentContentRef.current = content;
       updateStats(content);
-      if (content === lastSavedContentRef.current) return;
+      if (content === lastSavedContentRef.current) {
+        pendingContentRef.current = null;
+        if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        setSaveStatus("saved");
+        return;
+      }
+      setSaveStatus("unsaved");
       pendingContentRef.current = content;
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       saveTimerRef.current = setTimeout(async () => {
@@ -180,6 +201,14 @@ function NoteRoute() {
   const dailyDate = note.folder === dailyFolder(settings) ? parseDailyTitle(note.title) : null;
   const nextDailyDate = dailyDate ? addDays(dailyDate, 1) : null;
   const canOpenNextDailyDate = nextDailyDate ? !isAfterDay(nextDailyDate) : false;
+  const saveStatusLabel =
+    saveStatus === "saving"
+      ? "Saving..."
+      : saveStatus === "unsaved"
+        ? "Unsaved"
+        : saveStatus === "failed"
+          ? "Save failed"
+          : "Saved";
 
   return (
     <>
@@ -249,6 +278,28 @@ function NoteRoute() {
       <div
         className={`fixed right-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-10 flex max-w-[calc(100vw-1.5rem)] items-center gap-2 rounded-lg border border-border bg-surface-secondary/80 px-3 py-1.5 text-[11px] text-text-muted shadow-sm backdrop-blur-sm select-none transition-opacity duration-200 sm:right-4 sm:bottom-4 ${ui.focusMode ? "opacity-0 pointer-events-none" : "opacity-100"}`}
       >
+        <span
+          className={`inline-flex items-center gap-1.5 ${
+            saveStatus === "saved"
+              ? "text-text-muted"
+              : saveStatus === "failed"
+                ? "text-red-500"
+                : "text-accent"
+          }`}
+          title={saveStatusLabel}
+        >
+          <span
+            className={`size-1.5 rounded-full ${
+              saveStatus === "saved"
+                ? "bg-text-muted/60"
+                : saveStatus === "failed"
+                  ? "bg-red-500"
+                  : "bg-accent animate-pulse"
+            }`}
+          />
+          {saveStatusLabel}
+        </span>
+        <span className="text-border">·</span>
         {taskStats && (
           <>
             {taskStats.done > 0 ? (

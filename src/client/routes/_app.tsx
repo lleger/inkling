@@ -418,7 +418,7 @@ function AppLayout() {
           }}
           userEmail={user?.email ?? null}
           open={ui.sidebarOpen && !ui.focusMode}
-          saveStatus="saved"
+          saveStatus={ui.saveStatus}
           allTags={allTags}
           selectedTag={null}
           onSelectTag={() => {}}
