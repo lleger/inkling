@@ -4,6 +4,7 @@ import type { Settings } from "../hooks/useSettings";
 import { ACCENT_COLORS, ACCENT_NAMES } from "../lib/accent-colors";
 import type { EditorMode } from "../types";
 import { Dialog, DialogClose } from "./ui/Dialog";
+import { Switch } from "./ui/Switch";
 
 interface SettingsModalProps {
   open: boolean;
@@ -157,18 +158,11 @@ export function SettingsModal({
             </label>
             <span className="text-[11px] text-text-muted">Curly quotes, em-dashes, ellipsis</span>
           </div>
-          <button
-            onClick={() => onUpdateSettings({ smartTypography: !settings.smartTypography })}
-            className={`relative h-5 w-9 rounded-full transition-colors ${
-              settings.smartTypography ? "bg-accent" : "bg-surface-tertiary"
-            }`}
-          >
-            <span
-              className={`absolute top-0.5 left-0.5 size-4 rounded-full bg-white shadow-sm transition-transform ${
-                settings.smartTypography ? "translate-x-4" : "translate-x-0"
-              }`}
-            />
-          </button>
+          <Switch
+            checked={settings.smartTypography}
+            onCheckedChange={(smartTypography) => onUpdateSettings({ smartTypography })}
+            aria-label="Smart typography"
+          />
         </div>
 
         {/* Account */}
