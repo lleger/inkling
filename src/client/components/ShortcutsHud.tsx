@@ -1,5 +1,5 @@
-import { useEffect } from "react";
 import { X } from "lucide-react";
+import { Dialog, DialogClose } from "./ui/Dialog";
 
 interface ShortcutsHudProps {
   open: boolean;
@@ -23,57 +23,44 @@ const shortcuts = [
 ];
 
 export function ShortcutsHud({ open, onClose }: ShortcutsHudProps) {
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [open, onClose]);
-
-  if (!open) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-surface-overlay animate-[fade-in_0.15s_ease-out]"
-      onClick={onClose}
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onClose();
+      }}
+      title="Keyboard Shortcuts"
+      placement="center"
+      size="xs"
+      className="sm:rounded-lg sm:shadow-xl"
     >
-      <div
-        className="w-72 rounded-lg border border-border bg-surface shadow-xl animate-[scale-in_0.15s_ease-out]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <span className="text-xs font-semibold text-text">Keyboard Shortcuts</span>
-          <button
-            className="flex size-5 items-center justify-center rounded text-text-muted hover:bg-surface-hover hover:text-text-secondary"
-            onClick={onClose}
-          >
-            <X size={12} />
-          </button>
-        </div>
-        <div className="py-1.5">
-          {shortcuts.map((s, i) =>
-            s.keys === "" ? (
-              <div key={i} className="mx-4 my-1 h-px bg-border" />
-            ) : (
-              <div key={i} className="flex items-center justify-between px-4 py-1">
-                <span className="flex items-center gap-1.5 text-[13px] text-text-secondary">
-                  {s.desc}
-                  {s.context && (
-                    <span className="rounded bg-surface-tertiary px-1 py-px text-[10px] text-text-muted">
-                      {s.context}
-                    </span>
-                  )}
-                </span>
-                <kbd className="rounded border border-border bg-surface-secondary px-1.5 py-0.5 text-[11px] font-medium text-text-muted">
-                  {s.keys}
-                </kbd>
-              </div>
-            ),
-          )}
-        </div>
+      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <span className="text-xs font-semibold text-text">Keyboard Shortcuts</span>
+        <DialogClose className="flex size-5 items-center justify-center rounded text-text-muted hover:bg-surface-hover hover:text-text-secondary">
+          <X size={12} />
+        </DialogClose>
       </div>
-    </div>
+      <div className="py-1.5">
+        {shortcuts.map((s, i) =>
+          s.keys === "" ? (
+            <div key={i} className="mx-4 my-1 h-px bg-border" />
+          ) : (
+            <div key={i} className="flex items-center justify-between px-4 py-1">
+              <span className="flex items-center gap-1.5 text-[13px] text-text-secondary">
+                {s.desc}
+                {s.context && (
+                  <span className="rounded bg-surface-tertiary px-1 py-px text-[10px] text-text-muted">
+                    {s.context}
+                  </span>
+                )}
+              </span>
+              <kbd className="rounded border border-border bg-surface-secondary px-1.5 py-0.5 text-[11px] font-medium text-text-muted">
+                {s.keys}
+              </kbd>
+            </div>
+          ),
+        )}
+      </div>
+    </Dialog>
   );
 }

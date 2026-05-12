@@ -8,6 +8,8 @@ type DialogProps = {
   description?: string;
   children: ReactNode;
   footer?: ReactNode;
+  placement?: "top" | "center";
+  size?: "xs" | "sm" | "md" | "lg";
   className?: string;
   contentClassName?: string;
   initialFocus?: BaseDialog.Popup.Props["initialFocus"];
@@ -24,19 +26,38 @@ export function Dialog({
   description,
   children,
   footer,
+  placement = "top",
+  size = "sm",
   className,
   contentClassName,
   initialFocus,
 }: DialogProps) {
+  const placementClass =
+    placement === "center"
+      ? "items-end sm:items-center sm:py-[max(0.75rem,env(safe-area-inset-top))]"
+      : "items-end sm:items-start sm:pt-[20vh]";
+  const sizeClass = {
+    xs: "sm:max-w-80",
+    sm: "sm:max-w-sm",
+    md: "sm:max-w-md",
+    lg: "sm:max-w-lg",
+  }[size];
+
   return (
     <BaseDialog.Root open={open} onOpenChange={onOpenChange}>
       <BaseDialog.Portal>
         <BaseDialog.Backdrop className="absolute inset-0 z-50 bg-surface-overlay animate-[fade-in_0.1s_ease-out]" />
-        <BaseDialog.Viewport className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto px-3 pt-[max(4rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] sm:pt-[20vh]">
+        <BaseDialog.Viewport
+          className={cx(
+            "fixed inset-0 z-50 flex justify-center overflow-y-auto px-0 pt-[max(4rem,env(safe-area-inset-top))] pb-0 sm:px-3 sm:pb-[max(1rem,env(safe-area-inset-bottom))]",
+            placementClass,
+          )}
+        >
           <BaseDialog.Popup
             initialFocus={initialFocus}
             className={cx(
-              "w-full max-w-sm overflow-hidden rounded-xl border border-border bg-surface shadow-2xl animate-[scale-in_0.1s_ease-out]",
+              "w-full max-h-[calc(100dvh-1rem)] overflow-hidden rounded-t-xl border border-b-0 border-border bg-surface shadow-2xl animate-[scale-in_0.1s_ease-out] sm:max-h-none sm:rounded-xl sm:border",
+              sizeClass,
               className,
             )}
           >
