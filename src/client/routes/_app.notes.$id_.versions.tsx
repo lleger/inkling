@@ -29,7 +29,7 @@ function VersionsRoute() {
       onRestore={(restored) => {
         qc.invalidateQueries({ queryKey: queryKeys.note(id) });
         qc.invalidateQueries({ queryKey: queryKeys.notes });
-        ui.setToast({ message: "Version restored" });
+        ui.showToast({ message: "Version restored" });
         navigate({ to: "/notes/$id", params: { id: restored.id } });
       }}
     />

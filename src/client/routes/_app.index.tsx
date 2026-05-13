@@ -32,7 +32,7 @@ function HomeRoute() {
   const handleDelete = async (id: string) => {
     const title = notes.find((n) => n.id === id)?.title || "Note";
     await remove(id);
-    ui.setToast({
+    ui.showToast({
       message: `"${title}" moved to Trash`,
       action: {
         label: "Undo",

@@ -1,9 +1,12 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { Toast as BaseToast } from "@base-ui/react/toast";
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { ToastViewport, type ToastAction, type ToastData } from "../components/Toast";
 import type { SaveStatus } from "../types";
 
-export interface ToastState {
+export interface ToastOptions {
   message: string;
-  action?: { label: string; onClick: () => void };
+  action?: ToastAction;
+  duration?: number;
 }
 
 interface UIContextValue {
@@ -21,8 +24,8 @@ interface UIContextValue {
   setMetaPanelOpen: (v: boolean | ((p: boolean) => boolean)) => void;
   saveStatus: SaveStatus;
   setSaveStatus: (v: SaveStatus) => void;
-  toast: ToastState | null;
-  setToast: (t: ToastState | null) => void;
+  showToast: (toast: ToastOptions) => string;
+  closeToast: (toastId?: string) => void;
 }
 
 const UIContext = createContext<UIContextValue | null>(null);
@@ -34,6 +37,14 @@ export function useUI() {
 }
 
 export function UIProvider({ children }: { children: ReactNode }) {
+  return (
+    <BaseToast.Provider timeout={5000} limit={3}>
+      <UIProviderContent>{children}</UIProviderContent>
+    </BaseToast.Provider>
+  );
+}
+
+function UIProviderContent({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(
     () => typeof window === "undefined" || !window.matchMedia("(max-width: 767px)").matches,
   );
@@ -43,7 +54,17 @@ export function UIProvider({ children }: { children: ReactNode }) {
   const [folderModalOpen, setFolderModalOpen] = useState(false);
   const [metaPanelOpen, setMetaPanelOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
-  const [toast, setToast] = useState<ToastState | null>(null);
+  const { add, close } = BaseToast.useToastManager<ToastData>();
+
+  const showToast = useCallback(
+    (toast: ToastOptions) =>
+      add({
+        description: toast.message,
+        timeout: toast.duration,
+        data: { action: toast.action },
+      }),
+    [add],
+  );
 
   // Cmd+K and Escape (focus mode)
   useEffect(() => {
@@ -78,11 +99,12 @@ export function UIProvider({ children }: { children: ReactNode }) {
         setMetaPanelOpen,
         saveStatus,
         setSaveStatus,
-        toast,
-        setToast,
+        showToast,
+        closeToast: close,
       }}
     >
       {children}
+      <ToastViewport />
     </UIContext.Provider>
   );
 }

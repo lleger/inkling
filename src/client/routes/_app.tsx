@@ -9,7 +9,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Sidebar } from "../components/Sidebar";
 import { SettingsModal } from "../components/SettingsModal";
 import { FocusOverlay } from "../components/FocusOverlay";
-import { Toast } from "../components/Toast";
 import { MoveToFolderModal } from "../components/MoveToFolderModal";
 import { FolderIconPickerModal } from "../components/FolderIconPickerModal";
 import { CommandPalette, type PaletteAction } from "../components/CommandPalette";
@@ -139,7 +138,7 @@ function AppLayout() {
     const title = notes.find((n) => n.id === id)?.title || "Note";
     await remove(id);
     if (activeNoteId === id) navigate({ to: "/" });
-    ui.setToast({
+    ui.showToast({
       message: `"${title}" moved to Trash`,
       action: {
         label: "Undo",
@@ -493,13 +492,6 @@ function AppLayout() {
           e.target.value = "";
         }}
       />
-      {ui.toast && (
-        <Toast
-          message={ui.toast.message}
-          action={ui.toast.action}
-          onDismiss={() => ui.setToast(null)}
-        />
-      )}
     </div>
   );
 }

@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_app/notes/$id")({
 function NoteRoute() {
   const { id } = Route.useParams();
   const ui = useUI();
-  const { setSaveStatus: setGlobalSaveStatus, setToast } = ui;
+  const { setSaveStatus: setGlobalSaveStatus, showToast } = ui;
   const { settings } = useSettings();
   const { openDailyNote } = useDailyNote();
   const qc = useQueryClient();
@@ -108,11 +108,11 @@ function NoteRoute() {
         } else {
           retryCountRef.current = 0;
           setSaveStatus("failed");
-          setToast({ message: "Failed to save. Check your connection." });
+          showToast({ message: "Failed to save. Check your connection." });
         }
       }
     },
-    [saveMutation, setToast],
+    [saveMutation, showToast],
   );
 
   const handleContentChange = useCallback(

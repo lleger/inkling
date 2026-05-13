@@ -1,44 +1,13 @@
 import { Toast as BaseToast } from "@base-ui/react/toast";
-import { useEffect } from "react";
 import { X } from "lucide-react";
 import { cx } from "../lib/cx";
 import { IconButton } from "./ui/IconButton";
 
-interface ToastProps {
-  message: string;
-  action?: { label: string; onClick: () => void };
-  duration?: number;
-  onDismiss: () => void;
-}
+export type ToastAction = { label: string; onClick: () => void };
+export type ToastData = { action?: ToastAction };
 
-export function Toast({ message, action, duration = 5000, onDismiss }: ToastProps) {
-  return (
-    <BaseToast.Provider timeout={duration} limit={1}>
-      <ToastRenderer message={message} action={action} duration={duration} onDismiss={onDismiss} />
-    </BaseToast.Provider>
-  );
-}
-
-function ToastRenderer({
-  message,
-  action,
-  duration,
-  onDismiss,
-}: ToastProps & { duration: number }) {
-  const toastManager = BaseToast.useToastManager<{ action?: ToastProps["action"] }>();
-  const { add, close, toasts } = toastManager;
-
-  useEffect(() => {
-    const id = add({
-      id: "app-toast",
-      description: message,
-      timeout: duration,
-      data: { action },
-      onRemove: onDismiss,
-    });
-
-    return () => close(id);
-  }, [action, add, close, duration, message, onDismiss]);
+export function ToastViewport() {
+  const { close, toasts } = BaseToast.useToastManager<ToastData>();
 
   return (
     <BaseToast.Portal>
