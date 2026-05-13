@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Trash2, RotateCcw, X } from "lucide-react";
 import { restoreNote, permanentlyDeleteNote } from "../lib/api";
 import { trashQuery, queryKeys } from "../lib/queries";
+import { useUI } from "../context/UIContext";
 import { IconButton } from "./ui/IconButton";
 
 function timeAgo(dateStr: string): string {
@@ -21,6 +22,7 @@ function timeAgo(dateStr: string): string {
 
 export function TrashView() {
   const qc = useQueryClient();
+  const { showToast } = useUI();
   const { data: notes = [], isLoading } = useQuery(trashQuery());
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -34,9 +36,21 @@ export function TrashView() {
 
   const deleteNote = notes.find((note) => note.id === deleteId);
 
+  const handleRestore = (id: string, title: string) => {
+    restore.mutate(id, {
+      onSuccess: () => showToast({ message: `Restored "${title}"` }),
+    });
+  };
+
   const handlePermanentDelete = () => {
     if (!deleteId) return;
-    purge.mutate(deleteId, { onSuccess: () => setDeleteId(null) });
+    const title = deleteNote?.title || "Untitled";
+    purge.mutate(deleteId, {
+      onSuccess: () => {
+        setDeleteId(null);
+        showToast({ message: `Permanently deleted "${title}"` });
+      },
+    });
   };
 
   return (
@@ -74,7 +88,7 @@ export function TrashView() {
                 <div className="flex shrink-0 items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                   <IconButton
                     buttonSize="md"
-                    onClick={() => restore.mutate(note.id)}
+                    onClick={() => handleRestore(note.id, note.title || "Untitled")}
                     title="Restore"
                     aria-label={`Restore ${note.title || "Untitled"}`}
                     className="hover:text-accent sm:size-7"
