@@ -1,7 +1,10 @@
+import { AlertDialog } from "@base-ui/react/alert-dialog";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { Trash2, RotateCcw, X } from "lucide-react";
 import { restoreNote, permanentlyDeleteNote } from "../lib/api";
 import { trashQuery, queryKeys } from "../lib/queries";
+import { IconButton } from "./ui/IconButton";
 
 function timeAgo(dateStr: string): string {
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -19,6 +22,7 @@ function timeAgo(dateStr: string): string {
 export function TrashView() {
   const qc = useQueryClient();
   const { data: notes = [], isLoading } = useQuery(trashQuery());
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: queryKeys.trash });
@@ -28,62 +32,112 @@ export function TrashView() {
   const restore = useMutation({ mutationFn: restoreNote, onSuccess: invalidate });
   const purge = useMutation({ mutationFn: permanentlyDeleteNote, onSuccess: invalidate });
 
-  const handlePermanentDelete = async (id: string) => {
-    if (!window.confirm("Permanently delete this note? This cannot be undone.")) return;
-    purge.mutate(id);
+  const deleteNote = notes.find((note) => note.id === deleteId);
+
+  const handlePermanentDelete = () => {
+    if (!deleteId) return;
+    purge.mutate(deleteId, { onSuccess: () => setDeleteId(null) });
   };
 
   return (
-    <div className="flex min-h-full w-full max-w-[680px] flex-col px-4 pt-16 pb-32 animate-[fade-in_0.2s_ease-out] sm:px-6 sm:pt-12 sm:pb-24">
-      <div className="mb-8 flex items-center gap-2 text-text-secondary">
-        <Trash2 size={18} />
-        <h2 className="text-lg font-semibold">Trash</h2>
-      </div>
-
-      <p className="mb-6 text-xs text-text-muted">
-        Deleted notes are kept for 30 days, then permanently removed.
-      </p>
-
-      {isLoading ? (
-        <div className="pt-16 text-center text-sm text-text-muted">Loading...</div>
-      ) : notes.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 pt-16 text-text-muted">
-          <Trash2 size={32} strokeWidth={1} />
-          <p className="text-sm">Trash is empty</p>
+    <>
+      <div className="flex min-h-full w-full max-w-[680px] flex-col px-4 pt-16 pb-32 animate-[fade-in_0.2s_ease-out] sm:px-6 sm:pt-12 sm:pb-24">
+        <div className="mb-8 flex items-center gap-2 text-text-secondary">
+          <Trash2 size={18} />
+          <h2 className="text-lg font-semibold">Trash</h2>
         </div>
-      ) : (
-        <div className="flex flex-col gap-2">
-          {notes.map((note) => (
-            <div
-              key={note.id}
-              className="group flex items-center justify-between gap-3 rounded-lg border border-border bg-surface-secondary p-3 transition-colors hover:bg-surface-hover"
-            >
-              <div className="min-w-0">
-                <div className="text-sm font-medium text-text">{note.title || "Untitled"}</div>
-                <div className="mt-0.5 text-[11px] text-text-muted">
-                  Deleted {timeAgo(note.deleted_at)}
+
+        <p className="mb-6 text-xs text-text-muted">
+          Deleted notes are kept for 30 days, then permanently removed.
+        </p>
+
+        {isLoading ? (
+          <div className="pt-16 text-center text-sm text-text-muted">Loading...</div>
+        ) : notes.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 pt-16 text-text-muted">
+            <Trash2 size={32} strokeWidth={1} />
+            <p className="text-sm">Trash is empty</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {notes.map((note) => (
+              <div
+                key={note.id}
+                className="group flex items-center justify-between gap-3 rounded-lg border border-border bg-surface-secondary p-3 transition-colors hover:bg-surface-hover"
+              >
+                <div className="min-w-0">
+                  <div className="text-sm font-medium text-text">{note.title || "Untitled"}</div>
+                  <div className="mt-0.5 text-[11px] text-text-muted">
+                    Deleted {timeAgo(note.deleted_at)}
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+                  <IconButton
+                    buttonSize="md"
+                    onClick={() => restore.mutate(note.id)}
+                    title="Restore"
+                    aria-label={`Restore ${note.title || "Untitled"}`}
+                    className="hover:text-accent sm:size-7"
+                  >
+                    <RotateCcw size={14} />
+                  </IconButton>
+                  <IconButton
+                    buttonSize="md"
+                    onClick={() => setDeleteId(note.id)}
+                    title="Delete permanently"
+                    aria-label={`Delete ${note.title || "Untitled"} permanently`}
+                    className="hover:text-red-500 sm:size-7"
+                  >
+                    <X size={14} />
+                  </IconButton>
                 </div>
               </div>
-              <div className="flex shrink-0 items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+            ))}
+          </div>
+        )}
+      </div>
+
+      <AlertDialog.Root
+        open={deleteId !== null}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+      >
+        <AlertDialog.Portal>
+          <AlertDialog.Backdrop className="fixed inset-0 z-50 bg-surface-overlay animate-[fade-in_0.1s_ease-out]" />
+          <AlertDialog.Viewport className="fixed inset-0 z-50 flex items-end justify-center px-0 pt-[max(4rem,env(safe-area-inset-top))] pb-0 sm:items-center sm:px-3 sm:py-[max(0.75rem,env(safe-area-inset-top))]">
+            <AlertDialog.Popup className="w-full max-h-[calc(100dvh-1rem)] overflow-hidden rounded-t-xl border border-b-0 border-border bg-surface shadow-2xl animate-[scale-in_0.1s_ease-out] sm:max-w-sm sm:rounded-xl sm:border">
+              <div className="p-4">
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <div>
+                    <AlertDialog.Title className="text-sm font-semibold text-text">
+                      Permanently delete note?
+                    </AlertDialog.Title>
+                    <AlertDialog.Description className="mt-1 text-xs leading-relaxed text-text-muted">
+                      This will permanently delete "{deleteNote?.title || "Untitled"}". This action
+                      cannot be undone.
+                    </AlertDialog.Description>
+                  </div>
+                  <AlertDialog.Close render={<IconButton buttonSize="xs" aria-label="Cancel" />}>
+                    <X size={12} />
+                  </AlertDialog.Close>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 border-t border-border p-3">
+                <AlertDialog.Close className="rounded-md border border-border px-3 py-1.5 text-[13px] font-medium text-text-secondary transition-colors hover:bg-surface-hover hover:text-text">
+                  Cancel
+                </AlertDialog.Close>
                 <button
-                  onClick={() => restore.mutate(note.id)}
-                  title="Restore"
-                  className="flex size-9 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-active hover:text-accent sm:size-7"
+                  type="button"
+                  onClick={handlePermanentDelete}
+                  disabled={purge.isPending}
+                  className="rounded-md bg-red-600 px-3 py-1.5 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <RotateCcw size={14} />
-                </button>
-                <button
-                  onClick={() => handlePermanentDelete(note.id)}
-                  title="Delete permanently"
-                  className="flex size-9 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-active hover:text-red-500 sm:size-7"
-                >
-                  <X size={14} />
+                  {purge.isPending ? "Deleting..." : "Delete permanently"}
                 </button>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+            </AlertDialog.Popup>
+          </AlertDialog.Viewport>
+        </AlertDialog.Portal>
+      </AlertDialog.Root>
+    </>
   );
 }

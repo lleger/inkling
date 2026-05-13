@@ -63,6 +63,7 @@ export function SettingsModal({
             value={settings.theme}
             options={themeOptions}
             onValueChange={(theme) => onUpdateSettings({ theme })}
+            aria-label="Theme"
           />
         </div>
 
@@ -97,6 +98,7 @@ export function SettingsModal({
             value={settings.defaultMode}
             options={modeOptions}
             onValueChange={(defaultMode) => onUpdateSettings({ defaultMode })}
+            aria-label="Default editor"
           />
         </div>
 

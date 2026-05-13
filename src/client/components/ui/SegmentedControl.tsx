@@ -11,19 +11,31 @@ type SegmentedControlProps<T extends string> = {
   value: T;
   options: readonly SegmentedControlOption<T>[];
   onValueChange: (value: T) => void;
+  "aria-label": string;
+  className?: string;
 };
 
 export function SegmentedControl<T extends string>({
   value,
   options,
   onValueChange,
+  "aria-label": ariaLabel,
+  className,
 }: SegmentedControlProps<T>) {
   return (
-    <div className="flex gap-1 rounded-md bg-surface-secondary p-0.5 border border-border">
+    <div
+      role="group"
+      aria-label={ariaLabel}
+      className={cx(
+        "flex gap-1 rounded-md border border-border bg-surface-secondary p-0.5",
+        className,
+      )}
+    >
       {options.map((option) => (
         <button
           key={option.value}
           type="button"
+          aria-pressed={value === option.value}
           onClick={() => onValueChange(option.value)}
           className={cx(
             "flex flex-1 items-center justify-center gap-1.5 rounded py-1.5 text-[12px] font-medium transition-all",
