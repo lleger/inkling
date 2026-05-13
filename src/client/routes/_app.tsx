@@ -164,21 +164,25 @@ function AppLayout() {
 
   const handleDuplicateNote = async () => {
     if (!activeNote) return;
+    const title = activeNote.title || "Untitled";
     const full = await fetch(`/api/notes/${activeNote.id}`).then(
       (r) => r.json() as Promise<{ note: { content: string } }>,
     );
-    const note = await create({ title: `${activeNote.title} (copy)`, content: full.note.content });
+    const note = await create({ title: `${title} (copy)`, content: full.note.content });
     navigate({ to: "/notes/$id", params: { id: note.id } });
+    ui.showToast({ message: `Duplicated "${title}"` });
   };
 
   const handleMoveToFolder = async (folder: string | null) => {
     if (!activeNote) return;
     await move(activeNote.id, folder);
+    ui.showToast({ message: folder ? `Moved to "${folder}"` : "Removed from folder" });
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const handleImportFiles = async (files: FileList | File[]) => {
     let lastNote = null;
+    let imported = 0;
     for (const file of Array.from(files)) {
       if (
         !file.name.endsWith(".md") &&
@@ -189,8 +193,16 @@ function AppLayout() {
       const content = await file.text();
       const title = file.name.replace(/\.(md|markdown|txt)$/, "");
       lastNote = await create({ title, content });
+      imported++;
     }
-    if (lastNote) navigate({ to: "/notes/$id", params: { id: lastNote.id } });
+    if (lastNote) {
+      navigate({ to: "/notes/$id", params: { id: lastNote.id } });
+      ui.showToast({
+        message: `Imported ${imported} ${imported === 1 ? "note" : "notes"}`,
+      });
+    } else {
+      ui.showToast({ message: "No supported files selected" });
+    }
   };
 
   const isPinned = activeNote ? !!activeNote.pinned : false;
