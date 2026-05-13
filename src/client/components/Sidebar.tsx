@@ -15,6 +15,7 @@ import {
 import { renderFolderIcon } from "../lib/folder-icons";
 import { addDays, dailyLabel, dailyTitle, findDailyNote } from "../lib/daily-notes";
 import { findScratchNote, scratchFolder } from "../lib/scratch-notes";
+import { saveStatusMeta } from "../lib/save-status";
 import type { FolderMetadata, NoteMeta, SaveStatus } from "../types";
 
 function timeAgo(dateStr: string): string {
@@ -231,6 +232,7 @@ export function Sidebar({
 
   const renderNoteItem = (note: NoteMeta, depth = 0) => {
     const isActive = note.id === activeNoteId;
+    const saveMeta = saveStatusMeta(saveStatus);
     return (
       <div
         key={note.id}
@@ -247,20 +249,8 @@ export function Sidebar({
         )}
         {isActive && saveStatus !== "saved" && (
           <div
-            className={`shrink-0 size-1.5 rounded-full ${
-              saveStatus === "saving"
-                ? "bg-accent animate-pulse"
-                : saveStatus === "failed"
-                  ? "bg-red-500"
-                  : "bg-text-muted animate-pulse"
-            }`}
-            title={
-              saveStatus === "saving"
-                ? "Saving..."
-                : saveStatus === "failed"
-                  ? "Save failed"
-                  : "Unsaved changes"
-            }
+            className={`shrink-0 size-1.5 rounded-full ${saveMeta.dotClassName}`}
+            title={saveMeta.label}
           />
         )}
         {note.pinned === 1 && <Pin size={11} className="shrink-0 text-text-muted" />}

@@ -13,6 +13,7 @@ import { updateNote } from "../lib/api";
 import { normalizeMarkdown } from "../lib/normalize-markdown";
 import { clearDoneTasks } from "../lib/clear-done-tasks";
 import { addDays, dailyFolder, dailyLabel, isAfterDay, parseDailyTitle } from "../lib/daily-notes";
+import { saveStatusMeta } from "../lib/save-status";
 import type { EditorMode, SaveStatus } from "../types";
 
 export const Route = createFileRoute("/_app/notes/$id")({
@@ -203,14 +204,7 @@ function NoteRoute() {
   const dailyDate = note.folder === dailyFolder(settings) ? parseDailyTitle(note.title) : null;
   const nextDailyDate = dailyDate ? addDays(dailyDate, 1) : null;
   const canOpenNextDailyDate = nextDailyDate ? !isAfterDay(nextDailyDate) : false;
-  const saveStatusLabel =
-    saveStatus === "saving"
-      ? "Saving..."
-      : saveStatus === "unsaved"
-        ? "Unsaved"
-        : saveStatus === "failed"
-          ? "Save failed"
-          : "Saved";
+  const saveMeta = saveStatusMeta(saveStatus);
 
   return (
     <>
@@ -281,25 +275,11 @@ function NoteRoute() {
         className={`fixed right-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-10 flex max-w-[calc(100vw-1.5rem)] items-center gap-2 rounded-lg border border-border bg-surface-secondary/80 px-3 py-1.5 text-[11px] text-text-muted shadow-sm backdrop-blur-sm select-none transition-opacity duration-200 sm:right-4 sm:bottom-4 ${ui.focusMode ? "opacity-0 pointer-events-none" : "opacity-100"}`}
       >
         <span
-          className={`inline-flex items-center gap-1.5 ${
-            saveStatus === "saved"
-              ? "text-text-muted"
-              : saveStatus === "failed"
-                ? "text-red-500"
-                : "text-accent"
-          }`}
-          title={saveStatusLabel}
+          className={`inline-flex items-center gap-1.5 ${saveMeta.textClassName}`}
+          title={saveMeta.label}
         >
-          <span
-            className={`size-1.5 rounded-full ${
-              saveStatus === "saved"
-                ? "bg-text-muted/60"
-                : saveStatus === "failed"
-                  ? "bg-red-500"
-                  : "bg-accent animate-pulse"
-            }`}
-          />
-          {saveStatusLabel}
+          <span className={`size-1.5 rounded-full ${saveMeta.dotClassName}`} />
+          {saveMeta.shortLabel}
         </span>
         <span className="text-border">·</span>
         {taskStats && (
