@@ -136,8 +136,8 @@ function AppLayout() {
 
   const handleDeleteNote = async (id: string) => {
     const title = notes.find((n) => n.id === id)?.title || "Note";
+    if (activeNoteId === id) await navigate({ to: "/" });
     await remove(id);
-    if (activeNoteId === id) navigate({ to: "/" });
     ui.showToast({
       message: `"${title}" moved to Trash`,
       action: {
