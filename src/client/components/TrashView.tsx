@@ -1,10 +1,10 @@
-import { AlertDialog } from "@base-ui/react/alert-dialog";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Trash2, RotateCcw, X } from "lucide-react";
 import { restoreNote, permanentlyDeleteNote } from "../lib/api";
 import { trashQuery, queryKeys } from "../lib/queries";
 import { useUI } from "../context/UIContext";
+import { AlertDialog } from "./ui/AlertDialog";
 import { IconButton } from "./ui/IconButton";
 
 function timeAgo(dateStr: string): string {
@@ -111,47 +111,22 @@ export function TrashView() {
         )}
       </div>
 
-      <AlertDialog.Root
+      <AlertDialog
         open={deleteId !== null}
         onOpenChange={(open) => !open && setDeleteId(null)}
-      >
-        <AlertDialog.Portal>
-          <AlertDialog.Backdrop className="fixed inset-0 z-50 bg-surface-overlay animate-[fade-in_0.1s_ease-out]" />
-          <AlertDialog.Viewport className="fixed inset-0 z-50 flex items-end justify-center px-0 pt-[max(4rem,env(safe-area-inset-top))] pb-0 sm:items-center sm:px-3 sm:py-[max(0.75rem,env(safe-area-inset-top))]">
-            <AlertDialog.Popup className="w-full max-h-[calc(100dvh-1rem)] overflow-hidden rounded-t-xl border border-b-0 border-border bg-surface shadow-2xl animate-[scale-in_0.1s_ease-out] sm:max-w-sm sm:rounded-xl sm:border">
-              <div className="p-4">
-                <div className="mb-3 flex items-start justify-between gap-3">
-                  <div>
-                    <AlertDialog.Title className="text-sm font-semibold text-text">
-                      Permanently delete note?
-                    </AlertDialog.Title>
-                    <AlertDialog.Description className="mt-1 text-xs leading-relaxed text-text-muted">
-                      This will permanently delete "{deleteNote?.title || "Untitled"}". This action
-                      cannot be undone.
-                    </AlertDialog.Description>
-                  </div>
-                  <AlertDialog.Close render={<IconButton buttonSize="xs" aria-label="Cancel" />}>
-                    <X size={12} />
-                  </AlertDialog.Close>
-                </div>
-              </div>
-              <div className="flex justify-end gap-2 border-t border-border p-3">
-                <AlertDialog.Close className="rounded-md border border-border px-3 py-1.5 text-[13px] font-medium text-text-secondary transition-colors hover:bg-surface-hover hover:text-text">
-                  Cancel
-                </AlertDialog.Close>
-                <button
-                  type="button"
-                  onClick={handlePermanentDelete}
-                  disabled={purge.isPending}
-                  className="rounded-md bg-red-600 px-3 py-1.5 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {purge.isPending ? "Deleting..." : "Delete permanently"}
-                </button>
-              </div>
-            </AlertDialog.Popup>
-          </AlertDialog.Viewport>
-        </AlertDialog.Portal>
-      </AlertDialog.Root>
+        title="Permanently delete note?"
+        description={
+          <>
+            This will permanently delete "{deleteNote?.title || "Untitled"}". This action cannot be
+            undone.
+          </>
+        }
+        confirmLabel="Delete permanently"
+        pendingLabel="Deleting..."
+        confirmPending={purge.isPending}
+        destructive
+        onConfirm={handlePermanentDelete}
+      />
     </>
   );
 }
