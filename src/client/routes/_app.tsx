@@ -40,6 +40,7 @@ import { useScratchNote } from "../hooks/useScratchNote";
 import { useFolderMetadata } from "../hooks/useFolderMetadata";
 import { applyAccent } from "../lib/accent-colors";
 import { dailyFolder } from "../lib/daily-notes";
+import { scratchFolder } from "../lib/scratch-notes";
 import { getDefaultSidebarOpen, useUI } from "../context/UIContext";
 import { authClient } from "../lib/auth-client";
 import { RouteError } from "../components/LoadStates";
@@ -70,6 +71,7 @@ function AppLayout() {
   const { openDailyNote } = useDailyNote();
   const { openScratchNote } = useScratchNote();
   const [iconFolderPath, setIconFolderPath] = useState<string | null>(null);
+  const [folderModalNoteId, setFolderModalNoteId] = useState<string | null>(null);
 
   // Apply accent
   useEffect(() => {
@@ -123,12 +125,13 @@ function AppLayout() {
   }, [notes]);
 
   const allFolders = useMemo(() => {
+    const systemFolders = new Set([dailyFolder(settings), scratchFolder()]);
     const set = new Set<string>();
     for (const n of notes) {
-      if (n.folder) set.add(n.folder);
+      if (n.folder && !systemFolders.has(n.folder)) set.add(n.folder);
     }
     return [...set].sort();
-  }, [notes]);
+  }, [notes, settings]);
 
   const folderMetadataByPath = useMemo(
     () => Object.fromEntries(folderMetadata.map((folder) => [folder.path, folder])),
@@ -163,10 +166,12 @@ function AppLayout() {
     closeSidebarOnNonDesktop();
   };
 
-  const handleDuplicateNote = async () => {
-    if (!activeNote) return;
-    const title = activeNote.title || "Untitled";
-    const full = await fetch(`/api/notes/${activeNote.id}`).then(
+  const handleDuplicateNote = async (id = activeNote?.id) => {
+    if (!id) return;
+    const sourceNote = notes.find((n) => n.id === id);
+    if (!sourceNote) return;
+    const title = sourceNote.title || "Untitled";
+    const full = await fetch(`/api/notes/${id}`).then(
       (r) => r.json() as Promise<{ note: { content: string } }>,
     );
     const note = await create({ title: `${title} (copy)`, content: full.note.content });
@@ -175,9 +180,22 @@ function AppLayout() {
   };
 
   const handleMoveToFolder = async (folder: string | null) => {
-    if (!activeNote) return;
-    await move(activeNote.id, folder);
+    const noteId = folderModalNoteId ?? activeNote?.id;
+    if (!noteId) return;
+    await move(noteId, folder);
     ui.showToast({ message: folder ? `Moved to "${folder}"` : "Removed from folder" });
+    setFolderModalNoteId(null);
+  };
+
+  const openMoveToFolder = (id = activeNote?.id) => {
+    if (!id) return;
+    setFolderModalNoteId(id);
+    ui.setFolderModalOpen(true);
+  };
+
+  const openVersionHistory = (id: string) => {
+    navigate({ to: "/notes/$id/versions", params: { id } });
+    closeSidebarOnNonDesktop();
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -308,14 +326,14 @@ function AppLayout() {
             label: "Move to folder",
             icon: <FolderInput size={15} />,
             category: "action" as const,
-            onSelect: () => ui.setFolderModalOpen(true),
+            onSelect: () => openMoveToFolder(activeNote.id),
           },
           {
             id: "version-history",
             label: "Version history",
             icon: <History size={15} />,
             category: "action" as const,
-            onSelect: () => navigate({ to: "/notes/$id/versions", params: { id: activeNote.id } }),
+            onSelect: () => openVersionHistory(activeNote.id),
           },
           {
             id: "delete-note",
@@ -428,6 +446,9 @@ function AppLayout() {
             const note = notes.find((n) => n.id === id);
             if (note) pin(id, !note.pinned);
           }}
+          onMoveNote={openMoveToFolder}
+          onViewVersions={openVersionHistory}
+          onDuplicateNote={handleDuplicateNote}
           userEmail={user?.email ?? null}
           open={ui.sidebarOpen && !ui.focusMode}
           saveStatus={ui.saveStatus}
@@ -471,9 +492,12 @@ function AppLayout() {
 
       <MoveToFolderModal
         open={ui.folderModalOpen}
-        onClose={() => ui.setFolderModalOpen(false)}
+        onClose={() => {
+          ui.setFolderModalOpen(false);
+          setFolderModalNoteId(null);
+        }}
         onSelect={handleMoveToFolder}
-        currentFolder={activeNote?.folder ?? null}
+        currentFolder={notes.find((note) => note.id === (folderModalNoteId ?? activeNote?.id))?.folder ?? null}
         allFolders={allFolders}
       />
       <FolderIconPickerModal

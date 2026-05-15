@@ -16,9 +16,19 @@
 - Open Cmd+K again — should show "Unpin note"
 - Select it — note returns to its normal position
 
+## Sidebar Context Menu
+- Right-click a note in the sidebar
+- A menu should appear with Open, Pin/Unpin, Move to folder, View versions, Duplicate, and Delete actions
+- Select Pin or Unpin — the note should move between pinned and normal positions
+- Select Move to folder — the move modal should open for that note
+- Select View versions — the version history page should open for that note
+- Select Duplicate — a copy of the note should be created and opened
+- Right-click the note again and select Delete — the note should move to Trash with the same undo toast as the hover delete button
+
 ## Move to Folder
 - Open Cmd+K, select "Move to folder"
 - A modal should appear with a search input
+- Daily and Scratch system folders should not appear as destination options, including a custom daily folder configured in Settings
 - Type a folder name and select "Create <name>"
 - The note should now appear under that folder in the sidebar
 

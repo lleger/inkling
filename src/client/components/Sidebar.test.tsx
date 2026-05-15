@@ -17,6 +17,9 @@ const baseProps = {
   onOpenSettings: vi.fn(),
   onOpenTrash: vi.fn(),
   onTogglePin: vi.fn(),
+  onMoveNote: vi.fn(),
+  onViewVersions: vi.fn(),
+  onDuplicateNote: vi.fn(),
   allTags: [],
   selectedTag: null,
   onSelectTag: vi.fn(),
@@ -205,6 +208,89 @@ describe("Sidebar", () => {
     const deleteButtons = screen.getAllByTitle("Delete");
     fireEvent.click(deleteButtons[0]);
     expect(onDelete).toHaveBeenCalledWith("1");
+  });
+
+  it("shows note actions when right-clicking a note", async () => {
+    render(<Sidebar {...baseProps} notes={notes} activeNoteId={null} />);
+
+    fireEvent.contextMenu(screen.getByText("First Note"));
+
+    expect(await screen.findByText("Open")).toBeTruthy();
+    expect(screen.getByText("Pin")).toBeTruthy();
+    expect(screen.getByText("Move to folder")).toBeTruthy();
+    expect(screen.getByText("View versions")).toBeTruthy();
+    expect(screen.getByText("Duplicate")).toBeTruthy();
+    expect(screen.getByText("Delete")).toBeTruthy();
+  });
+
+  it("pins a note from the context menu", async () => {
+    const onTogglePin = vi.fn();
+    render(
+      <Sidebar {...baseProps} notes={notes} activeNoteId={null} onTogglePin={onTogglePin} />,
+    );
+
+    fireEvent.contextMenu(screen.getByText("First Note"));
+    fireEvent.click(await screen.findByText("Pin"));
+
+    expect(onTogglePin).toHaveBeenCalledWith("1");
+  });
+
+  it("shows unpin for pinned notes in the context menu", async () => {
+    render(
+      <Sidebar
+        {...baseProps}
+        notes={[{ ...notes[0], pinned: 1 }]}
+        activeNoteId={null}
+      />,
+    );
+
+    fireEvent.contextMenu(screen.getByText("First Note"));
+
+    expect(await screen.findByText("Unpin")).toBeTruthy();
+  });
+
+  it("deletes a note from the context menu", async () => {
+    const onDelete = vi.fn();
+    render(<Sidebar {...baseProps} notes={notes} activeNoteId={null} onDeleteNote={onDelete} />);
+
+    fireEvent.contextMenu(screen.getByText("First Note"));
+    fireEvent.click(await screen.findByText("Delete"));
+
+    expect(onDelete).toHaveBeenCalledWith("1");
+  });
+
+  it("moves a note from the context menu", async () => {
+    const onMoveNote = vi.fn();
+    render(<Sidebar {...baseProps} notes={notes} activeNoteId={null} onMoveNote={onMoveNote} />);
+
+    fireEvent.contextMenu(screen.getByText("First Note"));
+    fireEvent.click(await screen.findByText("Move to folder"));
+
+    expect(onMoveNote).toHaveBeenCalledWith("1");
+  });
+
+  it("opens versions from the context menu", async () => {
+    const onViewVersions = vi.fn();
+    render(
+      <Sidebar {...baseProps} notes={notes} activeNoteId={null} onViewVersions={onViewVersions} />,
+    );
+
+    fireEvent.contextMenu(screen.getByText("First Note"));
+    fireEvent.click(await screen.findByText("View versions"));
+
+    expect(onViewVersions).toHaveBeenCalledWith("1");
+  });
+
+  it("duplicates a note from the context menu", async () => {
+    const onDuplicateNote = vi.fn();
+    render(
+      <Sidebar {...baseProps} notes={notes} activeNoteId={null} onDuplicateNote={onDuplicateNote} />,
+    );
+
+    fireEvent.contextMenu(screen.getByText("First Note"));
+    fireEvent.click(await screen.findByText("Duplicate"));
+
+    expect(onDuplicateNote).toHaveBeenCalledWith("1");
   });
 
   it("shows user email in footer", () => {

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { ContextMenu } from "@base-ui/react/context-menu";
+import { useState, type ReactNode } from "react";
 import {
   Plus,
   PanelLeftClose,
@@ -12,6 +13,7 @@ import {
   ChevronRight,
   Paintbrush,
 } from "lucide-react";
+import { cx } from "../lib/cx";
 import { renderFolderIcon } from "../lib/folder-icons";
 import { addDays, dailyLabel, dailyTitle, findDailyNote } from "../lib/daily-notes";
 import { findScratchNote, scratchFolder } from "../lib/scratch-notes";
@@ -34,6 +36,50 @@ interface FolderTree {
   path: string;
   notes: NoteMeta[];
   children: FolderTree[];
+}
+
+type SidebarContextMenuItem = {
+  label: string;
+  onSelect: () => void;
+  destructive?: boolean;
+};
+
+function SidebarContextMenu({
+  trigger,
+  items,
+}: {
+  trigger: ReactNode;
+  items: SidebarContextMenuItem[];
+}) {
+  return (
+    <ContextMenu.Root>
+      <ContextMenu.Trigger render={<div />}>{trigger}</ContextMenu.Trigger>
+      <ContextMenu.Portal>
+        <ContextMenu.Positioner sideOffset={4} collisionPadding={8} className="z-50">
+          <ContextMenu.Popup className="min-w-36 rounded-lg border border-border bg-surface p-1 text-[13px] text-text shadow-xl outline-none animate-[scale-in_0.1s_ease-out]">
+            {items.map((item, index) => (
+              <ContextMenu.Item
+                key={item.label}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  item.onSelect();
+                }}
+                className={cx(
+                  "flex cursor-default items-center rounded-md px-2.5 py-1.5 outline-none transition-colors data-[highlighted]:bg-surface-hover",
+                  index > 0 && item.destructive ? "mt-1 border-t border-border pt-2" : "",
+                  item.destructive
+                    ? "text-red-600 data-[highlighted]:bg-red-500/10"
+                    : "text-text-secondary data-[highlighted]:text-text",
+                )}
+              >
+                {item.label}
+              </ContextMenu.Item>
+            ))}
+          </ContextMenu.Popup>
+        </ContextMenu.Positioner>
+      </ContextMenu.Portal>
+    </ContextMenu.Root>
+  );
 }
 
 function buildFolderTree(
@@ -94,6 +140,9 @@ interface SidebarProps {
   onOpenSettings: () => void;
   onOpenTrash: () => void;
   onTogglePin: (id: string) => void;
+  onMoveNote: (id: string) => void;
+  onViewVersions: (id: string) => void;
+  onDuplicateNote: (id: string) => void;
   allTags: string[];
   selectedTag: string | null;
   onSelectTag: (tag: string | null) => void;
@@ -119,6 +168,9 @@ export function Sidebar({
   onOpenSettings,
   onOpenTrash,
   onTogglePin,
+  onMoveNote,
+  onViewVersions,
+  onDuplicateNote,
   allTags,
   selectedTag,
   onSelectTag,
@@ -233,9 +285,8 @@ export function Sidebar({
   const renderNoteItem = (note: NoteMeta, depth = 0) => {
     const isActive = note.id === activeNoteId;
     const saveMeta = saveStatusMeta(saveStatus);
-    return (
+    const noteItem = (
       <div
-        key={note.id}
         className={`group relative flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-2 py-2 transition-colors md:min-h-0 ${
           isActive
             ? "bg-surface-active text-text"
@@ -283,6 +334,21 @@ export function Sidebar({
           </button>
         </div>
       </div>
+    );
+
+    return (
+      <SidebarContextMenu
+        key={note.id}
+        trigger={noteItem}
+        items={[
+          { label: "Open", onSelect: () => onSelectNote(note.id) },
+          { label: note.pinned ? "Unpin" : "Pin", onSelect: () => onTogglePin(note.id) },
+          { label: "Move to folder", onSelect: () => onMoveNote(note.id) },
+          { label: "View versions", onSelect: () => onViewVersions(note.id) },
+          { label: "Duplicate", onSelect: () => onDuplicateNote(note.id) },
+          { label: "Delete", onSelect: () => onDeleteNote(note.id), destructive: true },
+        ]}
+      />
     );
   };
 
