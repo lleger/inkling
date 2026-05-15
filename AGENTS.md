@@ -25,13 +25,13 @@ React 19 + TanStack Router + TanStack Query frontend, Hono API on Cloudflare Wor
   - `src/worker/db/client.ts` — `makeDb(env.DB)` builds a Drizzle client per request
   - `src/worker/db/test-d1.ts` — better-sqlite3-backed D1 shim for unit tests
   - `src/worker/db/migrate-*.sql` — historical SQL migrations applied by hand
-  - `src/worker/db/migrations/` — active Wrangler D1 migrations. New schema changes go in `schema.ts` then `npm run db:generate` produces a migration here.
+  - `src/worker/db/migrations/` — active Wrangler D1 migrations. New schema changes go in `schema.ts` then `pnpm run db:generate` produces a migration here.
 - **Shared types**: `src/shared/types.ts`
 - **Pure lib**: `src/client/lib/` — framework-agnostic utilities
 
 ### Dev Setup
 
-Single server: `npm run dev` (Vite + `@cloudflare/vite-plugin`). Runs frontend + worker + D1 in one process on port 5173.
+Single server: `pnpm run dev` (Vite + `@cloudflare/vite-plugin`). Runs frontend + worker + D1 in one process on port 5173.
 
 ### Data flow
 
@@ -53,7 +53,7 @@ Behavioral specs in `tests/acceptance/` describe every user-facing feature. They
 
 ### Running
 
-Start the dev server (`npm run dev`), then walk each spec with `playwright-cli`:
+Start the dev server (`pnpm run dev`), then walk each spec with `playwright-cli`:
 
 ```bash
 playwright-cli open http://localhost:5173
@@ -95,7 +95,7 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`
 
 ## Testing
 
-Run `npm test` before committing.
+Run `pnpm test` before committing.
 
 ### QA user (browser/playwright walkthroughs)
 
@@ -109,8 +109,8 @@ user using whatever `QA_EMAIL` / `QA_PASSWORD` are currently in `.env`.
 
 ## Formatting & Linting
 
-- `npm run fmt` — oxfmt
-- `npm run lint` — oxlint
+- `pnpm run fmt` — oxfmt
+- `pnpm run lint` — oxlint
 
 # Cloudflare
 

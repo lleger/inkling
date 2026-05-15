@@ -72,27 +72,27 @@ A minimal, fast writing app on Cloudflare Workers. Dual-mode editor with rich te
 ## Getting started
 
 ```bash
-npm install
-npm run db:migrate:local
-npm run dev
+pnpm install
+pnpm run db:migrate:local
+pnpm run dev
 ```
 
 ## Scripts
 
 | Command | Description |
 | --- | --- |
-| `npm run dev` | Local dev server with Workers runtime + D1 |
-| `npm run build` | Production build |
-| `npm run deploy` | Build and deploy to Cloudflare |
-| `npm run check` | Run format check, lint, typecheck, and tests |
-| `npm run typecheck` | Run TypeScript with `--noEmit` |
-| `npm test` | Run all tests |
-| `npm run lint` | Lint with oxlint |
-| `npm run lint:fix` | Auto-fix lint issues where safe |
-| `npm run fmt` | Format with oxfmt |
-| `npm run db:generate` | Generate Drizzle migrations from `schema.ts` |
-| `npm run db:migrate:local` | Apply D1 migrations locally |
-| `npm run db:migrate` | Apply D1 migrations on production |
+| `pnpm run dev` | Local dev server with Workers runtime + D1 |
+| `pnpm run build` | Production build |
+| `pnpm run deploy` | Build and deploy to Cloudflare |
+| `pnpm run check` | Run format check, lint, typecheck, and tests |
+| `pnpm run typecheck` | Run TypeScript with `--noEmit` |
+| `pnpm test` | Run all tests |
+| `pnpm run lint` | Lint with oxlint |
+| `pnpm run lint:fix` | Auto-fix lint issues where safe |
+| `pnpm run fmt` | Format with oxfmt |
+| `pnpm run db:generate` | Generate Drizzle migrations from `schema.ts` |
+| `pnpm run db:migrate:local` | Apply D1 migrations locally |
+| `pnpm run db:migrate` | Apply D1 migrations on production |
 
 Schema source lives in `src/worker/db/schema.ts`. Apply migrations from `src/worker/db/migrations/`; `src/worker/db/migrate-*.sql` and `src/worker/db/schema.sql` are retained as legacy reference SQL.
 
@@ -100,11 +100,11 @@ Schema source lives in `src/worker/db/schema.ts`. Apply migrations from `src/wor
 
 1. Create a D1 database: `wrangler d1 create inkling-db`
 2. Update `database_id` in `wrangler.jsonc`
-3. Run migrations: `npm run db:migrate`
+3. Run migrations: `pnpm run db:migrate`
 4. Set auth policy vars: `SIGNUP_MODE=open` or `SIGNUP_MODE=allowlist` with `ALLOWED_EMAILS` in `wrangler.jsonc` or as secrets/vars
 5. Set required secret: `wrangler secret put BETTER_AUTH_SECRET`
 6. Optionally configure Google OAuth with `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
-7. Deploy: `npm run deploy`
+7. Deploy: `pnpm run deploy`
 
 ## Project structure
 

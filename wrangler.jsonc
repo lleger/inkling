@@ -4,7 +4,7 @@
 // `wrangler dev` warns and `wrangler deploy` fails if any are missing.
 //
 //   For local dev: put them in `.dev.vars` (gitignored).
-//   For deploy:    `npx wrangler secret put NAME`
+//   For deploy:    `pnpm exec wrangler secret put NAME`
 //
 // Required env (the worker throws at request time if any are missing or
 // invalid; pick one mode explicitly so config drift can't silently flip

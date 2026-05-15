@@ -61,7 +61,7 @@ const sql = [
 const tmpFile = join(tmpdir(), `qa-user-${process.pid}.sql`);
 writeFileSync(tmpFile, sql);
 try {
-  execSync(`npx wrangler d1 execute inkling-db --local --file=${tmpFile}`, {
+  execSync(`pnpm exec wrangler d1 execute inkling-db --local --file=${tmpFile}`, {
     stdio: "inherit",
   });
 } finally {

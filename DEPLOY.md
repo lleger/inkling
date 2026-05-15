@@ -10,7 +10,7 @@ Step-by-step for the first deploy of Inkling to Cloudflare Workers at `inkling.p
 ## 1. Create the production D1
 
 ```bash
-npx wrangler d1 create inkling-db
+pnpm exec wrangler d1 create inkling-db
 ```
 
 Copy the `database_id` from the output and set it in `wrangler.jsonc`:
@@ -30,15 +30,15 @@ Commit this change.
 ## 2. Apply migrations
 
 ```bash
-npm run db:migrate          # runs against --remote
+pnpm run db:migrate          # runs against --remote
 ```
 
-This applies SQL migrations from `src/worker/db/migrations/` via Wrangler. `0001_initial.sql` bootstraps fresh databases; `src/worker/db/schema.sql` is legacy reference SQL. New schema changes should be generated from `src/worker/db/schema.ts` with `npm run db:generate`.
+This applies SQL migrations from `src/worker/db/migrations/` via Wrangler. `0001_initial.sql` bootstraps fresh databases; `src/worker/db/schema.sql` is legacy reference SQL. New schema changes should be generated from `src/worker/db/schema.ts` with `pnpm run db:generate`.
 
 Verify:
 
 ```bash
-npx wrangler d1 execute inkling-db --remote --command "SELECT name FROM sqlite_master WHERE type='table';"
+pnpm exec wrangler d1 execute inkling-db --remote --command "SELECT name FROM sqlite_master WHERE type='table';"
 ```
 
 You should see `notes`, `note_versions`, `user_settings`, `folder_metadata`, `note_refs`, `user`, `session`, `account`, `verification`.
@@ -61,13 +61,13 @@ Then set the auth secret.
 Generate a fresh, strong, hex secret (do NOT reuse the one in `.dev.vars`):
 
 ```bash
-openssl rand -hex 32 | npx wrangler secret put BETTER_AUTH_SECRET
+openssl rand -hex 32 | pnpm exec wrangler secret put BETTER_AUTH_SECRET
 ```
 
 Verify:
 
 ```bash
-npx wrangler secret list
+pnpm exec wrangler secret list
 ```
 
 Optional Google OAuth requires `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
@@ -88,7 +88,7 @@ Commit any domain/config changes before deploying.
 ## 5. Deploy
 
 ```bash
-npm run deploy
+pnpm run deploy
 ```
 
 (Runs `vite build` then `wrangler deploy`.)
@@ -110,9 +110,9 @@ Then in a browser: visit `https://inkling.page/`, sign up with an allowed email 
 
 ## Updating later
 
-For schema changes: edit `src/worker/db/schema.ts`, run `npm run db:generate` to produce a migration in `src/worker/db/migrations/`, apply with `npm run db:migrate` for production or `npm run db:migrate:local` for local dev, then redeploy.
+For schema changes: edit `src/worker/db/schema.ts`, run `pnpm run db:generate` to produce a migration in `src/worker/db/migrations/`, apply with `pnpm run db:migrate` for production or `pnpm run db:migrate:local` for local dev, then redeploy.
 
-For app code: just `npm run deploy`.
+For app code: just `pnpm run deploy`.
 
 ## Operational
 
@@ -120,13 +120,13 @@ For app code: just `npm run deploy`.
 
 ```bash
 SQL=$(node scripts/reset-password.mjs <email> <new-password>)
-npx wrangler d1 execute inkling-db --remote --command "$SQL"
+pnpm exec wrangler d1 execute inkling-db --remote --command "$SQL"
 ```
 
 **Read the live allowlist / signup mode:**
 
 ```bash
-npx wrangler tail --format=pretty
+pnpm exec wrangler tail --format=pretty
 # then trigger any auth request and watch logs
 ```
 

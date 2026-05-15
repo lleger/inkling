@@ -1,0 +1,21 @@
+packages:
+  - .
+  - .opencode
+
+minimumReleaseAge: 1440
+minimumReleaseAgeStrict: true
+minimumReleaseAgeIgnoreMissingTime: false
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  - effect@4.0.0-beta.59
+trustPolicyIgnoreAfter: 43200
+blockExoticSubdeps: true
+onlyBuiltDependencies:
+  - better-sqlite3
+  - esbuild
+  - msgpackr-extract
+  - sharp
+  - workerd
+
+overrides:
+  '@esbuild-kit/core-utils>esbuild': ^0.25.12
