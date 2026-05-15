@@ -1,7 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Popover as BasePopover } from "@base-ui/react/popover";
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Type, Code, Columns2, Maximize, Info, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Type,
+  Code,
+  Columns2,
+  Maximize,
+  Info,
+  ChevronLeft,
+  ChevronRight,
+  CalendarDays,
+} from "lucide-react";
 import { Editor } from "../components/Editor";
 import { MetaPanel } from "../components/MetaPanel";
 import { useUI } from "../context/UIContext";
@@ -12,7 +22,14 @@ import { noteQuery, queryKeys } from "../lib/queries";
 import { updateNote } from "../lib/api";
 import { normalizeMarkdown } from "../lib/normalize-markdown";
 import { clearDoneTasks } from "../lib/clear-done-tasks";
-import { addDays, dailyFolder, dailyLabel, isAfterDay, parseDailyTitle } from "../lib/daily-notes";
+import {
+  addDays,
+  dailyFolder,
+  dailyLabel,
+  dailyTitle,
+  isAfterDay,
+  parseDailyTitle,
+} from "../lib/daily-notes";
 import { saveStatusMeta } from "../lib/save-status";
 import type { EditorMode, SaveStatus } from "../types";
 
@@ -203,7 +220,7 @@ function NoteRoute() {
 
   const dailyDate = note.folder === dailyFolder(settings) ? parseDailyTitle(note.title) : null;
   const nextDailyDate = dailyDate ? addDays(dailyDate, 1) : null;
-  const canOpenNextDailyDate = nextDailyDate ? !isAfterDay(nextDailyDate) : false;
+  const canOpenNextDailyDate = nextDailyDate !== null && !isAfterDay(nextDailyDate);
   const saveMeta = saveStatusMeta(saveStatus);
 
   return (
@@ -218,23 +235,16 @@ function NoteRoute() {
             <ChevronLeft size={14} />
             <span className="hidden sm:inline">Previous</span>
           </button>
+          <DailyDatePicker date={dailyDate} onSelect={openDailyNote} />
           <button
-            onClick={() => openDailyNote()}
-            title="Open today"
-            className="rounded-md px-3 py-1.5 text-[12px] font-semibold text-text transition-colors hover:bg-surface-hover"
+            onClick={() => nextDailyDate && openDailyNote(nextDailyDate)}
+            disabled={!canOpenNextDailyDate}
+            title="Open next day"
+            className="flex h-8 items-center gap-1 rounded-md px-2 text-[12px] font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary disabled:pointer-events-none disabled:opacity-30"
           >
-            {dailyLabel(dailyDate)}
+            <span className="hidden sm:inline">Next</span>
+            <ChevronRight size={14} />
           </button>
-          {canOpenNextDailyDate && nextDailyDate && (
-            <button
-              onClick={() => openDailyNote(nextDailyDate)}
-              title="Open next day"
-              className="flex h-8 items-center gap-1 rounded-md px-2 text-[12px] font-medium text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary"
-            >
-              <span className="hidden sm:inline">Next</span>
-              <ChevronRight size={14} />
-            </button>
-          )}
         </div>
       )}
 
@@ -316,4 +326,120 @@ function NoteRoute() {
       />
     </>
   );
+}
+
+function DailyDatePicker({ date, onSelect }: { date: Date; onSelect: (date: Date) => void }) {
+  const [open, setOpen] = useState(false);
+  const [month, setMonth] = useState(() => startOfMonth(date));
+  const today = new Date();
+  const canGoNextMonth = dailyTitle(addMonths(month, 1)) <= dailyTitle(startOfMonth(today));
+  const days = calendarDays(month);
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) setMonth(startOfMonth(date));
+    setOpen(nextOpen);
+  };
+
+  const chooseDate = (nextDate: Date) => {
+    if (isAfterDay(nextDate)) return;
+    setOpen(false);
+    onSelect(nextDate);
+  };
+
+  return (
+    <BasePopover.Root open={open} onOpenChange={handleOpenChange}>
+      <BasePopover.Trigger
+        title="Choose daily note date"
+        className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-semibold text-text transition-colors hover:bg-surface-hover data-[popup-open]:bg-surface-hover"
+      >
+        <CalendarDays size={13} className="text-text-muted" />
+        {dailyLabel(date)}
+      </BasePopover.Trigger>
+      <BasePopover.Portal>
+        <BasePopover.Positioner
+          side="bottom"
+          align="center"
+          sideOffset={8}
+          collisionPadding={8}
+          collisionAvoidance={{ side: "flip", align: "shift", fallbackAxisSide: "none" }}
+        >
+          <BasePopover.Popup className="z-50 w-72 rounded-xl border border-border bg-surface p-2 shadow-lg animate-[fade-in_0.1s_ease-out]">
+            <div className="mb-2 flex items-center justify-between px-1">
+              <button
+                onClick={() => setMonth((current) => addMonths(current, -1))}
+                className="flex size-8 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary"
+                title="Previous month"
+              >
+                <ChevronLeft size={15} />
+              </button>
+              <div className="text-sm font-semibold text-text">
+                {new Intl.DateTimeFormat(undefined, { month: "long", year: "numeric" }).format(
+                  month,
+                )}
+              </div>
+              <button
+                onClick={() => setMonth((current) => addMonths(current, 1))}
+                disabled={!canGoNextMonth}
+                className="flex size-8 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary disabled:pointer-events-none disabled:opacity-30"
+                title="Next month"
+              >
+                <ChevronRight size={15} />
+              </button>
+            </div>
+            <div className="grid grid-cols-7 gap-1 px-1 pb-1 text-center text-[10px] font-semibold uppercase tracking-wide text-text-muted">
+              {weekdays.map((day, index) => (
+                <div key={`${day}-${index}`}>{day}</div>
+              ))}
+            </div>
+            <div className="grid grid-cols-7 gap-1">
+              {days.map((day) => {
+                const selected = dailyTitle(day) === dailyTitle(date);
+                const outsideMonth = day.getMonth() !== month.getMonth();
+                const disabled = isAfterDay(day);
+
+                return (
+                  <button
+                    key={dailyTitle(day)}
+                    onClick={() => chooseDate(day)}
+                    disabled={disabled}
+                    className={`flex aspect-square items-center justify-center rounded-md text-sm transition-colors disabled:pointer-events-none disabled:opacity-25 ${
+                      selected
+                        ? "bg-accent text-white"
+                        : outsideMonth
+                          ? "text-text-muted hover:bg-surface-hover hover:text-text-secondary"
+                          : "text-text-secondary hover:bg-surface-hover hover:text-text"
+                    }`}
+                  >
+                    {day.getDate()}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              onClick={() => chooseDate(today)}
+              className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-surface-secondary px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-surface-hover hover:text-text"
+            >
+              <CalendarDays size={14} className="text-text-muted" />
+              Today
+            </button>
+          </BasePopover.Popup>
+        </BasePopover.Positioner>
+      </BasePopover.Portal>
+    </BasePopover.Root>
+  );
+}
+
+const weekdays = ["S", "M", "T", "W", "T", "F", "S"];
+
+function startOfMonth(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function addMonths(date: Date, months: number): Date {
+  return new Date(date.getFullYear(), date.getMonth() + months, 1);
+}
+
+function calendarDays(month: Date): Date[] {
+  const start = new Date(month.getFullYear(), month.getMonth(), 1 - month.getDay());
+  return Array.from({ length: 42 }, (_, index) => addDays(start, index));
 }

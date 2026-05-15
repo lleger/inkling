@@ -46,6 +46,14 @@
 - When viewing today's daily note, there is no next-day control
 - Existing daily notes are reused instead of duplicated
 
+## Date picker
+- Open a daily note
+- Click the date label in the compact daily navigation control
+- A calendar date picker should open
+- Choose a past date
+- The selected daily note opens, creating it if missing
+- Future dates are not selectable
+
 ## Folder configuration
 - The Settings modal has a "Daily note folder" field (default: `Daily`)
 - Changing it makes the next daily note creation use the new folder
