@@ -40,7 +40,7 @@ import { useScratchNote } from "../hooks/useScratchNote";
 import { useFolderMetadata } from "../hooks/useFolderMetadata";
 import { applyAccent } from "../lib/accent-colors";
 import { dailyFolder } from "../lib/daily-notes";
-import { useUI } from "../context/UIContext";
+import { getDefaultSidebarOpen, useUI } from "../context/UIContext";
 import { authClient } from "../lib/auth-client";
 
 export const Route = createFileRoute("/_app")({
@@ -152,13 +152,13 @@ function AppLayout() {
   const handleCreateNote = async () => {
     const note = await create();
     navigate({ to: "/notes/$id", params: { id: note.id } });
-    closeSidebarOnMobile();
+    closeSidebarOnNonDesktop();
   };
 
   const handleCreateWithTitle = async (title: string) => {
     const note = await create({ title, content: `# ${title}\n\n` });
     navigate({ to: "/notes/$id", params: { id: note.id } });
-    closeSidebarOnMobile();
+    closeSidebarOnNonDesktop();
   };
 
   const handleDuplicateNote = async () => {
@@ -206,45 +206,45 @@ function AppLayout() {
 
   const isPinned = activeNote ? !!activeNote.pinned : false;
 
-  const closeSidebarOnMobile = () => {
-    if (window.matchMedia("(max-width: 767px)").matches) {
+  const closeSidebarOnNonDesktop = () => {
+    if (!getDefaultSidebarOpen()) {
       ui.setSidebarOpen(false);
     }
   };
 
   const selectNote = (id: string) => {
     navigate({ to: "/notes/$id", params: { id } });
-    closeSidebarOnMobile();
+    closeSidebarOnNonDesktop();
   };
 
   const goHome = () => {
     navigate({ to: "/" });
-    closeSidebarOnMobile();
+    closeSidebarOnNonDesktop();
   };
 
   const goTrash = () => {
     navigate({ to: "/trash" });
-    closeSidebarOnMobile();
+    closeSidebarOnNonDesktop();
   };
 
   const goDailyNotes = () => {
     navigate({ to: "/daily" });
-    closeSidebarOnMobile();
+    closeSidebarOnNonDesktop();
   };
 
   const handleOpenDailyDate = async (date?: Date) => {
     await openDailyNote(date);
-    closeSidebarOnMobile();
+    closeSidebarOnNonDesktop();
   };
 
   const handleOpenScratchNote = async () => {
     await openScratchNote();
-    closeSidebarOnMobile();
+    closeSidebarOnNonDesktop();
   };
 
   const openSettings = () => {
     navigate({ to: "/settings" });
-    closeSidebarOnMobile();
+    closeSidebarOnNonDesktop();
   };
 
   // Mode switcher state lives here so the palette can switch modes from any route
@@ -402,7 +402,7 @@ function AppLayout() {
         <button
           type="button"
           aria-label="Close sidebar"
-          className="fixed inset-0 z-20 bg-surface-overlay md:hidden"
+          className="fixed inset-0 z-20 bg-surface-overlay lg:hidden"
           onClick={() => ui.setSidebarOpen(false)}
         />
       )}
@@ -446,7 +446,7 @@ function AppLayout() {
             <button
               onClick={() => ui.setSidebarOpen(true)}
               title="Open sidebar"
-              className="fixed top-3 left-3 z-10 flex size-9 items-center justify-center rounded-md bg-surface-secondary/80 text-text-muted shadow-sm ring-1 ring-border backdrop-blur-sm transition-colors hover:bg-surface-hover hover:text-text-secondary md:size-8 md:bg-transparent md:shadow-none md:ring-0"
+              className="fixed top-3 left-3 z-10 flex size-9 items-center justify-center rounded-md bg-surface-secondary/80 text-text-muted shadow-sm ring-1 ring-border backdrop-blur-sm transition-colors hover:bg-surface-hover hover:text-text-secondary lg:size-8 lg:bg-transparent lg:shadow-none lg:ring-0"
             >
               <PanelLeftOpen size={16} />
             </button>

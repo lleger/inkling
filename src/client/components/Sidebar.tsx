@@ -334,10 +334,10 @@ export function Sidebar({
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-30 flex w-[min(18rem,82vw)] shrink-0 flex-col border-r border-border bg-surface-secondary transition-transform duration-200 ease-out md:relative md:z-auto md:w-56 md:shadow-none ${
+      className={`fixed inset-y-0 left-0 z-30 flex w-[min(18rem,82vw)] shrink-0 flex-col border-r border-border bg-surface-secondary transition-transform duration-200 ease-out lg:relative lg:z-auto lg:w-56 lg:shadow-none ${
         open
           ? "translate-x-0 shadow-2xl"
-          : "-translate-x-full md:-translate-x-56 md:absolute md:top-0 md:bottom-0"
+          : "-translate-x-full lg:-translate-x-56 lg:absolute lg:top-0 lg:bottom-0"
       }`}
     >
       <div className="flex items-center justify-between border-b border-border px-3 py-2">

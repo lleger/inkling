@@ -27,6 +27,13 @@ interface UIContextValue {
 }
 
 const UIContext = createContext<UIContextValue | null>(null);
+export const desktopSidebarQuery = "(min-width: 1024px)";
+const desktopSidebarMinWidth = 1024;
+
+export function getDefaultSidebarOpen() {
+  if (typeof window === "undefined") return true;
+  return document.documentElement.clientWidth >= desktopSidebarMinWidth;
+}
 
 export function useUI() {
   const ctx = useContext(UIContext);
@@ -43,15 +50,29 @@ export function UIProvider({ children }: { children: ReactNode }) {
 }
 
 function UIProviderContent({ children }: { children: ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = useState(
-    () => typeof window === "undefined" || !window.matchMedia("(max-width: 767px)").matches,
-  );
+  const [sidebarOpen, setSidebarOpen] = useState(getDefaultSidebarOpen);
   const [focusMode, setFocusMode] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [folderModalOpen, setFolderModalOpen] = useState(false);
   const [metaPanelOpen, setMetaPanelOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
   const { add, close } = BaseToast.useToastManager<ToastData>();
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(desktopSidebarQuery);
+    const syncSidebarWithBreakpoint = () => {
+      setSidebarOpen(getDefaultSidebarOpen());
+    };
+
+    mediaQuery.addEventListener("change", syncSidebarWithBreakpoint);
+    window.addEventListener("resize", syncSidebarWithBreakpoint);
+    window.visualViewport?.addEventListener("resize", syncSidebarWithBreakpoint);
+    return () => {
+      mediaQuery.removeEventListener("change", syncSidebarWithBreakpoint);
+      window.removeEventListener("resize", syncSidebarWithBreakpoint);
+      window.visualViewport?.removeEventListener("resize", syncSidebarWithBreakpoint);
+    };
+  }, []);
 
   const showToast = useCallback(
     (toast: ToastOptions) =>
