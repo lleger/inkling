@@ -154,6 +154,33 @@ function AppLayout() {
     });
   };
 
+  const handleDeleteFolder = async (path: string) => {
+    const folderNotes = notes.filter(
+      (note) => note.folder === path || note.folder?.startsWith(`${path}/`),
+    );
+    if (folderNotes.length === 0) return;
+
+    if (activeNoteId && folderNotes.some((note) => note.id === activeNoteId)) {
+      await navigate({ to: "/" });
+    }
+
+    for (const note of folderNotes) {
+      await remove(note.id);
+    }
+
+    ui.showToast({
+      message: `"${path}" moved to Trash`,
+      action: {
+        label: "Undo",
+        onClick: async () => {
+          for (const note of folderNotes) {
+            await restore(note.id);
+          }
+        },
+      },
+    });
+  };
+
   const handleCreateNote = async () => {
     const note = await create();
     navigate({ to: "/notes/$id", params: { id: note.id } });
@@ -457,6 +484,7 @@ function AppLayout() {
           onSelectTag={() => {}}
           folderMetadata={folderMetadataByPath}
           onCustomizeFolder={setIconFolderPath}
+          onDeleteFolder={handleDeleteFolder}
           dailyNoteFolder={dailyFolder(settings)}
         />
       </div>

@@ -151,6 +151,7 @@ interface SidebarProps {
   saveStatus: SaveStatus;
   folderMetadata: Record<string, FolderMetadata>;
   onCustomizeFolder: (path: string) => void;
+  onDeleteFolder: (path: string) => void;
   dailyNoteFolder: string;
 }
 
@@ -179,6 +180,7 @@ export function Sidebar({
   saveStatus,
   folderMetadata,
   onCustomizeFolder,
+  onDeleteFolder,
   dailyNoteFolder,
 }: SidebarProps) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(["__all__"]));
@@ -357,33 +359,42 @@ export function Sidebar({
       expandedFolders.has(folder.path) ||
       (activeFolder !== undefined && activeFolder !== null && activeFolder.startsWith(folder.path));
     const hasContent = folder.notes.length > 0 || folder.children.length > 0;
+    const folderRow = (
+      <div className="group flex min-h-10 items-center rounded-md text-[12px] font-medium text-text-secondary transition-colors hover:bg-surface-hover hover:text-text md:min-h-0">
+        <button
+          onClick={() => toggleFolder(folder.path)}
+          className="flex min-w-0 flex-1 items-center gap-1.5 px-2 py-1.5 text-left"
+          style={{ paddingLeft: `${8 + depth * 16}px` }}
+        >
+          <ChevronRight
+            size={12}
+            className={`shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+          />
+          {renderFolderIcon(folderMetadata[folder.path], isExpanded)}
+          <span className="truncate">{folder.name}</span>
+          {hasContent && (
+            <span className="ml-auto text-[10px] text-text-muted">{folder.notes.length}</span>
+          )}
+        </button>
+        <button
+          onClick={() => onCustomizeFolder(folder.path)}
+          className="mr-1 flex size-8 shrink-0 items-center justify-center rounded text-text-muted opacity-100 transition-opacity hover:bg-surface-active hover:text-text md:size-5 md:opacity-0 md:group-hover:opacity-100"
+          title={`Customize ${folder.name} icon`}
+        >
+          <Paintbrush size={11} />
+        </button>
+      </div>
+    );
 
     return (
       <div key={folder.path}>
-        <div className="group flex min-h-10 items-center rounded-md text-[12px] font-medium text-text-secondary transition-colors hover:bg-surface-hover hover:text-text md:min-h-0">
-          <button
-            onClick={() => toggleFolder(folder.path)}
-            className="flex min-w-0 flex-1 items-center gap-1.5 px-2 py-1.5 text-left"
-            style={{ paddingLeft: `${8 + depth * 16}px` }}
-          >
-            <ChevronRight
-              size={12}
-              className={`shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`}
-            />
-            {renderFolderIcon(folderMetadata[folder.path], isExpanded)}
-            <span className="truncate">{folder.name}</span>
-            {hasContent && (
-              <span className="ml-auto text-[10px] text-text-muted">{folder.notes.length}</span>
-            )}
-          </button>
-          <button
-            onClick={() => onCustomizeFolder(folder.path)}
-            className="mr-1 flex size-8 shrink-0 items-center justify-center rounded text-text-muted opacity-100 transition-opacity hover:bg-surface-active hover:text-text md:size-5 md:opacity-0 md:group-hover:opacity-100"
-            title={`Customize ${folder.name} icon`}
-          >
-            <Paintbrush size={11} />
-          </button>
-        </div>
+        <SidebarContextMenu
+          trigger={folderRow}
+          items={[
+            { label: "Customize icon", onSelect: () => onCustomizeFolder(folder.path) },
+            { label: "Delete folder", onSelect: () => onDeleteFolder(folder.path), destructive: true },
+          ]}
+        />
         {isExpanded && (
           <div>
             {folder.children.map((child) => renderFolder(child, depth + 1))}

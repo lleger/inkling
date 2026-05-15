@@ -28,6 +28,7 @@ const baseProps = {
   saveStatus: "saved" as const,
   folderMetadata: {},
   onCustomizeFolder: vi.fn(),
+  onDeleteFolder: vi.fn(),
   dailyNoteFolder: "Daily",
 };
 
@@ -291,6 +292,55 @@ describe("Sidebar", () => {
     fireEvent.click(await screen.findByText("Duplicate"));
 
     expect(onDuplicateNote).toHaveBeenCalledWith("1");
+  });
+
+  it("shows folder actions when right-clicking a folder", async () => {
+    render(
+      <Sidebar
+        {...baseProps}
+        notes={[{ ...notes[0], folder: "Work" }]}
+        activeNoteId={null}
+      />,
+    );
+
+    fireEvent.contextMenu(screen.getByText("Work"));
+
+    expect(await screen.findByText("Customize icon")).toBeTruthy();
+    expect(screen.getByText("Delete folder")).toBeTruthy();
+  });
+
+  it("customizes a folder from the context menu", async () => {
+    const onCustomizeFolder = vi.fn();
+    render(
+      <Sidebar
+        {...baseProps}
+        notes={[{ ...notes[0], folder: "Work" }]}
+        activeNoteId={null}
+        onCustomizeFolder={onCustomizeFolder}
+      />,
+    );
+
+    fireEvent.contextMenu(screen.getByText("Work"));
+    fireEvent.click(await screen.findByText("Customize icon"));
+
+    expect(onCustomizeFolder).toHaveBeenCalledWith("Work");
+  });
+
+  it("deletes a folder from the context menu", async () => {
+    const onDeleteFolder = vi.fn();
+    render(
+      <Sidebar
+        {...baseProps}
+        notes={[{ ...notes[0], folder: "Work" }]}
+        activeNoteId={null}
+        onDeleteFolder={onDeleteFolder}
+      />,
+    );
+
+    fireEvent.contextMenu(screen.getByText("Work"));
+    fireEvent.click(await screen.findByText("Delete folder"));
+
+    expect(onDeleteFolder).toHaveBeenCalledWith("Work");
   });
 
   it("shows user email in footer", () => {

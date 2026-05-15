@@ -25,6 +25,12 @@
 - Select Duplicate — a copy of the note should be created and opened
 - Right-click the note again and select Delete — the note should move to Trash with the same undo toast as the hover delete button
 
+## Folder Context Menu
+- Right-click a folder in the sidebar
+- A menu should appear with Customize icon and Delete folder actions
+- Select Customize icon — the folder icon picker should open for that folder
+- Select Delete folder — every note in that folder and its nested folders should move to Trash, with an Undo toast to restore them
+
 ## Move to Folder
 - Open Cmd+K, select "Move to folder"
 - A modal should appear with a search input
