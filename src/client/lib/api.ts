@@ -65,11 +65,12 @@ export async function deleteNote(id: string): Promise<void> {
   await request(`/api/notes/${id}`, { method: "DELETE" });
 }
 
-export async function pinNote(id: string, pinned: boolean): Promise<void> {
-  await request(`/api/notes/${id}/pin`, {
+export async function pinNote(id: string, pinned: boolean): Promise<NoteMeta> {
+  const data = await request<{ note: NoteMeta }>(`/api/notes/${id}/pin`, {
     method: "PUT",
     body: JSON.stringify({ pinned }),
   });
+  return data.note;
 }
 
 export async function restoreNote(id: string): Promise<void> {
@@ -85,11 +86,12 @@ export async function permanentlyDeleteNote(id: string): Promise<void> {
   await request(`/api/notes/${id}/permanent`, { method: "DELETE" });
 }
 
-export async function moveNoteToFolder(id: string, folder: string | null): Promise<void> {
-  await request(`/api/notes/${id}/folder`, {
+export async function moveNoteToFolder(id: string, folder: string | null): Promise<NoteMeta> {
+  const data = await request<{ note: NoteMeta }>(`/api/notes/${id}/folder`, {
     method: "PUT",
     body: JSON.stringify({ folder }),
   });
+  return data.note;
 }
 
 export async function fetchVersions(noteId: string): Promise<NoteVersionMeta[]> {

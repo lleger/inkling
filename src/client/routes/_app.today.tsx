@@ -1,6 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import * as api from "../lib/api";
-import { notesQuery, settingsQuery, queryKeys } from "../lib/queries";
+import { notesQuery, settingsQuery } from "../lib/queries";
+import { invalidateNotes, upsertCachedNoteMeta, writeCachedNote } from "../lib/note-cache";
 import {
   dailyFolder,
   dailyTitle,
@@ -31,10 +32,11 @@ export const Route = createFileRoute("/_app/today")({
       title,
       content: renderDailyNoteTemplate(settings.dailyNoteTemplate, date),
     });
+    writeCachedNote(qc, note);
     if (folder) {
-      await api.moveNoteToFolder(note.id, folder);
+      upsertCachedNoteMeta(qc, await api.moveNoteToFolder(note.id, folder));
     }
-    qc.invalidateQueries({ queryKey: queryKeys.notes });
+    invalidateNotes(qc);
     throw redirect({ to: "/notes/$id", params: { id: note.id } });
   },
 });

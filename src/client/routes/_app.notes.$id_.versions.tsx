@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { VersionHistoryView } from "../components/VersionHistoryView";
-import { noteQuery, queryKeys } from "../lib/queries";
+import { noteQuery } from "../lib/queries";
+import { invalidateNotes, writeCachedNote } from "../lib/note-cache";
 import { useUI } from "../context/UIContext";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
@@ -27,8 +28,8 @@ function VersionsRoute() {
       noteTitle={note.title}
       onClose={() => navigate({ to: "/notes/$id", params: { id } })}
       onRestore={(restored) => {
-        qc.invalidateQueries({ queryKey: queryKeys.note(id) });
-        qc.invalidateQueries({ queryKey: queryKeys.notes });
+        writeCachedNote(qc, restored);
+        invalidateNotes(qc);
         ui.showToast({ message: "Version restored" });
         navigate({ to: "/notes/$id", params: { id: restored.id } });
       }}

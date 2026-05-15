@@ -420,13 +420,14 @@ export async function togglePinNote(
   userId: string,
   noteId: string,
   pinned: boolean,
-): Promise<boolean> {
+): Promise<NoteMeta | null> {
   const db = makeDb(d1);
-  const result = await db
+  const [row] = await db
     .update(notes)
     .set({ pinned: pinned ? 1 : 0 })
-    .where(and(eq(notes.id, noteId), eq(notes.userId, userId)));
-  return (result.meta?.changes ?? 0) > 0;
+    .where(and(eq(notes.id, noteId), eq(notes.userId, userId), isNull(notes.deletedAt)))
+    .returning();
+  return row ? mapMeta(row) : null;
 }
 
 // --- Folders ---
@@ -436,13 +437,14 @@ export async function moveToFolder(
   userId: string,
   noteId: string,
   folder: string | null,
-): Promise<boolean> {
+): Promise<NoteMeta | null> {
   const db = makeDb(d1);
-  const result = await db
+  const [row] = await db
     .update(notes)
     .set({ folder })
-    .where(and(eq(notes.id, noteId), eq(notes.userId, userId)));
-  return (result.meta?.changes ?? 0) > 0;
+    .where(and(eq(notes.id, noteId), eq(notes.userId, userId), isNull(notes.deletedAt)))
+    .returning();
+  return row ? mapMeta(row) : null;
 }
 
 export async function renameFolder(

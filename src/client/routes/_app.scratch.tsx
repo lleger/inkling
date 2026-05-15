@@ -1,6 +1,12 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import * as api from "../lib/api";
-import { notesQuery, queryKeys } from "../lib/queries";
+import { notesQuery } from "../lib/queries";
+import {
+  invalidateNote,
+  invalidateNotes,
+  upsertCachedNoteMeta,
+  writeCachedNote,
+} from "../lib/note-cache";
 import {
   findScratchNote,
   renderScratchNoteTemplate,
@@ -20,18 +26,22 @@ export const Route = createFileRoute("/_app/scratch")({
         title: scratchTitle(),
         content: renderScratchNoteTemplate(),
       });
-      await api.moveNoteToFolder(note.id, scratchFolder());
-      qc.invalidateQueries({ queryKey: queryKeys.notes });
+      writeCachedNote(qc, note);
+      upsertCachedNoteMeta(qc, await api.moveNoteToFolder(note.id, scratchFolder()));
+      invalidateNotes(qc);
       throw redirect({ to: "/notes/$id", params: { id: note.id } });
     }
 
     if (shouldResetScratchNote(existing.updated_at)) {
       const note = await api.fetchNote(existing.id);
       if (note.content.trim() !== renderScratchNoteTemplate().trim()) {
-        await api.updateNote(existing.id, { content: renderScratchNoteTemplate() });
+        writeCachedNote(
+          qc,
+          await api.updateNote(existing.id, { content: renderScratchNoteTemplate() }),
+        );
       }
-      qc.invalidateQueries({ queryKey: queryKeys.notes });
-      qc.invalidateQueries({ queryKey: queryKeys.note(existing.id) });
+      invalidateNotes(qc);
+      invalidateNote(qc, existing.id);
     }
 
     throw redirect({ to: "/notes/$id", params: { id: existing.id } });
