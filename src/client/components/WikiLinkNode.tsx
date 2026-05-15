@@ -24,11 +24,13 @@ import {
   type Spread,
 } from "lexical";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { PreviewCard } from "@base-ui/react/preview-card";
 import { Popover as BasePopover } from "@base-ui/react/popover";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { FileText } from "lucide-react";
+import { FileText, Tag } from "lucide-react";
 import { notesQuery, noteQuery } from "../lib/queries";
+import type { Note } from "../types";
 
 // --------------------------------------------------------------------------
 // Node
@@ -160,7 +162,7 @@ function WikiLink({ noteId, fallback }: { noteId: string; fallback: string }) {
     navigate({ to: "/notes/$id", params: { id: noteId } });
   };
 
-  return (
+  const link = (
     <a
       href={`/notes/${noteId}`}
       onClick={handleClick}
@@ -176,6 +178,70 @@ function WikiLink({ noteId, fallback }: { noteId: string; fallback: string }) {
       <span className="truncate">{title}</span>
     </a>
   );
+
+  if (broken) return link;
+
+  return (
+    <PreviewCard.Root>
+      <PreviewCard.Trigger delay={500} render={link} />
+      <PreviewCard.Portal>
+        <PreviewCard.Positioner side="top" sideOffset={8} collisionPadding={12}>
+          <PreviewCard.Popup className="z-50 w-[min(22rem,calc(100vw-1.5rem))] overflow-hidden rounded-lg border border-border bg-surface text-sm shadow-xl animate-[fade-in_0.1s_ease-out]">
+            <WikiLinkPreview note={data} fallback={fallback} />
+          </PreviewCard.Popup>
+        </PreviewCard.Positioner>
+      </PreviewCard.Portal>
+    </PreviewCard.Root>
+  );
+}
+
+function WikiLinkPreview({ note, fallback }: { note: Note | undefined; fallback: string }) {
+  if (!note) {
+    return (
+      <div className="flex items-center gap-2 p-3 text-text-muted">
+        <FileText size={14} className="animate-pulse" />
+        <span className="truncate">{fallback || "Loading note..."}</span>
+      </div>
+    );
+  }
+
+  const tags = parseTagsField(note.tags).slice(0, 3);
+
+  return (
+    <div className="flex min-w-0 flex-col gap-2 p-3">
+      <div className="flex items-center gap-1.5 text-[11px] text-text-muted">
+        <FileText size={12} className="flex-shrink-0" />
+        <span className="truncate">Linked note</span>
+      </div>
+      <div className="line-clamp-2 font-medium text-text">{note.title || "Untitled"}</div>
+      {note.preview ? (
+        <div className="line-clamp-3 text-[12px] leading-relaxed text-text-secondary">
+          {note.preview}
+        </div>
+      ) : (
+        <div className="text-[12px] text-text-muted">No preview yet</div>
+      )}
+      {tags.length > 0 && (
+        <div className="flex min-w-0 flex-wrap items-center gap-1 pt-1 text-[11px] text-text-muted">
+          <Tag size={11} />
+          {tags.map((tag) => (
+            <span key={tag} className="rounded bg-surface-secondary px-1.5 py-0.5">
+              #{tag}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function parseTagsField(tagsField: string): string[] {
+  try {
+    const parsed = JSON.parse(tagsField);
+    return Array.isArray(parsed) ? parsed.filter((x) => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
 }
 
 // --------------------------------------------------------------------------
