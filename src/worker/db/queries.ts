@@ -422,11 +422,12 @@ export async function togglePinNote(
   pinned: boolean,
 ): Promise<NoteMeta | null> {
   const db = makeDb(d1);
-  const result = await db
+  const [row] = await db
     .update(notes)
     .set({ pinned: pinned ? 1 : 0 })
-    .where(and(eq(notes.id, noteId), eq(notes.userId, userId)));
-  return (result.meta?.changes ?? 0) > 0 ? noteMetaById(d1, userId, noteId) : null;
+    .where(and(eq(notes.id, noteId), eq(notes.userId, userId), isNull(notes.deletedAt)))
+    .returning();
+  return row ? mapMeta(row) : null;
 }
 
 // --- Folders ---
@@ -438,24 +439,11 @@ export async function moveToFolder(
   folder: string | null,
 ): Promise<NoteMeta | null> {
   const db = makeDb(d1);
-  const result = await db
+  const [row] = await db
     .update(notes)
     .set({ folder })
-    .where(and(eq(notes.id, noteId), eq(notes.userId, userId)));
-  return (result.meta?.changes ?? 0) > 0 ? noteMetaById(d1, userId, noteId) : null;
-}
-
-async function noteMetaById(
-  d1: D1Database,
-  userId: string,
-  noteId: string,
-): Promise<NoteMeta | null> {
-  const db = makeDb(d1);
-  const [row] = await db
-    .select()
-    .from(notes)
     .where(and(eq(notes.id, noteId), eq(notes.userId, userId), isNull(notes.deletedAt)))
-    .limit(1);
+    .returning();
   return row ? mapMeta(row) : null;
 }
 
