@@ -5,6 +5,7 @@ import { useDailyNote } from "../hooks/useDailyNote";
 import { useNotes } from "../hooks/useNotes";
 import { useSettings } from "../hooks/useSettings";
 import { PageContainer } from "../components/PageContainer";
+import { PageError } from "../components/LoadStates";
 import { dailyFolder, dailyLabel, isDailyNote, parseDailyTitle } from "../lib/daily-notes";
 import type { NoteMeta } from "../types";
 
@@ -14,13 +15,23 @@ export const Route = createFileRoute("/_app/daily")({
 
 function DailyRoute() {
   const navigate = useNavigate();
-  const { notes } = useNotes();
+  const { notes, error, refetch } = useNotes();
   const { settings } = useSettings();
   const { openDailyNote } = useDailyNote();
   const folder = dailyFolder(settings);
 
   const groups = useMemo(() => groupDailyNotes(notes, folder), [notes, folder]);
   const hasDailyNotes = groups.length > 0;
+
+  if (error) {
+    return (
+      <PageError
+        title="Unable to load daily notes"
+        message="Daily notes could not be fetched."
+        onRetry={() => void refetch()}
+      />
+    );
+  }
 
   return (
     <PageContainer maxWidth="max-w-[720px]">

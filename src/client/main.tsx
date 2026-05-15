@@ -30,14 +30,12 @@ declare module "@tanstack/react-router" {
 
 bootstrapTheme();
 
-void router.load().finally(() => {
-  createRoot(document.getElementById("root")!).render(
-    <StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <UIProvider>
-          <RouterProvider router={router} />
-        </UIProvider>
-      </QueryClientProvider>
-    </StrictMode>,
-  );
-});
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <UIProvider>
+        <RouterProvider router={router} />
+      </UIProvider>
+    </QueryClientProvider>
+  </StrictMode>,
+);

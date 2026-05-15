@@ -7,6 +7,7 @@ import { RichTextPreview } from "./RichTextPreview";
 import { IconButton } from "./ui/IconButton";
 import type { Note } from "../types";
 import { PageContainer } from "./PageContainer";
+import { QueryErrorState } from "./LoadStates";
 
 function timeAgo(dateStr: string): string {
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -36,8 +37,17 @@ export function VersionHistoryView({
 }: VersionHistoryViewProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const { data: versions = [], isLoading } = useQuery(versionsQuery(noteId));
-  const { data: preview } = useQuery(versionQuery(noteId, selectedId));
+  const {
+    data: versions = [],
+    isLoading,
+    error: versionsError,
+    refetch: refetchVersions,
+  } = useQuery(versionsQuery(noteId));
+  const {
+    data: preview,
+    error: previewError,
+    refetch: refetchPreview,
+  } = useQuery(versionQuery(noteId, selectedId));
   const selectedVersion = versions.find((v) => v.id === selectedId);
 
   const restore = useMutation({
@@ -77,7 +87,13 @@ export function VersionHistoryView({
         Versions are saved every 5 minutes while editing. Kept for 30 days, up to 100 per note.
       </p>
 
-      {isLoading ? (
+      {versionsError ? (
+        <QueryErrorState
+          title="Unable to load versions"
+          message="Version history could not be fetched."
+          onRetry={() => void refetchVersions()}
+        />
+      ) : isLoading ? (
         <div className="pt-16 text-center text-sm text-text-muted">Loading...</div>
       ) : versions.length === 0 ? (
         <div className="flex flex-col items-center gap-3 pt-16 text-text-muted">
@@ -113,7 +129,13 @@ export function VersionHistoryView({
 
           {/* Preview */}
           <div className="flex-1 min-w-0 flex flex-col">
-            {preview ? (
+            {previewError ? (
+              <QueryErrorState
+                title="Unable to load preview"
+                message="This version could not be fetched."
+                onRetry={() => void refetchPreview()}
+              />
+            ) : preview ? (
               <>
                 <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <span className="text-xs text-text-muted">

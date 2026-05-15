@@ -5,11 +5,15 @@ import { noteQuery } from "../lib/queries";
 import { invalidateNotes, writeCachedNote } from "../lib/note-cache";
 import { useUI } from "../context/UIContext";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import { PageLoading, RouteError } from "../components/LoadStates";
 
 export const Route = createFileRoute("/_app/notes/$id_/versions")({
   loader: ({ context: { queryClient }, params: { id } }) =>
     queryClient.ensureQueryData(noteQuery(id)),
   component: VersionsRoute,
+  errorComponent: RouteError,
+  pendingComponent: () => <PageLoading label="Loading versions..." />,
+  pendingMs: 0,
 });
 
 function VersionsRoute() {

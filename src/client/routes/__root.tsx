@@ -1,11 +1,13 @@
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
-import { Suspense, useEffect } from "react";
+import { useEffect } from "react";
 import type { QueryClient } from "@tanstack/react-query";
 import { AppShellFallback } from "../components/AppShellFallback";
+import { RouteError } from "../components/LoadStates";
 import { bootstrapTheme } from "../lib/theme-bootstrap";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   component: RootLayout,
+  errorComponent: RouteError,
   pendingComponent: AppShellFallback,
   pendingMs: 0,
 });
@@ -23,9 +25,5 @@ function RootLayout() {
     return () => mq.removeEventListener("change", handler);
   }, []);
 
-  return (
-    <Suspense fallback={<AppShellFallback />}>
-      <Outlet />
-    </Suspense>
-  );
+  return <Outlet />;
 }

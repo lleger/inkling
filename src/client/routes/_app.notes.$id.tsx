@@ -34,6 +34,7 @@ import {
   parseDailyTitle,
 } from "../lib/daily-notes";
 import { saveStatusMeta } from "../lib/save-status";
+import { PageLoading, RouteError } from "../components/LoadStates";
 import {
   normalizeHeadingText,
   parseMarkdownHeadingLine,
@@ -46,6 +47,9 @@ export const Route = createFileRoute("/_app/notes/$id")({
   loader: ({ context: { queryClient }, params: { id } }) =>
     queryClient.ensureQueryData(noteQuery(id)),
   component: NoteRoute,
+  errorComponent: RouteError,
+  pendingComponent: () => <PageLoading label="Loading note..." />,
+  pendingMs: 0,
 });
 
 function NoteRoute() {

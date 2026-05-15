@@ -8,6 +8,7 @@ import {
   findDailyNote,
   renderDailyNoteTemplate,
 } from "../lib/daily-notes";
+import { RouteError } from "../components/LoadStates";
 
 export const Route = createFileRoute("/_app/today")({
   beforeLoad: async ({ context }) => {
@@ -39,4 +40,5 @@ export const Route = createFileRoute("/_app/today")({
     invalidateNotes(qc);
     throw redirect({ to: "/notes/$id", params: { id: note.id } });
   },
+  errorComponent: RouteError,
 });

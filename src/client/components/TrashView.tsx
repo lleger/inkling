@@ -8,6 +8,7 @@ import { useUI } from "../context/UIContext";
 import { AlertDialog } from "./ui/AlertDialog";
 import { IconButton } from "./ui/IconButton";
 import { PageContainer } from "./PageContainer";
+import { QueryErrorState } from "./LoadStates";
 
 function timeAgo(dateStr: string): string {
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -25,7 +26,7 @@ function timeAgo(dateStr: string): string {
 export function TrashView() {
   const qc = useQueryClient();
   const { showToast } = useUI();
-  const { data: notes = [], isLoading } = useQuery(trashQuery());
+  const { data: notes = [], isLoading, error, refetch } = useQuery(trashQuery());
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const restore = useMutation({
@@ -68,7 +69,13 @@ export function TrashView() {
           Deleted notes are kept for 30 days, then permanently removed.
         </p>
 
-        {isLoading ? (
+        {error ? (
+          <QueryErrorState
+            title="Unable to load trash"
+            message="Deleted notes could not be fetched."
+            onRetry={() => void refetch()}
+          />
+        ) : isLoading ? (
           <div className="pt-16 text-center text-sm text-text-muted">Loading...</div>
         ) : notes.length === 0 ? (
           <div className="flex flex-col items-center gap-3 pt-16 text-text-muted">

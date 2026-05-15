@@ -33,6 +33,8 @@ export function useFolderMetadata() {
 
   return {
     folders: query.data ?? [],
+    error: query.error,
+    refetch: query.refetch,
     setIcon: (path: string, icon: { icon_type: FolderIconType; icon_value: string } | null) =>
       mutation.mutateAsync({ path, icon }),
   };

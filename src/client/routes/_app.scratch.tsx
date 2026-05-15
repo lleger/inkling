@@ -14,6 +14,7 @@ import {
   scratchTitle,
   shouldResetScratchNote,
 } from "../lib/scratch-notes";
+import { RouteError } from "../components/LoadStates";
 
 export const Route = createFileRoute("/_app/scratch")({
   beforeLoad: async ({ context }) => {
@@ -46,4 +47,5 @@ export const Route = createFileRoute("/_app/scratch")({
 
     throw redirect({ to: "/notes/$id", params: { id: existing.id } });
   },
+  errorComponent: RouteError,
 });

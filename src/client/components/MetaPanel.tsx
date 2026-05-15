@@ -15,7 +15,7 @@ interface MetaPanelProps {
 
 export function MetaPanel({ note, wordCount, taskStats }: MetaPanelProps) {
   const ui = useUI();
-  const { data: backlinks } = useQuery({
+  const { data: backlinks, error: backlinksError, refetch } = useQuery({
     ...backlinksQuery(note.id),
     enabled: ui.metaPanelOpen, // only fetch when panel is open
   });
@@ -102,7 +102,15 @@ export function MetaPanel({ note, wordCount, taskStats }: MetaPanelProps) {
               </Section>
 
               <Section title="Backlinks">
-                {backlinks && backlinks.length > 0 ? (
+                {backlinksError ? (
+                  <button
+                    type="button"
+                    onClick={() => void refetch()}
+                    className="rounded-md border border-red-500/20 bg-red-500/5 px-2 py-1.5 text-left text-[12px] text-red-600 transition-colors hover:bg-red-500/10"
+                  >
+                    Failed to load backlinks. Retry
+                  </button>
+                ) : backlinks && backlinks.length > 0 ? (
                   <ul className="space-y-1">
                     {backlinks.map((bl) => (
                       <li key={bl.id}>

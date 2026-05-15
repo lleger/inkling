@@ -42,6 +42,7 @@ import { applyAccent } from "../lib/accent-colors";
 import { dailyFolder } from "../lib/daily-notes";
 import { getDefaultSidebarOpen, useUI } from "../context/UIContext";
 import { authClient } from "../lib/auth-client";
+import { RouteError } from "../components/LoadStates";
 
 export const Route = createFileRoute("/_app")({
   beforeLoad: async ({ location }) => {
@@ -54,6 +55,7 @@ export const Route = createFileRoute("/_app")({
     }
   },
   component: AppLayout,
+  errorComponent: RouteError,
 });
 
 function AppLayout() {

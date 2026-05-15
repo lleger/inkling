@@ -3,6 +3,7 @@ import { useState, useMemo } from "react";
 import { HomePage } from "../components/HomePage";
 import { useNotes } from "../hooks/useNotes";
 import { useUI } from "../context/UIContext";
+import { PageError } from "../components/LoadStates";
 
 export const Route = createFileRoute("/_app/")({
   component: HomeRoute,
@@ -11,7 +12,7 @@ export const Route = createFileRoute("/_app/")({
 function HomeRoute() {
   const navigate = useNavigate();
   const ui = useUI();
-  const { notes, create, remove, restore } = useNotes();
+  const { notes, create, remove, restore, error, refetch } = useNotes();
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   const allTags = useMemo(() => {
@@ -23,6 +24,16 @@ function HomeRoute() {
     }
     return [...set].sort();
   }, [notes]);
+
+  if (error) {
+    return (
+      <PageError
+        title="Unable to load notes"
+        message="Your notes could not be fetched."
+        onRetry={() => void refetch()}
+      />
+    );
+  }
 
   const handleCreate = async () => {
     const note = await create();
