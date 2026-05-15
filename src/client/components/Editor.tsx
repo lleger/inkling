@@ -7,10 +7,17 @@ interface EditorProps {
   content: string;
   onChange: (content: string) => void;
   mode: EditorMode;
+  copyMarkdownByDefault?: boolean;
   smartTypography?: boolean;
 }
 
-export function Editor({ content, onChange, mode, smartTypography = true }: EditorProps) {
+export function Editor({
+  content,
+  onChange,
+  mode,
+  copyMarkdownByDefault = false,
+  smartTypography = true,
+}: EditorProps) {
   if (mode === "split") {
     return (
       <div className="flex min-h-full w-full max-w-[1200px] flex-col px-4 pt-16 pb-32 animate-[fade-in_0.2s_ease-out] sm:pt-10 sm:pb-24">
@@ -36,6 +43,7 @@ export function Editor({ content, onChange, mode, smartTypography = true }: Edit
           <RichTextEditor
             initialContent={content}
             onChange={onChange}
+            copyMarkdownByDefault={copyMarkdownByDefault}
             smartTypography={smartTypography}
           />
         )}

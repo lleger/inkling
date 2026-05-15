@@ -39,6 +39,7 @@ interface RichTextEditorProps {
   initialContent: string;
   onChange: (markdown: string) => void;
   autoFocus?: boolean;
+  copyMarkdownByDefault?: boolean;
   smartTypography?: boolean;
 }
 
@@ -46,6 +47,7 @@ export function RichTextEditor({
   initialContent,
   onChange,
   autoFocus = true,
+  copyMarkdownByDefault = false,
   smartTypography = true,
 }: RichTextEditorProps) {
   const initialConfig = {
@@ -117,7 +119,7 @@ export function RichTextEditor({
         <FloatingToolbar />
         <ScrollIntoViewPlugin />
         <ClickableLinkPlugin />
-        <CopyAsMarkdownPlugin />
+        <CopyAsMarkdownPlugin copyMarkdownByDefault={copyMarkdownByDefault} />
         <UrlChipPlugin />
         <WikiLinkPlugin />
         {autoFocus && <AutoFocusPlugin />}

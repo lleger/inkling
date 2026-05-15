@@ -311,6 +311,7 @@ function NoteRoute() {
         content={currentContentRef.current}
         onChange={handleContentChange}
         mode={editorMode}
+        copyMarkdownByDefault={settings.copyMarkdownByDefault}
         smartTypography={settings.smartTypography}
       />
     </>

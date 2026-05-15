@@ -43,11 +43,16 @@
 - In markdown mode, type a markdown table
 - Switch to rich text mode — table should render with headers and borders
 
-## Copy as Markdown
+## Copy Rich Text
 - In rich text mode, select a heading and copy (Cmd+C)
-- Paste into a plain-text app — should be the markdown source (e.g. `# Heading`), not styled text
-- Copying a paragraph with a link preserves `[text](url)` syntax
-- Copying a list item preserves `- ` prefix
+- Paste into a rich destination such as Slack or a rich text field — formatting should be preserved as rich text, not pasted as markdown source
+- Paste into a plain-text app — the readable text should paste without markdown markers when possible
+
+## Copy as Markdown
+- In rich text mode, select a heading and copy with Cmd+Ctrl+Shift+C
+- Paste into a plain-text app — should be the markdown source (e.g. `# Heading`)
+- Copying a paragraph with a link via Cmd+Ctrl+Shift+C preserves `[text](url)` syntax
+- Copying a list item via Cmd+Ctrl+Shift+C preserves `- ` prefix
 
 ## Paste Markdown
 - In rich text mode, paste markdown such as `# Heading` followed by `- item`

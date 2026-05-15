@@ -7,7 +7,6 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Sidebar } from "../components/Sidebar";
-import { SettingsModal } from "../components/SettingsModal";
 import { FocusOverlay } from "../components/FocusOverlay";
 import { MoveToFolderModal } from "../components/MoveToFolderModal";
 import { FolderIconPickerModal } from "../components/FolderIconPickerModal";
@@ -64,7 +63,7 @@ function AppLayout() {
   const { notes, create, remove, restore, pin, move } = useNotes();
   const { folders: folderMetadata, setIcon: setFolderIcon } = useFolderMetadata();
   const user = useUser();
-  const { settings, update: updateSettings } = useSettings();
+  const { settings } = useSettings();
   const theme = useTheme(settings.theme);
   const { openDailyNote } = useDailyNote();
   const { openScratchNote } = useScratchNote();
@@ -244,7 +243,7 @@ function AppLayout() {
   };
 
   const openSettings = () => {
-    ui.setSettingsOpen(true);
+    navigate({ to: "/settings" });
     closeSidebarOnMobile();
   };
 
@@ -393,7 +392,7 @@ function AppLayout() {
       label: "Settings",
       icon: <Settings size={15} />,
       category: "action",
-      onSelect: () => ui.setSettingsOpen(true),
+      onSelect: openSettings,
     },
   ];
 
@@ -468,13 +467,6 @@ function AppLayout() {
         onCreateWithTitle={handleCreateWithTitle}
       />
 
-      <SettingsModal
-        open={ui.settingsOpen}
-        onClose={() => ui.setSettingsOpen(false)}
-        settings={settings}
-        onUpdateSettings={updateSettings}
-        userEmail={user?.email ?? null}
-      />
       <MoveToFolderModal
         open={ui.folderModalOpen}
         onClose={() => ui.setFolderModalOpen(false)}

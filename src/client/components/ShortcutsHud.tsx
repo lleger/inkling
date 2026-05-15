@@ -9,6 +9,7 @@ interface ShortcutsHudProps {
 }
 
 const MOD = navigator.platform.includes("Mac") ? "\u2318" : "Ctrl+";
+const CTRL = navigator.platform.includes("Mac") ? "\u2303" : "Alt+";
 const SHIFT = "\u21E7";
 
 const shortcuts = [
@@ -17,6 +18,7 @@ const shortcuts = [
   { keys: `${MOD}${SHIFT}M`, desc: "Toggle mode" },
   { keys: `${MOD}${SHIFT}S`, desc: "Toggle sidebar" },
   { keys: `${MOD}${SHIFT}F`, desc: "Focus mode" },
+  { keys: `${MOD}${CTRL}${SHIFT}C`, desc: "Copy Markdown", context: "rich text" },
   { keys: `${MOD}/`, desc: "Shortcuts" },
   { keys: "", desc: "" },
   { keys: `${MOD}B`, desc: "Bold", context: "markdown" },

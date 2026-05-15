@@ -72,6 +72,7 @@ export interface Settings {
   theme: "light" | "dark" | "system";
   accent: AccentColor;
   defaultMode: EditorMode;
+  copyMarkdownByDefault: boolean;
   smartTypography: boolean;
   dailyNoteFolder: string;
   dailyNoteTemplate: string;

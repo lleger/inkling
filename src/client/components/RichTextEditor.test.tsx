@@ -77,6 +77,19 @@ describe("RichTextEditor", () => {
     expect(container.querySelector(".editor-rich")).toBeTruthy();
   });
 
+  it("can enable markdown copy by default", () => {
+    const { container } = render(
+      <RichTextEditor
+        initialContent="**copy me**"
+        onChange={vi.fn()}
+        autoFocus={false}
+        copyMarkdownByDefault
+      />,
+    );
+
+    expect(container.querySelector(".editor-rich")).toBeTruthy();
+  });
+
   it("converts pasted markdown into rich text", async () => {
     const { container } = render(
       <RichTextEditor initialContent="" onChange={vi.fn()} autoFocus={false} />,

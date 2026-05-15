@@ -22,6 +22,7 @@ describe("useSettings", () => {
     expect(result.current.settings.theme).toBe("system");
     expect(result.current.settings.accent).toBe("orange");
     expect(result.current.settings.defaultMode).toBe("richtext");
+    expect(result.current.settings.copyMarkdownByDefault).toBe(false);
     expect(result.current.settings.smartTypography).toBe(true);
     expect(result.current.settings.dailyNoteFolder).toBe("Daily");
     expect(result.current.settings.dailyNoteTemplate).toContain("{{date}}");
@@ -44,6 +45,7 @@ describe("useSettings", () => {
     expect(result.current.settings.accent).toBe("purple");
     // Defaults filled in for missing keys
     expect(result.current.settings.defaultMode).toBe("richtext");
+    expect(result.current.settings.copyMarkdownByDefault).toBe(false);
     expect(result.current.settings.dailyNoteTemplate).toContain("{{date}}");
   });
 

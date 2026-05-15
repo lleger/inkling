@@ -13,6 +13,7 @@ const DEFAULTS: Settings = {
   theme: "system",
   accent: "orange",
   defaultMode: "richtext",
+  copyMarkdownByDefault: false,
   smartTypography: true,
   dailyNoteFolder: "Daily",
   dailyNoteTemplate: DEFAULT_DAILY_NOTE_TEMPLATE,

@@ -16,8 +16,6 @@ interface UIContextValue {
   setFocusMode: (v: boolean | ((p: boolean) => boolean)) => void;
   paletteOpen: boolean;
   setPaletteOpen: (v: boolean | ((p: boolean) => boolean)) => void;
-  settingsOpen: boolean;
-  setSettingsOpen: (v: boolean | ((p: boolean) => boolean)) => void;
   folderModalOpen: boolean;
   setFolderModalOpen: (v: boolean | ((p: boolean) => boolean)) => void;
   metaPanelOpen: boolean;
@@ -50,7 +48,6 @@ function UIProviderContent({ children }: { children: ReactNode }) {
   );
   const [focusMode, setFocusMode] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [folderModalOpen, setFolderModalOpen] = useState(false);
   const [metaPanelOpen, setMetaPanelOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
@@ -91,8 +88,6 @@ function UIProviderContent({ children }: { children: ReactNode }) {
         setFocusMode,
         paletteOpen,
         setPaletteOpen,
-        settingsOpen,
-        setSettingsOpen,
         folderModalOpen,
         setFolderModalOpen,
         metaPanelOpen,
