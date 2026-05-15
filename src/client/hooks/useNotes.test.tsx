@@ -59,8 +59,8 @@ beforeEach(() => {
   vi.mocked(api.createNote).mockResolvedValue(newNote);
   vi.mocked(api.deleteNote).mockResolvedValue(undefined);
   vi.mocked(api.restoreNote).mockResolvedValue(undefined);
-  vi.mocked(api.pinNote).mockResolvedValue(undefined);
-  vi.mocked(api.moveNoteToFolder).mockResolvedValue(undefined);
+  vi.mocked(api.pinNote).mockResolvedValue({ ...sampleNotes[0]!, pinned: 1 });
+  vi.mocked(api.moveNoteToFolder).mockResolvedValue({ ...sampleNotes[0]!, folder: "Work" });
 });
 
 describe("useNotes", () => {
@@ -220,10 +220,10 @@ describe("useNotes", () => {
     });
 
     it("pin() flips the pinned field optimistically", async () => {
-      let resolve!: () => void;
+      let resolve!: (value: NoteMeta) => void;
       vi.mocked(api.pinNote).mockImplementation(
         () =>
-          new Promise<void>((r) => {
+          new Promise<NoteMeta>((r) => {
             resolve = r;
           }),
       );
@@ -241,17 +241,17 @@ describe("useNotes", () => {
         expect(cached?.find((n) => n.id === "1")?.pinned).toBe(1);
       });
 
-      resolve();
+      resolve({ ...sampleNotes[0]!, pinned: 1 });
       await act(async () => {
         await p;
       });
     });
 
     it("move() updates folder optimistically", async () => {
-      let resolve!: () => void;
+      let resolve!: (value: NoteMeta) => void;
       vi.mocked(api.moveNoteToFolder).mockImplementation(
         () =>
-          new Promise<void>((r) => {
+          new Promise<NoteMeta>((r) => {
             resolve = r;
           }),
       );
@@ -269,7 +269,7 @@ describe("useNotes", () => {
         expect(cached?.find((n) => n.id === "1")?.folder).toBe("Personal");
       });
 
-      resolve();
+      resolve({ ...sampleNotes[0]!, folder: "Personal" });
       await act(async () => {
         await p;
       });

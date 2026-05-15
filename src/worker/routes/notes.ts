@@ -76,16 +76,16 @@ notesRoutes.delete("/:id", async (c) => {
 
 notesRoutes.put("/:id/pin", zValidator("json", pinSchema), async (c) => {
   const { pinned } = c.req.valid("json");
-  const updated = await togglePinNote(c.env.DB, c.get("userId"), c.req.param("id"), pinned);
-  if (!updated) return c.json({ error: "Not found" }, 404);
-  return c.json({ success: true });
+  const note = await togglePinNote(c.env.DB, c.get("userId"), c.req.param("id"), pinned);
+  if (!note) return c.json({ error: "Not found" }, 404);
+  return c.json({ note });
 });
 
 notesRoutes.put("/:id/folder", zValidator("json", folderSchema), async (c) => {
   const { folder } = c.req.valid("json");
-  const updated = await moveToFolder(c.env.DB, c.get("userId"), c.req.param("id"), folder);
-  if (!updated) return c.json({ error: "Not found" }, 404);
-  return c.json({ success: true });
+  const note = await moveToFolder(c.env.DB, c.get("userId"), c.req.param("id"), folder);
+  if (!note) return c.json({ error: "Not found" }, 404);
+  return c.json({ note });
 });
 
 notesRoutes.post("/:id/restore", async (c) => {

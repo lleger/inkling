@@ -72,7 +72,9 @@ beforeEach(() => {
     dailyNoteTemplate: DEFAULT_DAILY_NOTE_TEMPLATE,
   });
   vi.mocked(api.createNote).mockResolvedValue(newDailyNote);
-  vi.mocked(api.moveNoteToFolder).mockResolvedValue(undefined);
+  vi.mocked(api.moveNoteToFolder).mockImplementation((_id, folder) =>
+    Promise.resolve({ ...newDailyNote, folder }),
+  );
 });
 
 describe("todayTitle", () => {

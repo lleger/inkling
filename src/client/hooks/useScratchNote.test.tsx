@@ -53,7 +53,9 @@ beforeEach(() => {
     dailyNoteTemplate: "# {{date}}\n",
   });
   vi.mocked(api.createNote).mockResolvedValue(newScratchNote);
-  vi.mocked(api.moveNoteToFolder).mockResolvedValue(undefined);
+  vi.mocked(api.moveNoteToFolder).mockImplementation((_id, folder) =>
+    Promise.resolve({ ...newScratchNote, folder }),
+  );
   vi.mocked(api.fetchNote).mockResolvedValue(scratchNote);
   vi.mocked(api.updateNote).mockResolvedValue({ ...scratchNote, content: "# Scratch\n\n" });
 });

@@ -20,6 +20,7 @@ import { useDailyNote } from "../hooks/useDailyNote";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { noteQuery, queryKeys } from "../lib/queries";
 import { updateNote } from "../lib/api";
+import { invalidateBacklinks, writeCachedNote } from "../lib/note-cache";
 import { normalizeMarkdown } from "../lib/normalize-markdown";
 import { clearDoneTasks } from "../lib/clear-done-tasks";
 import {
@@ -93,7 +94,7 @@ function NoteRoute() {
 
   const saveMutation = useMutation({
     mutationFn: (content: string) => updateNote(id, { content }),
-    onSuccess: (_, content) => {
+    onSuccess: (savedNote, content) => {
       lastSavedContentRef.current = content;
       retryCountRef.current = 0;
       setSaveStatus(
@@ -101,12 +102,12 @@ function NoteRoute() {
           ? "saved"
           : "unsaved",
       );
+      writeCachedNote(qc, savedNote);
       qc.invalidateQueries({ queryKey: queryKeys.notes });
-      qc.invalidateQueries({ queryKey: queryKeys.note(id) });
       // Saving may add/remove wiki-links → backlinks for the targets
       // change. Invalidate broadly; cheap, only refetches when panels
       // are mounted.
-      qc.invalidateQueries({ queryKey: ["backlinks"] });
+      invalidateBacklinks(qc);
     },
   });
 
