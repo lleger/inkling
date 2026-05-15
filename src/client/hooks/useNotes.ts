@@ -4,6 +4,7 @@ import { notesQuery, queryKeys } from "../lib/queries";
 import {
   addCachedTrashEntry,
   invalidateNoteLists,
+  invalidateNotes,
   patchCachedNote,
   removeCachedNoteMeta,
   removeCachedTrashEntry,
@@ -45,7 +46,7 @@ export function useNotes() {
     onSuccess: (note) => {
       writeCachedNote(qc, note);
       // Server will re-sort by pinned/updated_at; refetch in the background.
-      qc.invalidateQueries({ queryKey: queryKeys.notes });
+      invalidateNotes(qc);
     },
   });
 
@@ -95,7 +96,7 @@ export function useNotes() {
       upsertCachedNoteMeta(qc, note);
       patchCachedNote(qc, note.id, note);
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: queryKeys.notes }),
+    onSettled: () => invalidateNotes(qc),
   });
 
   // MOVE — swap folder field in-place.
@@ -114,7 +115,7 @@ export function useNotes() {
       upsertCachedNoteMeta(qc, note);
       patchCachedNote(qc, note.id, note);
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: queryKeys.notes }),
+    onSettled: () => invalidateNotes(qc),
   });
 
   return {

@@ -18,9 +18,9 @@ import { useUI } from "../context/UIContext";
 import { useSettings } from "../hooks/useSettings";
 import { useDailyNote } from "../hooks/useDailyNote";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
-import { noteQuery, queryKeys } from "../lib/queries";
+import { noteQuery } from "../lib/queries";
 import { updateNote } from "../lib/api";
-import { invalidateBacklinks, writeCachedNote } from "../lib/note-cache";
+import { invalidateBacklinks, invalidateNotes, writeCachedNote } from "../lib/note-cache";
 import { normalizeMarkdown } from "../lib/normalize-markdown";
 import { clearDoneTasks } from "../lib/clear-done-tasks";
 import {
@@ -103,7 +103,7 @@ function NoteRoute() {
           : "unsaved",
       );
       writeCachedNote(qc, savedNote);
-      qc.invalidateQueries({ queryKey: queryKeys.notes });
+      invalidateNotes(qc);
       // Saving may add/remove wiki-links → backlinks for the targets
       // change. Invalidate broadly; cheap, only refetches when panels
       // are mounted.
