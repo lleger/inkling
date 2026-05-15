@@ -60,6 +60,10 @@ export function removeCachedTrashEntry(qc: QueryClient, id: string) {
   );
 }
 
+export function invalidateNote(qc: QueryClient, id: string) {
+  qc.invalidateQueries({ queryKey: queryKeys.note(id) });
+}
+
 export function invalidateNotes(qc: QueryClient) {
   qc.invalidateQueries({ queryKey: queryKeys.notes });
 }

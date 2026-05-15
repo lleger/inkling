@@ -2,7 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Trash2, RotateCcw, X } from "lucide-react";
 import { restoreNote, permanentlyDeleteNote } from "../lib/api";
-import { trashQuery, queryKeys } from "../lib/queries";
+import { trashQuery } from "../lib/queries";
+import { invalidateNoteLists } from "../lib/note-cache";
 import { useUI } from "../context/UIContext";
 import { AlertDialog } from "./ui/AlertDialog";
 import { IconButton } from "./ui/IconButton";
@@ -27,13 +28,14 @@ export function TrashView() {
   const { data: notes = [], isLoading } = useQuery(trashQuery());
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const invalidate = () => {
-    qc.invalidateQueries({ queryKey: queryKeys.trash });
-    qc.invalidateQueries({ queryKey: queryKeys.notes });
-  };
-
-  const restore = useMutation({ mutationFn: restoreNote, onSuccess: invalidate });
-  const purge = useMutation({ mutationFn: permanentlyDeleteNote, onSuccess: invalidate });
+  const restore = useMutation({
+    mutationFn: restoreNote,
+    onSuccess: () => invalidateNoteLists(qc),
+  });
+  const purge = useMutation({
+    mutationFn: permanentlyDeleteNote,
+    onSuccess: () => invalidateNoteLists(qc),
+  });
 
   const deleteNote = notes.find((note) => note.id === deleteId);
 

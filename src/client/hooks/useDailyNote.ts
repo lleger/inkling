@@ -2,7 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useNotes } from "./useNotes";
 import { useSettings } from "./useSettings";
-import { queryKeys } from "../lib/queries";
+import { invalidateNotes } from "../lib/note-cache";
 import {
   dailyFolder,
   dailyTitle,
@@ -43,7 +43,7 @@ export function useDailyNote() {
     if (folder) {
       await move(note.id, folder);
     }
-    qc.invalidateQueries({ queryKey: queryKeys.notes });
+    invalidateNotes(qc);
     navigate({ to: "/notes/$id", params: { id: note.id } });
   };
 

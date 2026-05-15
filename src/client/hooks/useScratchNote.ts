@@ -2,7 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useNotes } from "./useNotes";
 import * as api from "../lib/api";
-import { queryKeys } from "../lib/queries";
+import { invalidateNote, invalidateNotes, writeCachedNote } from "../lib/note-cache";
 import {
   findScratchNote,
   renderScratchNoteTemplate,
@@ -34,13 +34,13 @@ export function useScratchNote() {
       if (shouldResetScratchNote(existing.updated_at)) {
         const note = await api.fetchNote(id);
         if (note.content.trim() !== renderScratchNoteTemplate().trim()) {
-          await api.updateNote(id, { content: renderScratchNoteTemplate() });
+          writeCachedNote(qc, await api.updateNote(id, { content: renderScratchNoteTemplate() }));
         }
       }
     }
 
-    qc.invalidateQueries({ queryKey: queryKeys.notes });
-    qc.invalidateQueries({ queryKey: queryKeys.note(id) });
+    invalidateNotes(qc);
+    invalidateNote(qc, id);
     navigate({ to: "/notes/$id", params: { id } });
   };
 
