@@ -8,12 +8,14 @@ import {
   Columns2,
   Maximize,
   Info,
+  ListTree,
   ChevronLeft,
   ChevronRight,
   CalendarDays,
 } from "lucide-react";
 import { Editor } from "../components/Editor";
 import { MetaPanel } from "../components/MetaPanel";
+import { TableOfContentsDrawer } from "../components/TableOfContents";
 import { useUI } from "../context/UIContext";
 import { useSettings } from "../hooks/useSettings";
 import { useDailyNote } from "../hooks/useDailyNote";
@@ -32,6 +34,12 @@ import {
   parseDailyTitle,
 } from "../lib/daily-notes";
 import { saveStatusMeta } from "../lib/save-status";
+import {
+  normalizeHeadingText,
+  parseMarkdownHeadingLine,
+  parseTableOfContents,
+  type TocHeading,
+} from "../lib/table-of-contents";
 import type { EditorMode, SaveStatus } from "../types";
 
 export const Route = createFileRoute("/_app/notes/$id")({
@@ -54,6 +62,9 @@ function NoteRoute() {
   const [editorKey, setEditorKey] = useState(0);
   const [wordCount, setWordCount] = useState(0);
   const [taskStats, setTaskStats] = useState<{ done: number; total: number } | null>(null);
+  const [tocHeadings, setTocHeadings] = useState<TocHeading[]>([]);
+  const [activeHeadingId, setActiveHeadingId] = useState<string | null>(null);
+  const [outlineOpen, setOutlineOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -69,7 +80,19 @@ function NoteRoute() {
     const undone = (content.match(/- \[ \]/g) || []).length;
     const total = done + undone;
     setTaskStats(total > 0 ? { done, total } : null);
+    setTocHeadings(parseTableOfContents(content));
   }, []);
+
+  const scrollToHeading = useCallback(
+    (heading: TocHeading) => {
+      const target = getHeadingTargets(tocHeadings, editorMode).get(heading.id);
+      if (!target) return;
+
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      setActiveHeadingId(heading.id);
+    },
+    [editorMode, tocHeadings],
+  );
 
   // When note changes (route param or first load), reset editor state
   useEffect(() => {
@@ -89,6 +112,55 @@ function NoteRoute() {
   useEffect(() => {
     setGlobalSaveStatus(saveStatus);
   }, [saveStatus, setGlobalSaveStatus]);
+
+  useEffect(() => {
+    if (editorMode === "split" || ui.focusMode || tocHeadings.length === 0) {
+      setOutlineOpen(false);
+    }
+  }, [editorMode, tocHeadings.length, ui.focusMode]);
+
+  useEffect(() => {
+    if (editorMode === "split" || ui.focusMode || tocHeadings.length === 0) {
+      setActiveHeadingId(null);
+      return;
+    }
+
+    const scrollParent = document.querySelector("main.overflow-y-auto") as HTMLElement | null;
+    if (!scrollParent) return;
+
+    let frame = 0;
+    const updateActiveHeading = () => {
+      frame = 0;
+      const targets = getHeadingTargets(tocHeadings, editorMode);
+      const parentTop = scrollParent.getBoundingClientRect().top;
+      let active = tocHeadings[0]?.id ?? null;
+
+      for (const heading of tocHeadings) {
+        const target = targets.get(heading.id);
+        if (!target) continue;
+        if (target.getBoundingClientRect().top - parentTop <= 96) {
+          active = heading.id;
+        } else {
+          break;
+        }
+      }
+
+      setActiveHeadingId(active);
+    };
+    const onScroll = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(updateActiveHeading);
+    };
+
+    updateActiveHeading();
+    scrollParent.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      scrollParent.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [editorMode, tocHeadings, ui.focusMode]);
 
   useEffect(() => () => setGlobalSaveStatus("saved"), [setGlobalSaveStatus]);
 
@@ -270,6 +342,19 @@ function NoteRoute() {
         >
           <Info size={15} />
         </button>
+        {editorMode !== "split" && tocHeadings.length > 0 && (
+          <button
+            onClick={() => setOutlineOpen(true)}
+            title="Outline"
+            className={`flex size-8 items-center justify-center rounded-md transition-colors ${
+              outlineOpen
+                ? "text-accent"
+                : "text-text-muted hover:bg-surface-hover hover:text-text-secondary"
+            }`}
+          >
+            <ListTree size={15} />
+          </button>
+        )}
         <button
           onClick={() => ui.setFocusMode(true)}
           title="Focus mode"
@@ -280,6 +365,14 @@ function NoteRoute() {
       </div>
 
       <MetaPanel note={note} wordCount={wordCount} taskStats={taskStats} />
+
+      <TableOfContentsDrawer
+        headings={tocHeadings}
+        activeHeadingId={activeHeadingId}
+        onSelect={scrollToHeading}
+        open={outlineOpen}
+        onOpenChange={setOutlineOpen}
+      />
 
       {/* Stats — bottom right */}
       <div
@@ -327,6 +420,60 @@ function NoteRoute() {
       />
     </>
   );
+}
+
+function getHeadingTargets(headings: TocHeading[], mode: EditorMode): Map<string, HTMLElement> {
+  const targets = new Map<string, HTMLElement>();
+  const occurrences = new Map<string, number>();
+  const elements = getHeadingElements(mode);
+
+  for (const element of elements) {
+    const parsed = getElementHeading(element, mode);
+    if (!parsed) continue;
+
+    const textKey = normalizeHeadingText(parsed.text);
+    const occurrence = (occurrences.get(textKey) ?? 0) + 1;
+    occurrences.set(textKey, occurrence);
+
+    const heading = headings.find(
+      (h) =>
+        h.level === parsed.level &&
+        normalizeHeadingText(h.text) === textKey &&
+        h.occurrence === occurrence,
+    );
+    if (heading) targets.set(heading.id, element);
+  }
+
+  return targets;
+}
+
+function getHeadingElements(mode: EditorMode): HTMLElement[] {
+  if (mode === "markdown") {
+    return Array.from(
+      document.querySelectorAll<HTMLElement>(".editor-mono .editor-paragraph-mono"),
+    );
+  }
+
+  return Array.from(
+    document.querySelectorAll<HTMLElement>(
+      ".editor-rich .editor-heading-h1, .editor-rich .editor-heading-h2, .editor-rich .editor-heading-h3, .editor-rich .editor-heading-h4, .editor-rich .editor-heading-h5, .editor-rich .editor-heading-h6",
+    ),
+  );
+}
+
+function getElementHeading(
+  element: HTMLElement,
+  mode: EditorMode,
+): { level: TocHeading["level"]; text: string } | null {
+  if (mode === "markdown") return parseMarkdownHeadingLine(element.textContent ?? "");
+
+  const match = element.className.match(/editor-heading-h([1-6])/);
+  if (!match) return null;
+
+  const text = (element.textContent ?? "").trim();
+  if (!text) return null;
+
+  return { level: Number(match[1]) as TocHeading["level"], text };
 }
 
 function DailyDatePicker({ date, onSelect }: { date: Date; onSelect: (date: Date) => void }) {
