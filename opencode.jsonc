@@ -7,8 +7,16 @@
       "url": "https://ui.sh/mcp?agent=opencode",
       "enabled": true,
       "headers": {
-        "Authorization": "Bearer {env:UIDOTSH_TOKEN}"
-      }
-    }
-  }
+        "Authorization": "Bearer {env:UIDOTSH_TOKEN}",
+      },
+    },
+    "cloudflare": {
+      "type": "remote",
+      "url": "https://mcp.cloudflare.com/mcp",
+      "enabled": true,
+      "headers": {
+        "Authorization": "Bearer {env:CLOUDFLARE_API_TOKEN}",
+      },
+    },
+  },
 }
