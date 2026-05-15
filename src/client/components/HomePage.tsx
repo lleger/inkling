@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useRef } from "react";
 import { Search, Plus, FileText, CheckSquare, X, Upload } from "lucide-react";
 import type { NoteMeta } from "../types";
 import { IconButton } from "./ui/IconButton";
+import { PageContainer } from "./PageContainer";
 
 function timeAgo(dateStr: string): string {
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -112,10 +113,8 @@ export function HomePage({
   }, [notes]);
 
   return (
-    <div
-      className={`flex min-h-full w-full max-w-[680px] flex-col px-4 pt-16 pb-32 animate-[fade-in_0.2s_ease-out] transition-colors sm:px-6 sm:pt-12 sm:pb-24 ${
-        dragFiles.length > 0 ? "bg-accent/5" : ""
-      }`}
+    <PageContainer
+      className={dragFiles.length > 0 ? "bg-accent/5 transition-colors" : "transition-colors"}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -297,6 +296,6 @@ export function HomePage({
           </button>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

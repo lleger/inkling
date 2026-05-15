@@ -6,6 +6,7 @@ import { trashQuery, queryKeys } from "../lib/queries";
 import { useUI } from "../context/UIContext";
 import { AlertDialog } from "./ui/AlertDialog";
 import { IconButton } from "./ui/IconButton";
+import { PageContainer } from "./PageContainer";
 
 function timeAgo(dateStr: string): string {
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -55,7 +56,7 @@ export function TrashView() {
 
   return (
     <>
-      <div className="flex min-h-full w-full max-w-[680px] flex-col px-4 pt-16 pb-32 animate-[fade-in_0.2s_ease-out] sm:px-6 sm:pt-12 sm:pb-24">
+      <PageContainer>
         <div className="mb-8 flex items-center gap-2 text-text-secondary">
           <Trash2 size={18} />
           <h2 className="text-lg font-semibold">Trash</h2>
@@ -109,7 +110,7 @@ export function TrashView() {
             ))}
           </div>
         )}
-      </div>
+      </PageContainer>
 
       <AlertDialog
         open={deleteId !== null}

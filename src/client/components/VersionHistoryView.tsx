@@ -6,6 +6,7 @@ import { versionQuery, versionsQuery } from "../lib/queries";
 import { RichTextPreview } from "./RichTextPreview";
 import { IconButton } from "./ui/IconButton";
 import type { Note } from "../types";
+import { PageContainer } from "./PageContainer";
 
 function timeAgo(dateStr: string): string {
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
@@ -54,7 +55,7 @@ export function VersionHistoryView({
   }, [restore, selectedId]);
 
   return (
-    <div className="flex min-h-full w-full max-w-[900px] flex-col px-4 pt-16 pb-32 animate-[fade-in_0.2s_ease-out] sm:px-6 sm:pt-10 sm:pb-24">
+    <PageContainer maxWidth="max-w-[900px]">
       {/* Header */}
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <IconButton
@@ -139,6 +140,6 @@ export function VersionHistoryView({
           </div>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

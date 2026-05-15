@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useDailyNote } from "../hooks/useDailyNote";
 import { useNotes } from "../hooks/useNotes";
 import { useSettings } from "../hooks/useSettings";
+import { PageContainer } from "../components/PageContainer";
 import { dailyFolder, dailyLabel, isDailyNote, parseDailyTitle } from "../lib/daily-notes";
 import type { NoteMeta } from "../types";
 
@@ -22,7 +23,7 @@ function DailyRoute() {
   const hasDailyNotes = groups.length > 0;
 
   return (
-    <div className="flex min-h-full w-full max-w-[720px] flex-col px-4 pt-16 pb-32 animate-[fade-in_0.2s_ease-out] sm:px-6 sm:pt-12 sm:pb-24">
+    <PageContainer maxWidth="max-w-[720px]">
       <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-text">
@@ -88,7 +89,6 @@ function DailyRoute() {
               </div>
             </section>
           ))}
-          <div className="h-16" aria-hidden="true" />
         </div>
       ) : (
         <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-surface-secondary px-6 py-12 text-center">
@@ -104,7 +104,7 @@ function DailyRoute() {
           </button>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }
 
