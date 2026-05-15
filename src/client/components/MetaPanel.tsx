@@ -15,7 +15,11 @@ interface MetaPanelProps {
 
 export function MetaPanel({ note, wordCount, taskStats }: MetaPanelProps) {
   const ui = useUI();
-  const { data: backlinks, error: backlinksError, refetch } = useQuery({
+  const {
+    data: backlinks,
+    error: backlinksError,
+    refetch,
+  } = useQuery({
     ...backlinksQuery(note.id),
     enabled: ui.metaPanelOpen, // only fetch when panel is open
   });
