@@ -227,7 +227,7 @@ function NoteRoute() {
   return (
     <>
       {dailyDate && !ui.focusMode && (
-        <div className="fixed top-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-lg border border-border bg-surface-secondary/90 p-0.5 shadow-sm backdrop-blur-sm">
+        <div className="fixed top-14 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-lg border border-border bg-surface-secondary/90 p-0.5 shadow-sm backdrop-blur-sm sm:top-3">
           <button
             onClick={() => openDailyNote(addDays(dailyDate, -1))}
             title="Open previous day"
