@@ -38,47 +38,14 @@ export function QueryErrorState({
 
 export function PageLoading({ label = "Loading..." }: { label?: string }) {
   return (
-    <PageContainer className="items-center">
-      <div
-        className="w-full max-w-xl rounded-2xl border border-border bg-surface-secondary/50 p-4 shadow-sm sm:p-5"
-        aria-label={label}
-      >
-        <div className="mb-5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="grid size-9 place-items-center rounded-xl border border-border bg-surface">
-              <div className="size-2 rounded-full bg-accent animate-pulse" />
-            </div>
-            <div>
-              <p className="text-base font-medium text-text sm:text-sm">{label}</p>
-              <p className="text-base text-text-muted sm:text-xs">Preparing your workspace</p>
-            </div>
-          </div>
-          <div className="hidden rounded-full border border-border bg-surface px-2.5 py-1 text-xs font-medium text-text-muted sm:block">
-            Inkling
-          </div>
-        </div>
-
-        <div className="space-y-3" aria-hidden="true">
-          <div className="h-3 w-2/3 rounded-full bg-surface-tertiary animate-pulse" />
-          <div className="h-3 w-full rounded-full bg-surface-tertiary animate-pulse [animation-delay:120ms]" />
-          <div className="h-3 w-5/6 rounded-full bg-surface-tertiary animate-pulse [animation-delay:240ms]" />
-          <div className="grid gap-3 pt-3 sm:grid-cols-2">
-            <div className="rounded-xl border border-border bg-surface p-3">
-              <div className="mb-3 h-2.5 w-16 rounded-full bg-surface-tertiary animate-pulse" />
-              <div className="space-y-2">
-                <div className="h-2.5 w-full rounded-full bg-surface-tertiary animate-pulse [animation-delay:160ms]" />
-                <div className="h-2.5 w-3/4 rounded-full bg-surface-tertiary animate-pulse [animation-delay:260ms]" />
-              </div>
-            </div>
-            <div className="rounded-xl border border-border bg-surface p-3">
-              <div className="mb-3 h-2.5 w-20 rounded-full bg-surface-tertiary animate-pulse [animation-delay:80ms]" />
-              <div className="space-y-2">
-                <div className="h-2.5 w-5/6 rounded-full bg-surface-tertiary animate-pulse [animation-delay:220ms]" />
-                <div className="h-2.5 w-1/2 rounded-full bg-surface-tertiary animate-pulse [animation-delay:320ms]" />
-              </div>
-            </div>
-          </div>
-        </div>
+    <PageContainer aria-label={label} role="status">
+      <span className="sr-only">{label}</span>
+      <div className="space-y-3" aria-hidden="true">
+        <div className="h-2 w-2/5 rounded-full bg-surface-tertiary animate-pulse" />
+        <div className="h-2 w-4/5 rounded-full bg-surface-tertiary animate-pulse [animation-delay:120ms]" />
+        <div className="h-2 w-3/5 rounded-full bg-surface-tertiary animate-pulse [animation-delay:240ms]" />
+        <div className="h-2 w-full rounded-full bg-surface-tertiary animate-pulse [animation-delay:360ms]" />
+        <div className="h-2 w-1/2 rounded-full bg-surface-tertiary animate-pulse [animation-delay:480ms]" />
       </div>
     </PageContainer>
   );
