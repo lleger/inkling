@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import type { Env } from "./types";
+import { getExecutionContext } from "./context";
 import { authMiddleware } from "./middleware/auth";
 import { getAuth } from "./auth";
 import { notesRoutes } from "./routes/notes";
@@ -30,7 +31,7 @@ app.get("/api/health", (c) => c.json({ ok: true }));
 // learn whether they got a cookie — same as the inevitable side-effect of
 // "you are now signed in."
 app.post("/api/auth/sign-up/email", async (c) => {
-  const auth = getAuth(c.env, c.req.url);
+  const auth = getAuth(c.env, c.req.url, getExecutionContext(c));
   let setCookies: string[] = [];
   try {
     const upstream = await auth.handler(c.req.raw);
@@ -51,7 +52,7 @@ app.post("/api/auth/sign-up/email", async (c) => {
 });
 
 app.all("/api/auth/*", async (c) => {
-  const auth = getAuth(c.env, c.req.url);
+  const auth = getAuth(c.env, c.req.url, getExecutionContext(c));
   try {
     return await auth.handler(c.req.raw.clone() as Request);
   } catch (err) {

@@ -1,4 +1,5 @@
 import { createMiddleware } from "hono/factory";
+import { getExecutionContext } from "../context";
 import type { Env } from "../types";
 import { getAuth } from "../auth";
 
@@ -11,7 +12,7 @@ export const authMiddleware = createMiddleware<{
   Bindings: Env;
   Variables: AuthVars;
 }>(async (c, next) => {
-  const auth = getAuth(c.env, c.req.url);
+  const auth = getAuth(c.env, c.req.url, getExecutionContext(c));
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
 
   if (session?.user) {

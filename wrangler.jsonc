@@ -15,6 +15,7 @@
 //
 // Optional vars:
 //   GOOGLE_CLIENT_ID — public OAuth client ID for Google sign-in.
+//   EMAIL_FROM       — sender address for auth emails.
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "inkling",
@@ -49,7 +50,8 @@
   // you want the allowlist hidden from anyone with read-only deploy access.
   "vars": {
     "SIGNUP_MODE": "allowlist",
-    "ALLOWED_EMAILS": "logan@loganleger.com,mstall2@gmail.com",
+    "ALLOWED_EMAILS": "logan@loganleger.com,logan.leger@gmail.com,mstall2@gmail.com",
+    "EMAIL_FROM": "Inkling <no-reply@mail.inkling.page>",
   },
 
   "assets": {
@@ -62,6 +64,12 @@
       "database_name": "inkling-db",
       "database_id": "6cc9d799-a795-46ac-8d7b-1d3da8a60284",
       "migrations_dir": "src/worker/db/migrations",
+    },
+  ],
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "remote": true,
     },
   ],
 }

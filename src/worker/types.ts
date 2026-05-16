@@ -1,7 +1,10 @@
 export interface Env {
   DB: D1Database;
+  EMAIL: SendEmail;
   /** Required. better-auth session HMAC secret. Worker fails fast if unset. */
   BETTER_AUTH_SECRET?: string;
+  /** Sender address for auth emails. Defaults to no-reply@mail.inkling.page. */
+  EMAIL_FROM?: string;
   /**
    * Required. Sign-up policy:
    *   "allowlist" — only emails in ALLOWED_EMAILS may register

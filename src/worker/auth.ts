@@ -1,8 +1,10 @@
 import { betterAuth } from "better-auth";
 import { APIError } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { magicLink } from "better-auth/plugins";
 import { makeDb } from "./db/client";
 import * as schema from "./db/schema";
+import { sendAuthEmail } from "./email";
 import type { Env } from "./types";
 
 type SignupMode = "allowlist" | "open";
@@ -41,7 +43,15 @@ function parseAllowlist(env: Env): Set<string> {
  * empty allowlist when SIGNUP_MODE=allowlist. Failing loud is intentional —
  * misconfiguration shouldn't silently weaken security posture.
  */
-export function getAuth(env: Env, requestUrl: string) {
+function waitForEmail(ctx: ExecutionContext | undefined, task: Promise<unknown>) {
+  if (ctx) {
+    ctx.waitUntil(task);
+    return;
+  }
+  void task;
+}
+
+export function getAuth(env: Env, requestUrl: string, ctx?: ExecutionContext) {
   if (!env.BETTER_AUTH_SECRET) {
     throw new Error("BETTER_AUTH_SECRET is required");
   }
@@ -62,8 +72,40 @@ export function getAuth(env: Env, requestUrl: string) {
     secret: env.BETTER_AUTH_SECRET,
     emailAndPassword: {
       enabled: true,
-      requireEmailVerification: false,
-      autoSignIn: true,
+      requireEmailVerification: true,
+      autoSignIn: false,
+      revokeSessionsOnPasswordReset: true,
+      sendResetPassword: async ({ user, url }) => {
+        waitForEmail(
+          ctx,
+          sendAuthEmail(env, {
+            to: user.email,
+            subject: "Reset your Inkling password",
+            title: "Reset your password",
+            body: "Use this link to choose a new password for your Inkling account. It expires in 1 hour.",
+            actionText: "Reset password",
+            actionUrl: url,
+          }),
+        );
+      },
+    },
+    emailVerification: {
+      sendOnSignUp: true,
+      sendOnSignIn: true,
+      autoSignInAfterVerification: true,
+      sendVerificationEmail: async ({ user, url }) => {
+        waitForEmail(
+          ctx,
+          sendAuthEmail(env, {
+            to: user.email,
+            subject: "Verify your Inkling email",
+            title: "Verify your email",
+            body: "Confirm this email address to finish setting up your Inkling account.",
+            actionText: "Verify email",
+            actionUrl: url,
+          }),
+        );
+      },
     },
     socialProviders:
       env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
@@ -91,6 +133,25 @@ export function getAuth(env: Env, requestUrl: string) {
           },
         }
       : undefined,
+    plugins: [
+      magicLink({
+        disableSignUp: true,
+        expiresIn: 300,
+        sendMagicLink: async ({ email, url }) => {
+          waitForEmail(
+            ctx,
+            sendAuthEmail(env, {
+              to: email,
+              subject: "Sign in to Inkling",
+              title: "Your sign-in link",
+              body: "Use this link to sign in to Inkling. It expires in 5 minutes.",
+              actionText: "Sign in",
+              actionUrl: url,
+            }),
+          );
+        },
+      }),
+    ],
     advanced: {
       defaultCookieAttributes: {
         sameSite: "lax",
