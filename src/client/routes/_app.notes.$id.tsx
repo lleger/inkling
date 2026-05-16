@@ -294,9 +294,9 @@ function NoteRoute() {
     <button
       onClick={() => setModeTo(mode)}
       title={title}
-      className={`flex size-8 items-center justify-center rounded-md transition-all ${
+      className={`flex size-8 items-center justify-center rounded-md transition-colors ${
         editorMode === mode
-          ? "text-accent"
+          ? "bg-surface-active text-accent shadow-sm motion-pop-in"
           : "text-text-muted hover:bg-surface-hover hover:text-text-secondary"
       }`}
     >

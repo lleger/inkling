@@ -122,7 +122,7 @@ export function HomePage({
     >
       {/* Drag overlay */}
       {dragFiles.length > 0 && (
-        <div className="pointer-events-none mb-6 flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-accent bg-accent/5 py-8 text-accent">
+        <div className="pointer-events-none mb-6 flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-accent bg-accent/5 py-8 text-accent motion-drop-target-in">
           <Upload size={24} />
           {dragFiles.some((n) => n !== "file") ? (
             <div className="flex flex-col items-center gap-1">

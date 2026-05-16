@@ -5,7 +5,18 @@ import { Editor } from "./Editor";
 import { makeQueryWrapper } from "../hooks/test-utils";
 import type { EditorMode } from "../types";
 
-afterEach(cleanup);
+const { uploadAttachmentMock } = vi.hoisted(() => ({
+  uploadAttachmentMock: vi.fn(),
+}));
+
+vi.mock("../lib/api", () => ({
+  uploadAttachment: uploadAttachmentMock,
+}));
+
+afterEach(() => {
+  cleanup();
+  uploadAttachmentMock.mockReset();
+});
 
 function render(ui: React.ReactElement) {
   const { Wrapper } = makeQueryWrapper();
@@ -85,6 +96,43 @@ describe("Editor", () => {
       expect(container.querySelector(".editor-mono")).toBeNull();
       expect(container.querySelector(".editor-heading-h1")?.textContent).toBe("Fast Flow");
       expect(container.querySelector(".editor-listitem")?.textContent).toBe("item one");
+    });
+  });
+
+  it("shows a drop zone when files are dragged over the editor", () => {
+    const { container } = render(<Editor {...baseProps} mode="markdown" noteId="note-1" />);
+    const editor = container.firstElementChild!;
+
+    fireEvent.dragEnter(editor, { dataTransfer: { types: ["Files"] } });
+
+    expect(screen.getByText("Drop files to attach")).toBeTruthy();
+  });
+
+  it("shows upload progress for dropped attachments and inserts markdown when complete", async () => {
+    uploadAttachmentMock.mockResolvedValueOnce({
+      id: "att-1",
+      note_id: "note-1",
+      filename: "brief.pdf",
+      content_type: "application/pdf",
+      size: 12,
+      created_at: "2026-01-01T00:00:00.000Z",
+      url: "/api/attachments/att-1/content",
+    });
+    const onChange = vi.fn();
+    const file = new File(["hello"], "brief.pdf", { type: "application/pdf" });
+    const { container } = render(
+      <Editor content="Existing" onChange={onChange} mode="markdown" noteId="note-1" />,
+    );
+    const editor = container.firstElementChild!;
+
+    fireEvent.drop(editor, { dataTransfer: { files: [file] } });
+
+    expect(await screen.findByText("Uploading attachments")).toBeTruthy();
+    expect(screen.getByText("brief.pdf")).toBeTruthy();
+    await waitFor(() => {
+      expect(onChange).toHaveBeenCalledWith(
+        "Existing\n\n[brief.pdf](/api/attachments/att-1/content)\n",
+      );
     });
   });
 });

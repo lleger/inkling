@@ -25,7 +25,7 @@ export function TableOfContentsDrawer({
   return (
     <Drawer.Root open={open} onOpenChange={onOpenChange} swipeDirection="down">
       <Drawer.Portal>
-        <Drawer.Backdrop className="fixed inset-0 z-40 bg-surface-overlay animate-[fade-in_0.1s_ease-out] xl:hidden" />
+        <Drawer.Backdrop className="drawer-backdrop-fade fixed inset-0 z-40 bg-surface-overlay animate-[fade-in_0.1s_ease-out] xl:hidden" />
         <Drawer.Viewport className="pointer-events-none fixed inset-0 z-40 flex items-end justify-center xl:items-stretch xl:justify-end">
           <Drawer.Popup className="meta-panel-drawer pointer-events-auto flex max-h-[min(80dvh,34rem)] w-full flex-col rounded-t-xl border border-b-0 border-border bg-surface shadow-2xl xl:h-full xl:max-h-none xl:w-[min(100vw,22rem)] xl:rounded-none xl:border-y-0 xl:border-r-0 xl:border-l xl:shadow-lg">
             <header className="flex items-center justify-between border-b border-border px-4 py-3">

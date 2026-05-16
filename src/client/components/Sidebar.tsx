@@ -399,12 +399,17 @@ export function Sidebar({
             },
           ]}
         />
-        {isExpanded && (
+        <div
+          className="sidebar-folder-children"
+          data-expanded={isExpanded}
+          aria-hidden={!isExpanded}
+          inert={!isExpanded}
+        >
           <div>
             {folder.children.map((child) => renderFolder(child, depth + 1))}
             {folder.notes.map((note) => renderNoteItem(note, depth + 1))}
           </div>
-        )}
+        </div>
       </div>
     );
   };
