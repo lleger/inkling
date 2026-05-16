@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useNotes } from "./useNotes";
 import { useSettings } from "./useSettings";
 import { invalidateNotes } from "../lib/note-cache";
+import { notesQuery } from "../lib/queries";
 import {
   dailyFolder,
   dailyTitle,
@@ -22,14 +23,15 @@ export function todayTitle(d: Date = new Date()): string {
 export function useDailyNote() {
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { notes, create, move } = useNotes();
+  const { notes, loading, create, move } = useNotes();
   const { settings } = useSettings();
 
   const openDailyNote = async (date: Date = new Date()) => {
     const title = dailyTitle(date);
     const folder = dailyFolder(settings);
 
-    const existing = findDailyNote(notes as NoteMeta[], date, folder);
+    const availableNotes = loading ? await qc.ensureQueryData(notesQuery()) : notes;
+    const existing = findDailyNote(availableNotes as NoteMeta[], date, folder);
 
     if (existing) {
       navigate({ to: "/notes/$id", params: { id: existing.id } });

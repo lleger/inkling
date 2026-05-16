@@ -128,6 +128,7 @@ function buildFolderTree(
 
 interface SidebarProps {
   notes: NoteMeta[];
+  loading?: boolean;
   activeNoteId: string | null;
   onSelectNote: (id: string) => void;
   onCreateNote: () => void;
@@ -157,6 +158,7 @@ interface SidebarProps {
 
 export function Sidebar({
   notes,
+  loading = false,
   activeNoteId,
   onSelectNote,
   onCreateNote,
@@ -185,6 +187,25 @@ export function Sidebar({
 }: SidebarProps) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(["__all__"]));
   const { tree, unfiled } = buildFolderTree(notes, new Set([dailyNoteFolder, scratchFolder()]));
+
+  const renderLoadingRows = () => (
+    <div className="px-1 py-2" aria-label="Loading notes" role="status">
+      <span className="sr-only">Loading notes...</span>
+      {["w-4/5", "w-2/3", "w-5/6", "w-3/5"].map((width, index) => (
+        <div
+          key={width}
+          className="flex min-h-10 items-center gap-2 rounded-md px-2 py-2 md:min-h-0"
+          aria-hidden="true"
+        >
+          <div className="size-1.5 rounded-full bg-surface-tertiary animate-pulse" />
+          <div
+            className={`h-2 ${width} rounded-full bg-surface-tertiary animate-pulse`}
+            style={{ animationDelay: `${index * 120}ms` }}
+          />
+        </div>
+      ))}
+    </div>
+  );
 
   const toggleFolder = (path: string) => {
     setExpandedFolders((prev) => {
@@ -485,12 +506,12 @@ export function Sidebar({
         {renderScratchSection()}
 
         {/* Folders */}
-        {tree.map((folder) => renderFolder(folder))}
+        {loading ? renderLoadingRows() : tree.map((folder) => renderFolder(folder))}
 
         {/* Unfiled notes */}
-        {unfiled.filter((n) => !n.pinned).map((note) => renderNoteItem(note))}
+        {!loading && unfiled.filter((n) => !n.pinned).map((note) => renderNoteItem(note))}
 
-        {notes.length === 0 && (
+        {!loading && notes.length === 0 && (
           <div className="px-2 py-8 text-center text-xs text-text-muted">No notes yet</div>
         )}
       </div>

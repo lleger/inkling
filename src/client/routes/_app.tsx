@@ -44,9 +44,10 @@ import { scratchFolder } from "../lib/scratch-notes";
 import { getDefaultSidebarOpen, useUI } from "../context/UIContext";
 import { authClient } from "../lib/auth-client";
 import { RouteError } from "../components/LoadStates";
+import { folderMetadataQuery, notesQuery } from "../lib/queries";
 
 export const Route = createFileRoute("/_app")({
-  beforeLoad: async ({ location }) => {
+  beforeLoad: async ({ context, location }) => {
     const session = await authClient.getSession();
     if (!session.data?.user) {
       throw redirect({
@@ -54,6 +55,8 @@ export const Route = createFileRoute("/_app")({
         search: { mode: "signin" as const, redirect: location.pathname },
       });
     }
+    void context.queryClient.prefetchQuery(notesQuery());
+    void context.queryClient.prefetchQuery(folderMetadataQuery());
   },
   component: AppLayout,
   errorComponent: RouteError,
@@ -63,7 +66,7 @@ function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const ui = useUI();
-  const { notes, create, remove, restore, pin, move } = useNotes();
+  const { notes, loading: notesLoading, create, remove, restore, pin, move } = useNotes();
   const { folders: folderMetadata, setIcon: setFolderIcon } = useFolderMetadata();
   const user = useUser();
   const { settings } = useSettings();
@@ -458,6 +461,7 @@ function AppLayout() {
       >
         <Sidebar
           notes={notes}
+          loading={notesLoading}
           activeNoteId={activeNoteId}
           onSelectNote={selectNote}
           onCreateNote={handleCreateNote}

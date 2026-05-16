@@ -25,6 +25,7 @@ const baseProps = {
   onSelectTag: vi.fn(),
   userEmail: null,
   open: true,
+  loading: false,
   saveStatus: "saved" as const,
   folderMetadata: {},
   onCustomizeFolder: vi.fn(),
@@ -71,6 +72,12 @@ describe("Sidebar", () => {
   it("shows empty state when no notes", () => {
     render(<Sidebar {...baseProps} notes={[]} activeNoteId={null} />);
     expect(screen.getByText("No notes yet")).toBeTruthy();
+  });
+
+  it("shows a loading state instead of empty state while notes load", () => {
+    render(<Sidebar {...baseProps} notes={[]} loading activeNoteId={null} />);
+    expect(screen.getByLabelText("Loading notes")).toBeTruthy();
+    expect(screen.queryByText("No notes yet")).toBeNull();
   });
 
   it("calls onSelectNote when clicking a note", () => {

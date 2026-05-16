@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useNotes } from "./useNotes";
 import * as api from "../lib/api";
 import { invalidateNote, invalidateNotes, writeCachedNote } from "../lib/note-cache";
+import { notesQuery } from "../lib/queries";
 import {
   findScratchNote,
   renderScratchNoteTemplate,
@@ -16,10 +17,11 @@ import type { NoteMeta } from "../types";
 export function useScratchNote() {
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { notes, create, move } = useNotes();
+  const { notes, loading, create, move } = useNotes();
 
   const openScratchNote = async () => {
-    const existing = findScratchNote(notes as NoteMeta[]);
+    const availableNotes = loading ? await qc.ensureQueryData(notesQuery()) : notes;
+    const existing = findScratchNote(availableNotes as NoteMeta[]);
     let id: string;
 
     if (!existing) {

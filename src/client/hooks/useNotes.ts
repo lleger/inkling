@@ -120,7 +120,7 @@ export function useNotes() {
 
   return {
     notes: query.data ?? [],
-    loading: query.isLoading,
+    loading: query.data === undefined && query.isLoading,
     error: query.error,
     refetch: query.refetch,
     create: async (options?: { title?: string; content?: string }): Promise<Note> =>
