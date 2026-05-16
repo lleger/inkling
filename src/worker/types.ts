@@ -1,5 +1,6 @@
 export interface Env {
   DB: D1Database;
+  ATTACHMENTS: R2Bucket;
   EMAIL: SendEmail;
   /** Required. better-auth session HMAC secret. Worker fails fast if unset. */
   BETTER_AUTH_SECRET?: string;

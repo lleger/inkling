@@ -57,9 +57,9 @@ export function getAuth(env: Env, requestUrl: string, ctx?: ExecutionContext) {
   }
   const signupMode = getSignupMode(env);
   const allowlist = signupMode === "allowlist" ? parseAllowlist(env) : null;
-  const url = new URL(requestUrl);
+  const baseUrl = new URL(requestUrl);
   return betterAuth({
-    baseURL: url.origin,
+    baseURL: baseUrl.origin,
     database: drizzleAdapter(makeDb(env.DB), {
       provider: "sqlite",
       schema: {
@@ -155,7 +155,7 @@ export function getAuth(env: Env, requestUrl: string, ctx?: ExecutionContext) {
     advanced: {
       defaultCookieAttributes: {
         sameSite: "lax",
-        secure: url.protocol === "https:",
+        secure: baseUrl.protocol === "https:",
       },
     },
   });

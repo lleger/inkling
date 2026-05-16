@@ -50,12 +50,24 @@ const SCHEMA_SQL = `
     user_id TEXT NOT NULL,
     PRIMARY KEY (note_id, ref_id)
   );
+  CREATE TABLE IF NOT EXISTS attachments (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    user_id TEXT NOT NULL,
+    note_id TEXT NOT NULL,
+    object_key TEXT NOT NULL,
+    filename TEXT NOT NULL,
+    content_type TEXT NOT NULL,
+    size INTEGER NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
+  );
 `;
 
 let db: D1Database;
+let attachmentsBucket: R2Bucket;
 
 beforeAll(async () => {
   db = createTestD1();
+  attachmentsBucket = createMemoryR2Bucket();
   for (const stmt of SCHEMA_SQL.split(";")
     .map((s) => s.trim())
     .filter(Boolean)) {
@@ -67,6 +79,69 @@ beforeAll(async () => {
 // Real auth (better-auth sessions) is exercised by acceptance tests.
 const TEST_USER_ID = "test-user";
 const TEST_USER_EMAIL = "test@local";
+
+function createMemoryR2Bucket(): R2Bucket & { clear: () => void } {
+  const objects = new Map<
+    string,
+    { body: Uint8Array; httpMetadata?: R2HTTPMetadata; customMetadata?: Record<string, string> }
+  >();
+
+  return {
+    async put(key, value, options) {
+      let body: Uint8Array;
+      if (value instanceof ReadableStream) {
+        body = new Uint8Array(await new Response(value).arrayBuffer());
+      } else if (value instanceof Blob) {
+        body = new Uint8Array(await value.arrayBuffer());
+      } else if (typeof value === "string") {
+        body = new TextEncoder().encode(value);
+      } else if (value instanceof ArrayBuffer) {
+        body = new Uint8Array(value);
+      } else if (ArrayBuffer.isView(value)) {
+        body = new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
+      } else {
+        body = new Uint8Array();
+      }
+      objects.set(key, {
+        body,
+        httpMetadata: options?.httpMetadata as R2HTTPMetadata | undefined,
+        customMetadata: options?.customMetadata,
+      });
+      return { key, size: body.byteLength, httpEtag: `"${key}"` } as R2Object;
+    },
+    async get(key) {
+      const object = objects.get(key);
+      if (!object) return null;
+      return {
+        key,
+        size: object.body.byteLength,
+        httpEtag: `"${key}"`,
+        body: new ReadableStream<Uint8Array>({
+          start(controller) {
+            controller.enqueue(object.body);
+            controller.close();
+          },
+        }),
+        writeHttpMetadata(target: Headers) {
+          if (object.httpMetadata?.contentType)
+            target.set("content-type", object.httpMetadata.contentType);
+        },
+      } as R2ObjectBody;
+    },
+    async head(key) {
+      const object = objects.get(key);
+      return object
+        ? ({ key, size: object.body.byteLength, httpEtag: `"${key}"` } as R2Object)
+        : null;
+    },
+    async delete(key) {
+      for (const k of Array.isArray(key) ? key : [key]) objects.delete(k);
+    },
+    clear() {
+      objects.clear();
+    },
+  } as R2Bucket & { clear: () => void };
+}
 
 function authHeaders() {
   return { "Content-Type": "application/json" };
@@ -81,18 +156,21 @@ describe("API", () => {
       db.prepare("DELETE FROM user_settings"),
       db.prepare("DELETE FROM folder_metadata"),
       db.prepare("DELETE FROM note_refs"),
+      db.prepare("DELETE FROM attachments"),
     ]);
+    (attachmentsBucket as unknown as { clear: () => void }).clear();
   });
 
   const TEST_ENV = {
     DB: db,
+    ATTACHMENTS: attachmentsBucket,
     BETTER_AUTH_SECRET: "test-secret-not-used-but-required",
     SIGNUP_MODE: "open",
     TEST_AUTH_BYPASS: "1",
   } as const;
 
   function req(path: string, init?: RequestInit) {
-    return app.request(path, init, { ...TEST_ENV, DB: db });
+    return app.request(path, init, { ...TEST_ENV, DB: db, ATTACHMENTS: attachmentsBucket });
   }
 
   describe("GET /api/health", () => {
@@ -377,6 +455,111 @@ describe("API", () => {
         headers: { ...authHeaders(), "X-Test-User-Id": "user-2" },
       });
       expect(((await res.json()) as { folders: unknown[] }).folders).toEqual([]);
+    });
+  });
+
+  describe("attachments", () => {
+    async function createNote(): Promise<string> {
+      const res = await req("/api/notes", {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ content: "# With files" }),
+      });
+      const { note } = (await res.json()) as { note: { id: string } };
+      return note.id;
+    }
+
+    async function upload(noteId: string, name = "hello.txt") {
+      const initRes = await req(`/api/attachments/notes/${noteId}/upload-url`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ filename: name, contentType: "text/plain", size: 5 }),
+      });
+      expect(initRes.status).toBe(200);
+      const init = (await initRes.json()) as { uploadUrl: string; attachment: { id: string } };
+      const putRes = await req(init.uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": "text/plain", "Content-Length": "5" },
+        body: "hello",
+      });
+      expect(putRes.status).toBe(201);
+      return init.attachment.id;
+    }
+
+    it("uploads, lists, and downloads an attachment", async () => {
+      const noteId = await createNote();
+      const attachmentId = await upload(noteId);
+
+      const listRes = await req(`/api/attachments/notes/${noteId}`, { headers: authHeaders() });
+      expect(listRes.status).toBe(200);
+      const list = (await listRes.json()) as { attachments: { id: string; filename: string }[] };
+      expect(list.attachments).toEqual([
+        expect.objectContaining({ id: attachmentId, filename: "hello.txt" }),
+      ]);
+
+      const fileRes = await req(`/api/attachments/${attachmentId}/content`, {
+        headers: authHeaders(),
+      });
+      expect(fileRes.status).toBe(200);
+      expect(fileRes.headers.get("content-type")).toBe("text/plain");
+      expect(await fileRes.text()).toBe("hello");
+    });
+
+    it("removes an attachment when its markdown reference is removed on save", async () => {
+      const noteId = await createNote();
+      const attachmentId = await upload(noteId);
+
+      await req(`/api/notes/${noteId}`, {
+        method: "PUT",
+        headers: authHeaders(),
+        body: JSON.stringify({
+          content: `# With files\n\n[hello.txt](/api/attachments/${attachmentId}/content)`,
+        }),
+      });
+      let listRes = await req(`/api/attachments/notes/${noteId}`, { headers: authHeaders() });
+      expect(((await listRes.json()) as { attachments: unknown[] }).attachments).toHaveLength(1);
+
+      await req(`/api/notes/${noteId}`, {
+        method: "PUT",
+        headers: authHeaders(),
+        body: JSON.stringify({ content: "# With files\n\nremoved" }),
+      });
+
+      listRes = await req(`/api/attachments/notes/${noteId}`, { headers: authHeaders() });
+      expect(((await listRes.json()) as { attachments: unknown[] }).attachments).toEqual([]);
+      const fileRes = await req(`/api/attachments/${attachmentId}/content`, {
+        headers: authHeaders(),
+      });
+      expect(fileRes.status).toBe(404);
+    });
+
+    it("isolates attachment downloads between users", async () => {
+      const noteRes = await req("/api/notes", {
+        method: "POST",
+        headers: { ...authHeaders(), "X-Test-User-Id": "user-a" },
+        body: JSON.stringify({ content: "# A" }),
+      });
+      const { note } = (await noteRes.json()) as { note: { id: string } };
+      const initRes = await req(`/api/attachments/notes/${note.id}/upload-url`, {
+        method: "POST",
+        headers: { ...authHeaders(), "X-Test-User-Id": "user-a" },
+        body: JSON.stringify({ filename: "a.txt", contentType: "text/plain", size: 5 }),
+      });
+      const init = (await initRes.json()) as { uploadUrl: string; attachment: { id: string } };
+      await req(init.uploadUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "text/plain",
+          "Content-Length": "5",
+          "X-Test-User-Id": "user-a",
+        },
+        body: "hello",
+      });
+
+      const res = await req(`/api/attachments/${init.attachment.id}/content`, {
+        headers: { ...authHeaders(), "X-Test-User-Id": "user-b" },
+      });
+      expect(res.status).toBe(404);
     });
   });
 

@@ -1,6 +1,6 @@
 import { and, eq, isNull, isNotNull, like, lt, or, sql, asc, desc, inArray } from "drizzle-orm";
 import { makeDb } from "./client";
-import { notes, noteVersions, noteRefs, folderMetadata } from "./schema";
+import { notes, noteVersions, noteRefs, folderMetadata, attachments } from "./schema";
 import type {
   Note,
   NoteMeta,
@@ -9,6 +9,7 @@ import type {
   NoteVersion,
   FolderMetadata,
   FolderIconType,
+  AttachmentMeta,
 } from "../../shared/types";
 
 // Re-export for consumers that import from queries
@@ -169,6 +170,22 @@ function mapVersion(row: typeof noteVersions.$inferSelect): NoteVersion {
   };
 }
 
+function attachmentUrl(id: string) {
+  return `/api/attachments/${id}/content`;
+}
+
+function mapAttachment(row: typeof attachments.$inferSelect): AttachmentMeta {
+  return {
+    id: row.id,
+    note_id: row.noteId,
+    filename: row.filename,
+    content_type: row.contentType,
+    size: row.size,
+    created_at: iso(row.createdAt)!,
+    url: attachmentUrl(row.id),
+  };
+}
+
 // --- Notes ---
 
 export async function listNotes(
@@ -268,6 +285,127 @@ export async function updateNote(
   await replaceNoteRefs(d1, userId, noteId, content);
 
   return getNote(d1, userId, noteId);
+}
+
+// --- Attachments ---
+
+const ATTACHMENT_RE = /\]\(\/api\/attachments\/([a-f0-9-]+)\/content\)/g;
+
+export function extractAttachmentIds(content: string): string[] {
+  const ids = new Set<string>();
+  for (const match of content.matchAll(ATTACHMENT_RE)) {
+    ids.add(match[1]);
+  }
+  return [...ids];
+}
+
+export async function createAttachment(
+  d1: D1Database,
+  userId: string,
+  noteId: string,
+  meta: { id: string; objectKey: string; filename: string; contentType: string; size: number },
+): Promise<AttachmentMeta> {
+  const db = makeDb(d1);
+  await db.insert(attachments).values({
+    id: meta.id,
+    userId,
+    noteId,
+    objectKey: meta.objectKey,
+    filename: meta.filename,
+    contentType: meta.contentType,
+    size: meta.size,
+  });
+  const attachment = await getAttachment(d1, userId, meta.id);
+  if (!attachment) throw new Error("Failed to create attachment");
+  return attachment;
+}
+
+export async function listAttachments(
+  d1: D1Database,
+  userId: string,
+  noteId: string,
+): Promise<AttachmentMeta[]> {
+  const db = makeDb(d1);
+  const rows = await db
+    .select()
+    .from(attachments)
+    .where(and(eq(attachments.userId, userId), eq(attachments.noteId, noteId)))
+    .orderBy(desc(attachments.createdAt));
+  return rows.map(mapAttachment);
+}
+
+export async function getAttachment(
+  d1: D1Database,
+  userId: string,
+  attachmentId: string,
+): Promise<AttachmentMeta | null> {
+  const db = makeDb(d1);
+  const [row] = await db
+    .select()
+    .from(attachments)
+    .where(and(eq(attachments.id, attachmentId), eq(attachments.userId, userId)))
+    .limit(1);
+  return row ? mapAttachment(row) : null;
+}
+
+export async function getAttachmentRecord(
+  d1: D1Database,
+  userId: string,
+  attachmentId: string,
+): Promise<typeof attachments.$inferSelect | null> {
+  const db = makeDb(d1);
+  const [row] = await db
+    .select()
+    .from(attachments)
+    .where(and(eq(attachments.id, attachmentId), eq(attachments.userId, userId)))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function listAttachmentRecordsForNote(
+  d1: D1Database,
+  userId: string,
+  noteId: string,
+): Promise<(typeof attachments.$inferSelect)[]> {
+  const db = makeDb(d1);
+  return db
+    .select()
+    .from(attachments)
+    .where(and(eq(attachments.userId, userId), eq(attachments.noteId, noteId)));
+}
+
+export async function deleteAttachmentRecord(
+  d1: D1Database,
+  userId: string,
+  attachmentId: string,
+): Promise<typeof attachments.$inferSelect | null> {
+  const record = await getAttachmentRecord(d1, userId, attachmentId);
+  if (!record) return null;
+  const db = makeDb(d1);
+  await db
+    .delete(attachments)
+    .where(and(eq(attachments.id, attachmentId), eq(attachments.userId, userId)));
+  return record;
+}
+
+export async function deleteUnreferencedAttachments(
+  d1: D1Database,
+  userId: string,
+  noteId: string,
+  content: string,
+): Promise<(typeof attachments.$inferSelect)[]> {
+  const referenced = new Set(extractAttachmentIds(content));
+  const records = await listAttachmentRecordsForNote(d1, userId, noteId);
+  const unreferenced = records.filter((record) => !referenced.has(record.id));
+  if (unreferenced.length === 0) return [];
+  const db = makeDb(d1);
+  await db.delete(attachments).where(
+    inArray(
+      attachments.id,
+      unreferenced.map((record) => record.id),
+    ),
+  );
+  return unreferenced;
 }
 
 // --- Wiki-link refs ---
@@ -393,6 +531,9 @@ export async function permanentlyDeleteNote(
     .where(
       and(eq(noteRefs.userId, userId), or(eq(noteRefs.noteId, noteId), eq(noteRefs.refId, noteId))),
     );
+  await db
+    .delete(attachments)
+    .where(and(eq(attachments.noteId, noteId), eq(attachments.userId, userId)));
   const result = await db.delete(notes).where(and(eq(notes.id, noteId), eq(notes.userId, userId)));
   return (result.meta?.changes ?? 0) > 0;
 }

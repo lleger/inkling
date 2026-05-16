@@ -525,7 +525,9 @@ function AppLayout() {
           setFolderModalNoteId(null);
         }}
         onSelect={handleMoveToFolder}
-        currentFolder={notes.find((note) => note.id === (folderModalNoteId ?? activeNote?.id))?.folder ?? null}
+        currentFolder={
+          notes.find((note) => note.id === (folderModalNoteId ?? activeNote?.id))?.folder ?? null
+        }
         allFolders={allFolders}
       />
       <FolderIconPickerModal

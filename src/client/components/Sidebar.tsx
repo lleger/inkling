@@ -392,7 +392,11 @@ export function Sidebar({
           trigger={folderRow}
           items={[
             { label: "Customize icon", onSelect: () => onCustomizeFolder(folder.path) },
-            { label: "Delete folder", onSelect: () => onDeleteFolder(folder.path), destructive: true },
+            {
+              label: "Delete folder",
+              onSelect: () => onDeleteFolder(folder.path),
+              destructive: true,
+            },
           ]}
         />
         {isExpanded && (

@@ -683,6 +683,74 @@ button:focus-visible {
   tab-size: 2;
 }
 
+/* Attachments */
+.editor-attachment-shell {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: top;
+}
+.editor-attachment-image-link {
+  display: inline-block;
+  max-width: 100%;
+  margin: 0.35em 0 0.75em;
+}
+.editor-attachment-image {
+  display: block;
+  max-width: min(100%, 42rem);
+  max-height: 32rem;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  object-fit: contain;
+  background: var(--color-surface-secondary);
+}
+.editor-attachment-card {
+  display: inline-flex;
+  max-width: min(100%, 28rem);
+  align-items: center;
+  gap: 10px;
+  margin: 0.25em 0 0.75em;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  color: var(--color-text);
+  background: var(--color-surface-secondary);
+  text-decoration: none;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+.editor-attachment-card:hover {
+  border-color: color-mix(in srgb, var(--color-accent), transparent 50%);
+  background: var(--color-surface-hover);
+}
+.editor-attachment-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: var(--color-accent);
+}
+.editor-attachment-meta {
+  min-width: 0;
+  display: inline-flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  line-height: 1.25;
+}
+.editor-attachment-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+.editor-attachment-size {
+  color: var(--color-text-muted);
+  font-size: 0.75em;
+}
+.editor-attachment-download {
+  flex: 0 0 auto;
+  color: var(--color-text-muted);
+}
+
 /* Code tokens */
 .editor-tokenComment {
   color: var(--color-text-muted);

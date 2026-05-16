@@ -39,6 +39,12 @@ import {
 import { $createTextNode } from "lexical";
 import { $createUrlChipNode, $isUrlChipNode, UrlChipNode } from "../components/UrlChipNode";
 import { $createWikiLinkNode, $isWikiLinkNode, WikiLinkNode } from "../components/WikiLinkNode";
+import {
+  $createAttachmentNode,
+  $isAttachmentNode,
+  AttachmentNode,
+  attachmentMarkdown,
+} from "../components/AttachmentNode";
 
 const HR: ElementTransformer = {
   dependencies: [HorizontalRuleNode],
@@ -212,6 +218,28 @@ const WIKI_LINK: TextMatchTransformer = {
   type: "text-match",
 };
 
+const ATTACHMENT: TextMatchTransformer = {
+  dependencies: [AttachmentNode],
+  export: (node) => {
+    if (!$isAttachmentNode(node)) return null;
+    return attachmentMarkdown(node.getPayload());
+  },
+  importRegExp: /(!?)\[([^\]\n]*)\]\(\/api\/attachments\/([a-f0-9-]+)\/content\)/,
+  regExp: /(!?)\[([^\]\n]*)\]\(\/api\/attachments\/([a-f0-9-]+)\/content\)$/,
+  replace: (textNode, match) => {
+    const [, bang, filename, id] = match;
+    textNode.replace(
+      $createAttachmentNode({
+        id,
+        filename: filename || "attachment",
+        contentType: bang ? "image/*" : "application/octet-stream",
+      }),
+    );
+  },
+  trigger: ")",
+  type: "text-match",
+};
+
 export const TRANSFORMERS: Transformer[] = [
   TABLE,
   HEADING,
@@ -229,6 +257,7 @@ export const TRANSFORMERS: Transformer[] = [
   ITALIC_STAR,
   ITALIC_UNDERSCORE,
   STRIKETHROUGH,
+  ATTACHMENT,
   WIKI_LINK,
   URL_CHIP_SELF_LABELED,
   URL_CHIP_AUTOLINK_LEGACY,

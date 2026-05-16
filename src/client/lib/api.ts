@@ -10,6 +10,7 @@ import type {
   BacklinkMeta,
   FolderMetadata,
   FolderIconType,
+  AttachmentMeta,
 } from "../types";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -156,4 +157,39 @@ export async function saveFolderIcon(
       icon_value: icon?.icon_value ?? null,
     }),
   });
+}
+
+export async function fetchAttachments(noteId: string): Promise<AttachmentMeta[]> {
+  const data = await request<{ attachments: AttachmentMeta[] }>(`/api/attachments/notes/${noteId}`);
+  return data.attachments;
+}
+
+export async function uploadAttachment(noteId: string, file: File): Promise<AttachmentMeta> {
+  const init = await request<{
+    attachment: AttachmentMeta;
+    uploadUrl: string;
+    method: "PUT";
+  }>(`/api/attachments/notes/${noteId}/upload-url`, {
+    method: "POST",
+    body: JSON.stringify({
+      filename: file.name || "attachment",
+      contentType: file.type || "application/octet-stream",
+      size: file.size,
+    }),
+  });
+
+  const upload = await fetch(init.uploadUrl, {
+    method: init.method,
+    headers: {
+      "Content-Type": file.type || "application/octet-stream",
+    },
+    body: file,
+  });
+  if (!upload.ok) throw new Error(`Attachment upload failed: ${upload.status}`);
+  const data = (await upload.json()) as { attachment: AttachmentMeta };
+  return data.attachment;
+}
+
+export async function deleteAttachment(id: string): Promise<void> {
+  await request(`/api/attachments/${id}`, { method: "DELETE" });
 }

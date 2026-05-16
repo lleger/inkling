@@ -13,4 +13,5 @@ export type {
   BacklinkMeta,
   FolderIconType,
   FolderMetadata,
+  AttachmentMeta,
 } from "../../shared/types";

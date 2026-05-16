@@ -1,10 +1,21 @@
 import { Drawer } from "@base-ui/react/drawer";
 import { Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { X, History, FolderClosed, Hash, Calendar, FileText } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  X,
+  History,
+  FolderClosed,
+  Hash,
+  Calendar,
+  FileText,
+  Paperclip,
+  Trash2,
+} from "lucide-react";
 import type { Note } from "../types";
 import { useUI } from "../context/UIContext";
-import { backlinksQuery } from "../lib/queries";
+import { attachmentsQuery, backlinksQuery, queryKeys } from "../lib/queries";
+import { deleteAttachment } from "../lib/api";
+import { formatBytes } from "./AttachmentNode";
 import { IconButton } from "./ui/IconButton";
 
 interface MetaPanelProps {
@@ -22,6 +33,19 @@ export function MetaPanel({ note, wordCount, taskStats }: MetaPanelProps) {
   } = useQuery({
     ...backlinksQuery(note.id),
     enabled: ui.metaPanelOpen, // only fetch when panel is open
+  });
+  const { data: attachments } = useQuery({
+    ...attachmentsQuery(note.id),
+    enabled: ui.metaPanelOpen,
+  });
+  const qc = useQueryClient();
+  const deleteAttachmentMutation = useMutation({
+    mutationFn: deleteAttachment,
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: queryKeys.attachments(note.id) });
+      qc.invalidateQueries({ queryKey: queryKeys.note(note.id) });
+      document.dispatchEvent(new CustomEvent("attachment-deleted", { detail: id }));
+    },
   });
 
   const tags = parseTagsField(note.tags);
@@ -103,6 +127,46 @@ export function MetaPanel({ note, wordCount, taskStats }: MetaPanelProps) {
                     View version history
                   </Link>
                 </div>
+              </Section>
+
+              <Section title="Attachments">
+                {attachments && attachments.length > 0 ? (
+                  <ul className="space-y-1">
+                    {attachments.map((attachment) => (
+                      <li key={attachment.id} className="group flex items-center gap-1.5">
+                        <a
+                          href={attachment.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex min-w-0 flex-1 items-center gap-2 rounded-md border border-border px-2 py-1.5 no-underline transition-colors hover:border-accent/40"
+                        >
+                          <Paperclip size={12} className="flex-shrink-0 text-text-muted" />
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-[12px] font-medium text-text">
+                              {attachment.filename}
+                            </span>
+                            <span className="block text-[11px] text-text-muted">
+                              {formatBytes(attachment.size)}
+                            </span>
+                          </span>
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => deleteAttachmentMutation.mutate(attachment.id)}
+                          disabled={deleteAttachmentMutation.isPending}
+                          title={`Delete ${attachment.filename}`}
+                          className="flex size-7 flex-shrink-0 items-center justify-center rounded-md text-text-muted opacity-100 transition-colors hover:bg-red-500/10 hover:text-red-600 disabled:cursor-wait disabled:opacity-50 sm:opacity-0 sm:group-hover:opacity-100"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-text-muted text-[12px]">
+                    {attachments ? "No attachments yet." : "Loading…"}
+                  </div>
+                )}
               </Section>
 
               <Section title="Backlinks">

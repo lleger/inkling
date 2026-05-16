@@ -12,6 +12,7 @@ export const queryKeys = {
   ogPreview: (url: string) => ["og", url] as const,
   backlinks: (noteId: string) => ["backlinks", noteId] as const,
   folderMetadata: ["folder-metadata"] as const,
+  attachments: (noteId: string) => ["attachments", noteId] as const,
 };
 
 export const notesQuery = () =>
@@ -84,4 +85,11 @@ export const folderMetadataQuery = () =>
   queryOptions({
     queryKey: queryKeys.folderMetadata,
     queryFn: () => api.fetchFolderMetadata(),
+  });
+
+export const attachmentsQuery = (noteId: string) =>
+  queryOptions({
+    queryKey: queryKeys.attachments(noteId),
+    queryFn: () => api.fetchAttachments(noteId),
+    enabled: !!noteId,
   });

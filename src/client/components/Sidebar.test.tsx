@@ -226,9 +226,7 @@ describe("Sidebar", () => {
 
   it("pins a note from the context menu", async () => {
     const onTogglePin = vi.fn();
-    render(
-      <Sidebar {...baseProps} notes={notes} activeNoteId={null} onTogglePin={onTogglePin} />,
-    );
+    render(<Sidebar {...baseProps} notes={notes} activeNoteId={null} onTogglePin={onTogglePin} />);
 
     fireEvent.contextMenu(screen.getByText("First Note"));
     fireEvent.click(await screen.findByText("Pin"));
@@ -237,13 +235,7 @@ describe("Sidebar", () => {
   });
 
   it("shows unpin for pinned notes in the context menu", async () => {
-    render(
-      <Sidebar
-        {...baseProps}
-        notes={[{ ...notes[0], pinned: 1 }]}
-        activeNoteId={null}
-      />,
-    );
+    render(<Sidebar {...baseProps} notes={[{ ...notes[0], pinned: 1 }]} activeNoteId={null} />);
 
     fireEvent.contextMenu(screen.getByText("First Note"));
 
@@ -285,7 +277,12 @@ describe("Sidebar", () => {
   it("duplicates a note from the context menu", async () => {
     const onDuplicateNote = vi.fn();
     render(
-      <Sidebar {...baseProps} notes={notes} activeNoteId={null} onDuplicateNote={onDuplicateNote} />,
+      <Sidebar
+        {...baseProps}
+        notes={notes}
+        activeNoteId={null}
+        onDuplicateNote={onDuplicateNote}
+      />,
     );
 
     fireEvent.contextMenu(screen.getByText("First Note"));
@@ -296,11 +293,7 @@ describe("Sidebar", () => {
 
   it("shows folder actions when right-clicking a folder", async () => {
     render(
-      <Sidebar
-        {...baseProps}
-        notes={[{ ...notes[0], folder: "Work" }]}
-        activeNoteId={null}
-      />,
+      <Sidebar {...baseProps} notes={[{ ...notes[0], folder: "Work" }]} activeNoteId={null} />,
     );
 
     fireEvent.contextMenu(screen.getByText("Work"));

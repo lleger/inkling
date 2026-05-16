@@ -22,6 +22,7 @@ import { ScrollIntoViewPlugin } from "./ScrollIntoViewPlugin";
 import { FloatingToolbar } from "./FloatingToolbar";
 import { UrlChipNode, UrlChipPlugin } from "./UrlChipNode";
 import { WikiLinkNode, WikiLinkPlugin } from "./WikiLinkNode";
+import { AttachmentNode } from "./AttachmentNode";
 import { AutoFocusPlugin } from "./editor/plugins/AutoFocusPlugin";
 import { ChecklistHitZonePlugin } from "./editor/plugins/ChecklistHitZonePlugin";
 import { ChecklistShortcutPlugin } from "./editor/plugins/ChecklistShortcutPlugin";
@@ -70,6 +71,7 @@ export function RichTextEditor({
       HashtagNode,
       UrlChipNode,
       WikiLinkNode,
+      AttachmentNode,
     ],
     editorState: () => {
       $convertFromMarkdownString(initialContent, TRANSFORMERS);

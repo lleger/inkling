@@ -22,6 +22,7 @@ import { TRANSFORMERS } from "../lib/markdown-transformers";
 import { normalizeMarkdown } from "../lib/normalize-markdown";
 import { UrlChipNode } from "./UrlChipNode";
 import { WikiLinkNode } from "./WikiLinkNode";
+import { AttachmentNode } from "./AttachmentNode";
 
 function UpdatePlugin({ content }: { content: string }) {
   const [editor] = useLexicalComposerContext();
@@ -63,6 +64,7 @@ export function RichTextPreview({ content }: RichTextPreviewProps) {
       HashtagNode,
       UrlChipNode,
       WikiLinkNode,
+      AttachmentNode,
     ],
   };
 

@@ -271,13 +271,24 @@ function NoteRoute() {
   useEffect(() => {
     const onMode = (e: Event) => setModeTo((e as CustomEvent).detail);
     const onClear = () => handleClearDoneTasks();
+    const onAttachmentDeleted = (e: Event) => {
+      const attachmentId = (e as CustomEvent<string>).detail;
+      if (!attachmentId) return;
+      const cleaned = removeAttachmentMarkdown(currentContentRef.current, attachmentId);
+      if (cleaned === currentContentRef.current) return;
+      currentContentRef.current = cleaned;
+      handleContentChange(cleaned);
+      setEditorKey((k) => k + 1);
+    };
     document.addEventListener("editor-mode", onMode);
     document.addEventListener("clear-done-tasks", onClear);
+    document.addEventListener("attachment-deleted", onAttachmentDeleted);
     return () => {
       document.removeEventListener("editor-mode", onMode);
       document.removeEventListener("clear-done-tasks", onClear);
+      document.removeEventListener("attachment-deleted", onAttachmentDeleted);
     };
-  }, [setModeTo, handleClearDoneTasks]);
+  }, [setModeTo, handleClearDoneTasks, handleContentChange]);
 
   const modeBtn = (mode: EditorMode, icon: React.ReactNode, title: string) => (
     <button
@@ -419,6 +430,7 @@ function NoteRoute() {
         content={currentContentRef.current}
         onChange={handleContentChange}
         mode={editorMode}
+        noteId={note.id}
         copyMarkdownByDefault={settings.copyMarkdownByDefault}
         smartTypography={settings.smartTypography}
       />
@@ -449,6 +461,17 @@ function getHeadingTargets(headings: TocHeading[], mode: EditorMode): Map<string
   }
 
   return targets;
+}
+
+function removeAttachmentMarkdown(content: string, id: string): string {
+  const escaped = id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return content
+    .replace(
+      new RegExp(`!?\\[[^\\]\\n]*\\]\\(\\/api\\/attachments\\/${escaped}\\/content\\)`, "g"),
+      "",
+    )
+    .replace(/\n{3,}/g, "\n\n")
+    .trimEnd();
 }
 
 function getHeadingElements(mode: EditorMode): HTMLElement[] {

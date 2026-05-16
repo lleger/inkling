@@ -17,6 +17,8 @@ import {
   listNoteVersions,
   getNoteVersion,
   listBacklinks,
+  deleteUnreferencedAttachments,
+  listAttachmentRecordsForNote,
 } from "../db/queries";
 
 type AuthVars = { userId: string; userEmail: string };
@@ -65,6 +67,15 @@ notesRoutes.put("/:id", zValidator("json", noteBodySchema), async (c) => {
   const body = c.req.valid("json");
   const note = await updateNote(c.env.DB, c.get("userId"), c.req.param("id"), body);
   if (!note) return c.json({ error: "Not found" }, 404);
+  if (body.content !== undefined) {
+    const removed = await deleteUnreferencedAttachments(
+      c.env.DB,
+      c.get("userId"),
+      c.req.param("id"),
+      body.content,
+    );
+    await Promise.all(removed.map((record) => c.env.ATTACHMENTS.delete(record.objectKey)));
+  }
   return c.json({ note });
 });
 
@@ -95,8 +106,14 @@ notesRoutes.post("/:id/restore", async (c) => {
 });
 
 notesRoutes.delete("/:id/permanent", async (c) => {
+  const attachments = await listAttachmentRecordsForNote(
+    c.env.DB,
+    c.get("userId"),
+    c.req.param("id"),
+  );
   const deleted = await permanentlyDeleteNote(c.env.DB, c.get("userId"), c.req.param("id"));
   if (!deleted) return c.json({ error: "Not found" }, 404);
+  await Promise.all(attachments.map((record) => c.env.ATTACHMENTS.delete(record.objectKey)));
   return c.json({ success: true });
 });
 

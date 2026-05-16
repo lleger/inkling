@@ -66,6 +66,12 @@
       "migrations_dir": "src/worker/db/migrations",
     },
   ],
+  "r2_buckets": [
+    {
+      "binding": "ATTACHMENTS",
+      "bucket_name": "inkling-attachments",
+    },
+  ],
   "send_email": [
     {
       "name": "EMAIL",

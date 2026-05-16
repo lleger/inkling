@@ -92,6 +92,27 @@ export const noteRefs = sqliteTable(
   (t) => [index("idx_refs_note").on(t.noteId), index("idx_refs_target_user").on(t.refId, t.userId)],
 );
 
+export const attachments = sqliteTable(
+  "attachments",
+  {
+    id: text("id")
+      .primaryKey()
+      .default(sql`(lower(hex(randomblob(16))))`),
+    userId: text("user_id").notNull(),
+    noteId: text("note_id").notNull(),
+    objectKey: text("object_key").notNull(),
+    filename: text("filename").notNull(),
+    contentType: text("content_type").notNull(),
+    size: integer("size").notNull(),
+    createdAt: ts("created_at").notNull().default(nowMs),
+  },
+  (t) => [
+    index("idx_attachments_user").on(t.userId),
+    index("idx_attachments_note").on(t.noteId),
+    index("idx_attachments_user_note").on(t.userId, t.noteId),
+  ],
+);
+
 // --- better-auth tables ---
 // Standard better-auth SQLite schema with timestamps as INTEGER (Unix ms),
 // matching the Drizzle pattern.
