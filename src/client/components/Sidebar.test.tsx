@@ -16,6 +16,7 @@ const baseProps = {
   onOpenScratchNote: vi.fn(),
   onOpenSettings: vi.fn(),
   onOpenTrash: vi.fn(),
+  onSignOut: vi.fn(),
   onTogglePin: vi.fn(),
   onMoveNote: vi.fn(),
   onViewVersions: vi.fn(),
@@ -23,6 +24,7 @@ const baseProps = {
   allTags: [],
   selectedTag: null,
   onSelectTag: vi.fn(),
+  userName: null,
   userEmail: null,
   open: true,
   loading: false,
@@ -233,7 +235,9 @@ describe("Sidebar", () => {
 
   it("resets the sidebar width on double click", () => {
     const onResize = vi.fn();
-    render(<Sidebar {...baseProps} notes={[]} activeNoteId={null} width={320} onResize={onResize} />);
+    render(
+      <Sidebar {...baseProps} notes={[]} activeNoteId={null} width={320} onResize={onResize} />,
+    );
 
     fireEvent.doubleClick(screen.getByRole("separator", { name: "Resize sidebar" }));
 
@@ -255,11 +259,28 @@ describe("Sidebar", () => {
     expect(onResize).toHaveBeenCalledWith(300);
   });
 
-  it("calls onOpenSettings when clicking the settings button", () => {
+  it("calls onOpenSettings from the account menu", async () => {
     const onSettings = vi.fn();
     render(<Sidebar {...baseProps} notes={[]} activeNoteId={null} onOpenSettings={onSettings} />);
-    fireEvent.click(screen.getByTitle("Settings"));
+    fireEvent.click(screen.getByRole("button", { name: "Inkling" }));
+    fireEvent.click(await screen.findByText("Settings"));
     expect(onSettings).toHaveBeenCalledOnce();
+  });
+
+  it("calls onSignOut from the account menu", async () => {
+    const onSignOut = vi.fn();
+    render(
+      <Sidebar
+        {...baseProps}
+        notes={[]}
+        activeNoteId={null}
+        userEmail="qa@inkling.local"
+        onSignOut={onSignOut}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "qa@inkling.local" }));
+    fireEvent.click(await screen.findByText("Sign out"));
+    expect(onSignOut).toHaveBeenCalledOnce();
   });
 
   it("calls onDeleteNote when clicking delete", () => {

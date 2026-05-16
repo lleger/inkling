@@ -16,7 +16,7 @@ export function PageContainer({
     <div
       {...props}
       className={cx(
-        "flex min-h-full w-full flex-col px-4 pt-16 animate-[fade-in_0.2s_ease-out] sm:px-6 sm:pt-12",
+        "flex min-h-full w-full min-w-0 flex-col px-4 pt-16 animate-[fade-in_0.2s_ease-out] sm:px-6 sm:pt-12",
         maxWidth,
         className,
       )}

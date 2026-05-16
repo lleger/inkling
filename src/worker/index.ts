@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { eq } from "drizzle-orm";
+import { jwtVerify } from "jose";
 import type { Env } from "./types";
 import { getExecutionContext } from "./context";
 import { authMiddleware } from "./middleware/auth";
@@ -94,6 +95,27 @@ app.post("/api/auth/reset-password", async (c) => {
   }
 
   return getAuth(c.env, c.req.url, getExecutionContext(c)).handler(c.req.raw.clone() as Request);
+});
+
+app.get("/api/auth/verify-email", async (c) => {
+  const url = new URL(c.req.url);
+  const token = url.searchParams.get("token");
+  if (token) {
+    try {
+      const jwt = await jwtVerify(token, new TextEncoder().encode(c.env.BETTER_AUTH_SECRET), {
+        algorithms: ["HS256"],
+      });
+      const requestType = jwt.payload.requestType;
+      if (requestType === "change-email-confirmation") {
+        url.searchParams.set("callbackURL", "/settings/security?emailChange=check-new-email");
+      } else if (requestType === "change-email-verification") {
+        url.searchParams.set("callbackURL", "/settings/security?emailChange=changed");
+      }
+    } catch {
+      // Better Auth will return the authoritative invalid/expired-token response.
+    }
+  }
+  return getAuth(c.env, c.req.url, getExecutionContext(c)).handler(new Request(url, c.req.raw));
 });
 
 app.all("/api/auth/passkey/generate-register-options", async (c) => {

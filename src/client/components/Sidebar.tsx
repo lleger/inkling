@@ -1,4 +1,5 @@
 import { ContextMenu } from "@base-ui/react/context-menu";
+import { Menu } from "@base-ui/react/menu";
 import { useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 import {
   Plus,
@@ -9,8 +10,10 @@ import {
   Eraser,
   Settings,
   Trash2,
+  LogOut,
   Pin,
   ChevronRight,
+  ChevronUp,
   Paintbrush,
 } from "lucide-react";
 import { cx } from "../lib/cx";
@@ -40,6 +43,13 @@ interface FolderTree {
 
 type SidebarContextMenuItem = {
   label: string;
+  onSelect: () => void;
+  destructive?: boolean;
+};
+
+type AccountMenuItem = {
+  label: string;
+  icon: ReactNode;
   onSelect: () => void;
   destructive?: boolean;
 };
@@ -79,6 +89,71 @@ function SidebarContextMenu({
         </ContextMenu.Positioner>
       </ContextMenu.Portal>
     </ContextMenu.Root>
+  );
+}
+
+function AccountMenu({
+  accountLabel,
+  avatarLabel,
+  items,
+}: {
+  accountLabel: string;
+  avatarLabel: string;
+  items: AccountMenuItem[];
+}) {
+  return (
+    <Menu.Root>
+      <Menu.Trigger
+        aria-label={accountLabel}
+        className="group flex w-full min-h-11 items-center gap-2 rounded-lg bg-surface/70 px-2 py-2 text-left transition-colors hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-accent"
+      >
+        <span
+          aria-hidden="true"
+          className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-[12px] font-semibold text-white outline outline-1 -outline-offset-1 outline-black/5"
+        >
+          {avatarLabel}
+        </span>
+        <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-text-secondary">
+          {accountLabel}
+        </span>
+        <ChevronUp
+          size={14}
+          className="shrink-0 text-text-muted transition-transform group-data-[popup-open]:rotate-180"
+          aria-hidden="true"
+        />
+      </Menu.Trigger>
+      <Menu.Portal>
+        <Menu.Positioner
+          side="top"
+          align="start"
+          sideOffset={8}
+          collisionPadding={8}
+          className="z-50"
+        >
+          <Menu.Popup className="min-w-48 rounded-xl border border-border bg-surface p-1 text-[13px] text-text shadow-xl outline-none animate-[scale-in_0.1s_ease-out]">
+            {items.map((item, index) => (
+              <Menu.Item
+                key={item.label}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  item.onSelect();
+                }}
+                className={cx(
+                  "flex cursor-default items-center gap-2 rounded-lg px-2.5 py-2 outline-none transition-colors data-[highlighted]:bg-surface-hover",
+                  index > 0 && item.destructive ? "mt-1 border-t border-border pt-2" : "",
+                  item.destructive
+                    ? "text-red-600 data-[highlighted]:bg-red-500/10"
+                    : "text-text-secondary data-[highlighted]:text-text",
+                )}
+              >
+                <span className="text-text-muted">{item.icon}</span>
+                <span>{item.label}</span>
+              </Menu.Item>
+            ))}
+          </Menu.Popup>
+        </Menu.Positioner>
+      </Menu.Portal>
+    </Menu.Root>
   );
 }
 
@@ -140,6 +215,7 @@ interface SidebarProps {
   onOpenScratchNote: () => void;
   onOpenSettings: () => void;
   onOpenTrash: () => void;
+  onSignOut: () => void;
   onTogglePin: (id: string) => void;
   onMoveNote: (id: string) => void;
   onViewVersions: (id: string) => void;
@@ -147,6 +223,7 @@ interface SidebarProps {
   allTags: string[];
   selectedTag: string | null;
   onSelectTag: (tag: string | null) => void;
+  userName: string | null;
   userEmail: string | null;
   open: boolean;
   saveStatus: SaveStatus;
@@ -175,6 +252,7 @@ export function Sidebar({
   onOpenScratchNote,
   onOpenSettings,
   onOpenTrash,
+  onSignOut,
   onTogglePin,
   onMoveNote,
   onViewVersions,
@@ -182,6 +260,7 @@ export function Sidebar({
   allTags,
   selectedTag,
   onSelectTag,
+  userName,
   userEmail,
   open,
   saveStatus,
@@ -245,6 +324,13 @@ export function Sidebar({
   const dailyDates = [new Date(), addDays(new Date(), -1), addDays(new Date(), -2)];
   const scratchNote = findScratchNote(notes);
   const isScratchActive = scratchNote?.id === activeNoteId;
+  const accountLabel = userName?.trim() || userEmail || "Inkling";
+  const avatarLabel = accountLabel.trim().charAt(0).toUpperCase() || "I";
+  const accountMenuItems: AccountMenuItem[] = [
+    { label: "Settings", icon: <Settings size={14} />, onSelect: onOpenSettings },
+    { label: "Trash", icon: <Trash2 size={14} />, onSelect: onOpenTrash },
+    { label: "Sign out", icon: <LogOut size={14} />, onSelect: onSignOut },
+  ];
 
   const renderScratchSection = () => (
     <div className="mx-1 my-1 rounded-lg border border-border bg-surface/60 p-1">
@@ -495,9 +581,7 @@ export function Sidebar({
   return (
     <aside
       className={`sidebar-panel fixed inset-y-0 left-0 z-30 flex shrink-0 flex-col border-r border-border bg-surface-secondary transition-transform duration-200 ease-out lg:relative lg:z-auto lg:shadow-none ${
-        open
-          ? "translate-x-0 shadow-2xl"
-          : "-translate-x-full lg:absolute lg:top-0 lg:bottom-0"
+        open ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:absolute lg:top-0 lg:bottom-0"
       }`}
       data-open={open}
       data-resizing={resizing}
@@ -578,32 +662,12 @@ export function Sidebar({
         )}
       </div>
 
-      <div className="flex items-center justify-between border-t border-border px-3 py-2">
-        {userEmail ? (
-          <span className="min-w-0 truncate text-[11px] text-text-muted">{userEmail}</span>
-        ) : (
-          <span />
-        )}
-        <div className="flex items-center gap-0.5">
-          <button
-            type="button"
-            className="flex size-9 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary md:size-7"
-            onClick={onOpenTrash}
-            title="Trash"
-            aria-label="Trash"
-          >
-            <Trash2 size={14} />
-          </button>
-          <button
-            type="button"
-            className="flex size-9 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary md:size-7"
-            onClick={onOpenSettings}
-            title="Settings"
-            aria-label="Settings"
-          >
-            <Settings size={14} />
-          </button>
-        </div>
+      <div className="border-t border-border px-2.5 py-2">
+        <AccountMenu
+          accountLabel={accountLabel}
+          avatarLabel={avatarLabel}
+          items={accountMenuItems}
+        />
       </div>
 
       <button

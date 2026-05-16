@@ -43,3 +43,14 @@
 ## Home Button
 - Click the home icon in the sidebar header
 - Should navigate back to the home page (no note selected)
+
+## Footer Actions
+- The sidebar footer should show the signed-in account name with an avatar initial
+- Click the account avatar/name button
+- A drop-up menu should show Settings, Trash, and Sign out actions
+- Click Trash in the account menu
+- The app should navigate to `/trash`
+- Reopen the account menu and click Settings
+- The app should navigate to `/settings/workspace`
+- Reopen the account menu and click Sign out
+- The app should sign out and navigate to `/login`

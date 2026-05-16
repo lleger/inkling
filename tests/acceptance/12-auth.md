@@ -28,7 +28,7 @@
 - If the account has authenticator-app 2FA enabled, password reset does not disable it; the next password sign-in still requires an authenticator code
 
 ## Two-Factor Authentication
-- Sign in, open Settings, and find the Account section
+- Sign in, open Settings, and select the Security tab
 - Enter the current password and click "Set up 2FA"
 - A QR code, TOTP setup URI, and backup codes are shown
 - Clicking "Copy codes" copies all backup codes to the clipboard
@@ -45,7 +45,7 @@
 - With a passkey enrolled, entering the current password and clicking "Disable 2FA" turns 2FA off and sends a security notification
 
 ## Passkeys
-- Sign in, open Settings, and find the Account section
+- Sign in, open Settings, and select the Security tab
 - Enter a recognizable passkey label, such as "MacBook Touch ID"
 - Click "Add passkey" in the Passkeys card
 - If the session is not fresh, a Security verification modal requires an authenticator code before continuing
@@ -74,8 +74,8 @@
 - Close and reopen the browser tab — still signed in (session cookie lasts 7 days)
 
 ## Sign Out
-- Open Settings (gear icon in sidebar footer)
-- Click "Sign out" in the Account section
+- Find the account area in the sidebar footer
+- Open the account menu and click Sign out
 - Redirected to `/login`
 - Hitting Back does not restore access — visiting `/` redirects to `/login`
 
@@ -91,6 +91,7 @@
 - Allowlist matching is case-insensitive (`Logan@example.com` matches `logan@example.com`)
 - When `SIGNUP_MODE=open`, signup is open to anyone and `ALLOWED_EMAILS` is not required
 - Existing users can still sign in regardless of the allowlist (it only gates new accounts)
+- When `SIGNUP_MODE=allowlist`, changing account email to a non-allowlisted address is refused
 
 ## Sign-Up Anti-Enumeration
 - /api/auth/sign-up/email returns an identical 200 + empty body `{}` for every outcome:

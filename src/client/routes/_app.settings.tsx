@@ -1,17 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { SettingsContent } from "../components/SettingsContent";
-import { useSettings } from "../hooks/useSettings";
-import { useUser } from "../hooks/useUser";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { PageContainer } from "../components/PageContainer";
+import { SettingsTabs } from "../components/settings/SettingsTabs";
 
 export const Route = createFileRoute("/_app/settings")({
   component: SettingsRoute,
 });
 
 function SettingsRoute() {
-  const { settings, update } = useSettings();
-  const user = useUser();
   useDocumentTitle("Settings");
 
   return (
@@ -20,12 +16,8 @@ function SettingsRoute() {
         <h1 className="text-3xl font-semibold tracking-tight text-text">Settings</h1>
       </header>
 
-      <SettingsContent
-        settings={settings}
-        onUpdateSettings={update}
-        userEmail={user?.email ?? null}
-        twoFactorEnabled={user?.twoFactorEnabled ?? false}
-      />
+      <SettingsTabs />
+      <Outlet />
     </PageContainer>
   );
 }

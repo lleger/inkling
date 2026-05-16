@@ -97,6 +97,12 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`
 
 Run `pnpm test` before committing.
 
+## Agent Workflow
+
+- Always use Hunk when reviewing changes. Before marking work complete, inspect the diff in Hunk and use it as the default review surface for code changes.
+- Annotate more aggressively while working: call out important discoveries, tradeoffs, and non-obvious implementation choices instead of only reporting final outcomes.
+- Add concise code comments for non-obvious behavior, edge cases, and cross-file contracts. Avoid restating what the code already says.
+
 ### QA user (browser/playwright walkthroughs)
 
 A dev-only QA user (`qa@inkling.local`) lives in the local D1, created

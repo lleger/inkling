@@ -1,7 +1,7 @@
 # Trash
 
 ## View Trash
-- Click the trash icon in the sidebar footer
+- Open the account menu in the sidebar footer and click Trash
 - The trash view should show deleted notes with title and deletion timestamp
 - If empty, show "Trash is empty" message
 

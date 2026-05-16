@@ -48,7 +48,7 @@ import {
   minSidebarWidth,
   useUI,
 } from "../context/UIContext";
-import { authClient } from "../lib/auth-client";
+import { authClient, signOut } from "../lib/auth-client";
 import { RouteError } from "../components/LoadStates";
 import { folderMetadataQuery, notesQuery } from "../lib/queries";
 
@@ -299,8 +299,13 @@ function AppLayout() {
   };
 
   const openSettings = () => {
-    navigate({ to: "/settings" });
+    navigate({ to: "/settings/workspace" });
     closeSidebarOnNonDesktop();
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    window.location.href = "/login";
   };
 
   // Mode switcher state lives here so the palette can switch modes from any route
@@ -479,6 +484,7 @@ function AppLayout() {
           onOpenScratchNote={handleOpenScratchNote}
           onOpenSettings={openSettings}
           onOpenTrash={goTrash}
+          onSignOut={handleSignOut}
           onTogglePin={(id) => {
             const note = notes.find((n) => n.id === id);
             if (note) pin(id, !note.pinned);
@@ -486,6 +492,7 @@ function AppLayout() {
           onMoveNote={openMoveToFolder}
           onViewVersions={openVersionHistory}
           onDuplicateNote={handleDuplicateNote}
+          userName={user?.name ?? null}
           userEmail={user?.email ?? null}
           open={ui.sidebarOpen && !ui.focusMode}
           saveStatus={ui.saveStatus}

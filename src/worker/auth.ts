@@ -117,11 +117,29 @@ export function getAuth(env: Env, requestUrl: string, ctx?: ExecutionContext) {
             to: user.email,
             subject: "Verify your Inkling email",
             title: "Verify your email",
-            body: "Confirm this email address to finish setting up your Inkling account.",
+            body: "Confirm this email address to finish setting up your Inkling account or complete an email change.",
             actionText: "Verify email",
             actionUrl: url,
           }),
         );
+      },
+    },
+    user: {
+      changeEmail: {
+        enabled: true,
+        sendChangeEmailConfirmation: async ({ user, newEmail, url }) => {
+          waitForEmail(
+            ctx,
+            sendAuthEmail(env, {
+              to: user.email,
+              subject: "Confirm your Inkling email change",
+              title: "Confirm email change",
+              body: `Confirm changing your Inkling sign-in email to ${newEmail}. After confirming, check ${newEmail} for a second verification link to complete the change. If this wasn't you, ignore this email and review your account security.`,
+              actionText: "Confirm email change",
+              actionUrl: url,
+            }),
+          );
+        },
       },
     },
     socialProviders:
