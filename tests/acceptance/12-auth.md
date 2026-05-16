@@ -12,7 +12,7 @@
 - Enter existing email + password and submit
 - Redirected to `/` (or to the `redirect` query param if present)
 - Wrong password → an inline error appears, no redirect
-- Unverified account → inline "Please verify your email first." message and a verification email is sent
+- Unverified account → inline "Please verify your email first. We sent a new verification link to your email." message and a verification email is sent
 
 ## Password Reset
 - Navigate to `/login` and click "Forgot password?"

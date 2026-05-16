@@ -6,6 +6,9 @@ import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 type LoginMode = "signin" | "signup" | "forgot" | "twoFactor";
 
+const EMAIL_VERIFICATION_MESSAGE =
+  "Please verify your email first. We sent a new verification link to your email.";
+
 export const Route = createFileRoute("/login")({
   validateSearch: (search): { mode?: LoginMode; redirect?: string } => ({
     mode:
@@ -104,7 +107,7 @@ function LoginPage() {
         if (res.error) {
           const message = res.error.message || "Something went wrong";
           if (res.error.status === 403 || message.toLowerCase().includes("verified")) {
-            throw new Error("Please verify your email first.");
+            throw new Error(EMAIL_VERIFICATION_MESSAGE);
           }
           throw new Error(message);
         }
@@ -123,7 +126,7 @@ function LoginPage() {
       setError(
         mode !== "twoFactor" &&
           (message.toLowerCase().includes("verify") || message.toLowerCase().includes("verified"))
-          ? "Please verify your email first."
+          ? EMAIL_VERIFICATION_MESSAGE
           : message,
       );
       setPassword("");
