@@ -19,7 +19,7 @@
 - Select "System" — should follow OS preference
 
 ## Accent Color
-- Click a different color circle (e.g., purple)
+- Click a different color circle (e.g., purple or yellow)
 - The accent color should change throughout the app (active states, links, checkboxes, etc.)
 
 ## Settings Persistence

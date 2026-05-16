@@ -56,7 +56,11 @@ export function WorkspaceSettings({ settings, onUpdateSettings }: WorkspaceSetti
                   style={{ backgroundColor: ACCENT_COLORS[color].swatch }}
                 >
                   {settings.accent === color && (
-                    <Check size={14} className="text-white" strokeWidth={2.5} />
+                    <Check
+                      size={14}
+                      style={{ color: ACCENT_COLORS[color].foreground }}
+                      strokeWidth={2.5}
+                    />
                   )}
                 </button>
               ))}

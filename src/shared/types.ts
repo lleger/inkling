@@ -46,7 +46,16 @@ export interface User {
 
 export type SaveStatus = "saved" | "saving" | "unsaved" | "failed";
 export type EditorMode = "markdown" | "richtext" | "split";
-export type AccentColor = "green" | "blue" | "purple" | "orange" | "rose" | "teal";
+export type AccentColor =
+  | "green"
+  | "blue"
+  | "indigo"
+  | "purple"
+  | "orange"
+  | "rose"
+  | "teal"
+  | "yellow"
+  | "slate";
 
 export interface NoteVersionMeta {
   id: string;

@@ -13,7 +13,9 @@ export const settingsRoutes = new Hono<{ Bindings: Env; Variables: AuthVars }>()
 const settingsSchema = z
   .object({
     theme: z.enum(["light", "dark", "system"]).optional(),
-    accent: z.enum(["green", "blue", "purple", "orange", "rose", "teal"]).optional(),
+    accent: z
+      .enum(["green", "blue", "indigo", "purple", "orange", "rose", "teal", "yellow", "slate"])
+      .optional(),
     defaultMode: z.enum(["richtext", "markdown"]).optional(),
     copyMarkdownByDefault: z.boolean().optional(),
     smartTypography: z.boolean().optional(),

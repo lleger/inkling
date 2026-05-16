@@ -62,7 +62,7 @@ export function AlertDialog({
                 disabled={confirmPending}
                 className={cx(
                   "rounded-md px-3 py-1.5 text-[13px] font-medium transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50",
-                  destructive ? "bg-red-600 text-white" : "bg-accent text-white",
+                  destructive ? "bg-red-600 text-white" : "bg-accent text-accent-foreground",
                 )}
               >
                 {confirmPending ? (pendingLabel ?? confirmLabel) : confirmLabel}

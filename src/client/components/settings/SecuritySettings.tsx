@@ -496,7 +496,7 @@ export function SecuritySettings({
               type="button"
               onClick={handleVerifyTwoFactor}
               disabled={twoFactorBusy || !twoFactorCode}
-              className="rounded-lg bg-accent px-3 py-2 text-[12px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="rounded-lg bg-accent px-3 py-2 text-[12px] font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               {twoFactorBusy ? "Verifying..." : "Verify and enable"}
             </button>
@@ -687,7 +687,7 @@ export function SecuritySettings({
                 type="button"
                 onClick={handleVerifyStepUp}
                 disabled={stepUpBusy || !stepUpCode}
-                className="w-full rounded-lg bg-accent px-3 py-2 text-[12px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="w-full rounded-lg bg-accent px-3 py-2 text-[12px] font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
               >
                 {stepUpBusy ? "Verifying..." : "Verify and continue"}
               </button>

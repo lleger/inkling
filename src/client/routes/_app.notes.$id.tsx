@@ -592,7 +592,7 @@ function DailyDatePicker({ date, onSelect }: { date: Date; onSelect: (date: Date
                     disabled={disabled}
                     className={`flex aspect-square items-center justify-center rounded-md text-sm transition-colors disabled:pointer-events-none disabled:opacity-25 ${
                       selected
-                        ? "bg-accent text-white"
+                        ? "bg-accent text-accent-foreground"
                         : outsideMonth
                           ? "text-text-muted hover:bg-surface-hover hover:text-text-secondary"
                           : "text-text-secondary hover:bg-surface-hover hover:text-text"

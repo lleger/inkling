@@ -99,7 +99,7 @@ export function FolderIconPickerModal({
             <button
               onClick={() => saveEmoji(emoji)}
               disabled={!emoji.trim()}
-              className="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50"
             >
               Save
             </button>

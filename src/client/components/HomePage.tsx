@@ -172,7 +172,7 @@ export function HomePage({
               onClick={() => onSelectTag(selectedTag === tag ? null : tag)}
               className={`rounded-full px-2.5 py-0.5 text-[12px] font-medium transition-colors ${
                 selectedTag === tag
-                  ? "bg-accent text-white"
+                  ? "bg-accent text-accent-foreground"
                   : "bg-surface-tertiary text-text-secondary hover:text-text"
               }`}
             >

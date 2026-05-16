@@ -49,7 +49,7 @@ function DailyRoute() {
         </div>
         <button
           onClick={() => openDailyNote()}
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+          className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
         >
           <CalendarDays size={15} />
           Today

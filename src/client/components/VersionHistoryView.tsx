@@ -144,7 +144,7 @@ export function VersionHistoryView({
                   <button
                     onClick={handleRestore}
                     disabled={restore.isPending}
-                    className="flex items-center justify-center gap-1.5 rounded-md bg-accent px-3 py-2 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 sm:py-1.5"
+                    className="flex items-center justify-center gap-1.5 rounded-md bg-accent px-3 py-2 text-[13px] font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:opacity-50 sm:py-1.5"
                   >
                     <RotateCcw size={13} />
                     {restore.isPending ? "Restoring..." : "Restore this version"}

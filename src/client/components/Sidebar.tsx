@@ -109,7 +109,7 @@ function AccountMenu({
       >
         <span
           aria-hidden="true"
-          className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-[12px] font-semibold text-white outline outline-1 -outline-offset-1 outline-black/5"
+          className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-[12px] font-semibold text-accent-foreground outline outline-1 -outline-offset-1 outline-black/5"
         >
           {avatarLabel}
         </span>
@@ -628,7 +628,7 @@ export function Sidebar({
               onClick={() => onSelectTag(selectedTag === tag ? null : tag)}
               className={`rounded-full px-2 py-0.5 text-[11px] font-medium transition-colors ${
                 selectedTag === tag
-                  ? "bg-accent text-white"
+                  ? "bg-accent text-accent-foreground"
                   : "bg-surface-tertiary text-text-secondary hover:text-text"
               }`}
             >
