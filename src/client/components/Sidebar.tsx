@@ -225,22 +225,29 @@ export function Sidebar({
   const renderScratchSection = () => (
     <div className="mx-1 my-1 rounded-lg border border-border bg-surface/60 p-1">
       <div
-        onClick={() => onOpenScratchNote()}
-        className={`group relative flex w-full min-h-10 cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors md:min-h-0 ${
+        className={`group relative flex w-full min-h-10 items-center gap-2 rounded-md px-2 py-1.5 transition-colors md:min-h-0 ${
           isScratchActive
             ? "bg-surface-active text-text"
             : "text-text-secondary hover:bg-surface-hover hover:text-text"
         }`}
       >
-        {isScratchActive && (
-          <div className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-accent" />
-        )}
-        <Eraser size={13} className="shrink-0 text-text-muted" />
-        <span className="min-w-0 flex-1 truncate text-[13px] font-medium">Scratch</span>
-        <span className="shrink-0 text-[11px] text-text-muted">⌘⇧X</span>
+        <button
+          type="button"
+          aria-current={isScratchActive ? "page" : undefined}
+          onClick={() => onOpenScratchNote()}
+          className="flex min-w-0 flex-1 items-center gap-2 text-left"
+        >
+          {isScratchActive && (
+            <div className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-accent" />
+          )}
+          <Eraser size={13} className="shrink-0 text-text-muted" />
+          <span className="min-w-0 flex-1 truncate text-[13px] font-medium">Scratch</span>
+          <span className="shrink-0 text-[11px] text-text-muted">⌘⇧X</span>
+        </button>
         {scratchNote && (
           <button
             type="button"
+            aria-label="Delete scratch note"
             title="Delete scratch note"
             className="flex size-7 shrink-0 items-center justify-center rounded text-text-muted opacity-100 transition-opacity hover:bg-surface-active hover:text-text md:size-5 md:opacity-0 md:group-hover:opacity-100"
             onClick={(e) => {
@@ -272,23 +279,30 @@ export function Sidebar({
         return (
           <div
             key={dailyTitle(date)}
-            onClick={() => onOpenDailyDate(date)}
-            className={`group relative flex w-full min-h-10 cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors md:min-h-0 ${
+            className={`group relative flex w-full min-h-10 items-center gap-2 rounded-md px-2 py-1.5 transition-colors md:min-h-0 ${
               isActive
                 ? "bg-surface-active text-text"
                 : "text-text-secondary hover:bg-surface-hover hover:text-text"
             }`}
           >
-            {isActive && (
-              <div className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-accent" />
-            )}
-            <span className="min-w-0 flex-1 truncate text-[13px] font-medium">
-              {dailyLabel(date)}
-            </span>
-            <span className="shrink-0 text-[11px] text-text-muted">{dailyTitle(date)}</span>
+            <button
+              type="button"
+              aria-current={isActive ? "page" : undefined}
+              onClick={() => onOpenDailyDate(date)}
+              className="flex min-w-0 flex-1 items-center gap-2 text-left"
+            >
+              {isActive && (
+                <div className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-accent" />
+              )}
+              <span className="min-w-0 flex-1 truncate text-[13px] font-medium">
+                {dailyLabel(date)}
+              </span>
+              <span className="shrink-0 text-[11px] text-text-muted">{dailyTitle(date)}</span>
+            </button>
             {note && (
               <button
                 type="button"
+                aria-label={`Delete ${dailyTitle(date)}`}
                 title="Delete"
                 className="flex size-7 shrink-0 items-center justify-center rounded text-text-muted opacity-100 transition-opacity hover:bg-surface-active hover:text-text md:size-5 md:opacity-0 md:group-hover:opacity-100"
                 onClick={(e) => {
@@ -310,47 +324,60 @@ export function Sidebar({
     const saveMeta = saveStatusMeta(saveStatus);
     const noteItem = (
       <div
-        className={`group relative flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-2 py-2 transition-colors md:min-h-0 ${
+        className={`group relative flex min-h-11 items-center gap-2 rounded-md transition-colors md:min-h-0 ${
           isActive
             ? "bg-surface-active text-text"
             : "text-text-secondary hover:bg-surface-hover hover:text-text"
         }`}
-        style={{ paddingLeft: `${8 + depth * 16}px` }}
-        onClick={() => onSelectNote(note.id)}
       >
-        {isActive && (
-          <div className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-accent" />
-        )}
-        {isActive && saveStatus !== "saved" && (
-          <div
-            className={`shrink-0 size-1.5 rounded-full ${saveMeta.dotClassName}`}
-            title={saveMeta.label}
-          />
-        )}
-        {note.pinned === 1 && <Pin size={11} className="shrink-0 text-text-muted" />}
-        <span className="flex-1 truncate pr-16 text-[13px] md:pr-0">
-          {note.title || "Untitled"}
-        </span>
-        <span className="hidden shrink-0 text-[11px] text-text-muted transition-opacity group-hover:opacity-0 md:inline">
-          {timeAgo(note.updated_at)}
-        </span>
+        <button
+          type="button"
+          aria-current={isActive ? "page" : undefined}
+          aria-label={`Open ${note.title || "Untitled"}`}
+          className="flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-2 text-left"
+          style={{ paddingLeft: `${8 + depth * 16}px` }}
+          onClick={() => onSelectNote(note.id)}
+        >
+          {isActive && (
+            <div className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-accent" />
+          )}
+          {isActive && saveStatus !== "saved" && (
+            <div
+              className={`shrink-0 size-1.5 rounded-full ${saveMeta.dotClassName}`}
+              title={saveMeta.label}
+            />
+          )}
+          {note.pinned === 1 && <Pin size={11} className="shrink-0 text-text-muted" />}
+          <span className="flex-1 truncate pr-16 text-[13px] md:pr-0">
+            {note.title || "Untitled"}
+          </span>
+          <span className="hidden shrink-0 text-[11px] text-text-muted transition-opacity group-hover:opacity-0 md:inline">
+            {timeAgo(note.updated_at)}
+          </span>
+        </button>
         <div className="absolute right-1.5 flex items-center gap-0.5 opacity-100 transition-opacity md:pointer-events-none md:opacity-0 md:group-hover:pointer-events-auto md:group-hover:opacity-100">
           <button
+            type="button"
             className="flex size-8 items-center justify-center rounded text-text-muted hover:bg-surface-active hover:text-text md:size-5"
             onClick={(e) => {
               e.stopPropagation();
               onTogglePin(note.id);
             }}
+            aria-label={
+              note.pinned ? `Unpin ${note.title || "Untitled"}` : `Pin ${note.title || "Untitled"}`
+            }
             title={note.pinned ? "Unpin" : "Pin"}
           >
             <Pin size={11} className={note.pinned ? "text-accent" : ""} />
           </button>
           <button
+            type="button"
             className="flex size-8 items-center justify-center rounded text-text-muted hover:bg-surface-active hover:text-text md:size-5"
             onClick={(e) => {
               e.stopPropagation();
               onDeleteNote(note.id);
             }}
+            aria-label={`Delete ${note.title || "Untitled"}`}
             title="Delete"
           >
             <X size={12} />
@@ -398,9 +425,11 @@ export function Sidebar({
           )}
         </button>
         <button
+          type="button"
           onClick={() => onCustomizeFolder(folder.path)}
           className="mr-1 flex size-8 shrink-0 items-center justify-center rounded text-text-muted opacity-100 transition-opacity hover:bg-surface-active hover:text-text md:size-5 md:opacity-0 md:group-hover:opacity-100"
           title={`Customize ${folder.name} icon`}
+          aria-label={`Customize ${folder.name} icon`}
         >
           <Paintbrush size={11} />
         </button>
@@ -449,24 +478,30 @@ export function Sidebar({
     >
       <div className="flex items-center justify-between border-b border-border px-3 py-2">
         <button
+          type="button"
           className="flex size-8 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-surface-hover hover:text-text"
           onClick={onHome}
           title="Home"
+          aria-label="Home"
         >
           <Home size={16} />
         </button>
         <div className="flex items-center gap-0.5 rounded-md bg-surface p-0.5">
           <button
+            type="button"
             className="flex size-9 items-center justify-center rounded text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary md:size-7"
             onClick={onCreateNote}
             title="New note"
+            aria-label="New note"
           >
             <Plus size={15} />
           </button>
           <button
+            type="button"
             className="flex size-9 items-center justify-center rounded text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary md:size-7"
             onClick={onCollapse}
             title="Collapse sidebar"
+            aria-label="Collapse sidebar"
           >
             <PanelLeftClose size={15} />
           </button>
@@ -524,16 +559,20 @@ export function Sidebar({
         )}
         <div className="flex items-center gap-0.5">
           <button
+            type="button"
             className="flex size-9 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary md:size-7"
             onClick={onOpenTrash}
             title="Trash"
+            aria-label="Trash"
           >
             <Trash2 size={14} />
           </button>
           <button
+            type="button"
             className="flex size-9 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary md:size-7"
             onClick={onOpenSettings}
             title="Settings"
+            aria-label="Settings"
           >
             <Settings size={14} />
           </button>

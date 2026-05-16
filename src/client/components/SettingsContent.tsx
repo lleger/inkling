@@ -259,7 +259,7 @@ export function SettingsContent({
 
         <div className="space-y-5">
           <div>
-            <label className="mb-2 block text-[12px] font-medium text-text-secondary">Theme</label>
+            <div className="mb-2 block text-[12px] font-medium text-text-secondary">Theme</div>
             <SegmentedControl
               value={settings.theme}
               options={themeOptions}
@@ -269,9 +269,9 @@ export function SettingsContent({
           </div>
 
           <div>
-            <label className="mb-2 block text-[12px] font-medium text-text-secondary">
+            <div className="mb-2 block text-[12px] font-medium text-text-secondary">
               Accent color
-            </label>
+            </div>
             <div className="flex flex-wrap gap-2">
               {ACCENT_NAMES.map((color) => (
                 <button
@@ -279,6 +279,7 @@ export function SettingsContent({
                   type="button"
                   onClick={() => onUpdateSettings({ accent: color })}
                   title={color.charAt(0).toUpperCase() + color.slice(1)}
+                  aria-label={`Use ${color} accent color`}
                   className="relative flex size-8 items-center justify-center rounded-full transition-transform hover:scale-110"
                   style={{ backgroundColor: ACCENT_COLORS[color].swatch }}
                 >
@@ -302,9 +303,9 @@ export function SettingsContent({
 
         <div className="space-y-5">
           <div>
-            <label className="mb-2 block text-[12px] font-medium text-text-secondary">
+            <div className="mb-2 block text-[12px] font-medium text-text-secondary">
               Default editor
-            </label>
+            </div>
             <SegmentedControl
               value={settings.defaultMode}
               options={modeOptions}
@@ -315,9 +316,9 @@ export function SettingsContent({
 
           <div className="flex items-center justify-between gap-4 rounded-xl bg-surface/60 p-3">
             <div>
-              <label className="block text-[12px] font-medium text-text-secondary">
+              <div className="block text-[12px] font-medium text-text-secondary">
                 Copy Markdown by default
-              </label>
+              </div>
               <span className="text-[11px] text-text-muted">
                 When off, Cmd+C copies rich text. Cmd+Ctrl+Shift+C always copies Markdown.
               </span>
@@ -333,9 +334,9 @@ export function SettingsContent({
 
           <div className="flex items-center justify-between gap-4 rounded-xl bg-surface/60 p-3">
             <div>
-              <label className="block text-[12px] font-medium text-text-secondary">
+              <div className="block text-[12px] font-medium text-text-secondary">
                 Smart typography
-              </label>
+              </div>
               <span className="text-[11px] text-text-muted">Curly quotes, em-dashes, ellipsis</span>
             </div>
             <Switch
@@ -357,10 +358,14 @@ export function SettingsContent({
 
         <div className="space-y-5">
           <div>
-            <label className="mb-2 block text-[12px] font-medium text-text-secondary">
+            <label
+              htmlFor="daily-note-folder"
+              className="mb-2 block text-[12px] font-medium text-text-secondary"
+            >
               Daily note folder
             </label>
             <Input
+              id="daily-note-folder"
               type="text"
               value={settings.dailyNoteFolder}
               onChange={(e) => onUpdateSettings({ dailyNoteFolder: e.target.value })}
@@ -372,10 +377,14 @@ export function SettingsContent({
           </div>
 
           <div>
-            <label className="mb-2 block text-[12px] font-medium text-text-secondary">
+            <label
+              htmlFor="daily-note-template"
+              className="mb-2 block text-[12px] font-medium text-text-secondary"
+            >
               Daily note template
             </label>
             <Textarea
+              id="daily-note-template"
               value={settings.dailyNoteTemplate}
               onChange={(e) => onUpdateSettings({ dailyNoteTemplate: e.target.value })}
               rows={8}

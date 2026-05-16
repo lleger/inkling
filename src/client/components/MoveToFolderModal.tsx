@@ -23,6 +23,7 @@ export function MoveToFolderModal({
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const listboxId = "move-folder-options";
 
   useEffect(() => {
     if (open) {
@@ -56,6 +57,7 @@ export function MoveToFolderModal({
 
     return items;
   }, [query, allFolders, currentFolder]);
+  const activeOptionId = options[selectedIndex] ? `move-folder-option-${selectedIndex}` : undefined;
 
   useEffect(() => {
     setSelectedIndex(0);
@@ -101,7 +103,7 @@ export function MoveToFolderModal({
         </div>
       }
     >
-      <div onKeyDown={handleKeyDown}>
+      <div>
         <div className="flex items-center gap-2 border-b border-border px-3 py-2.5">
           <Folder size={15} className="shrink-0 text-text-muted" />
           <Input
@@ -109,8 +111,14 @@ export function MoveToFolderModal({
             variant="ghost"
             inputSize="md"
             type="text"
+            role="combobox"
+            aria-expanded={open}
+            aria-controls={listboxId}
+            aria-activedescendant={activeOptionId}
+            aria-autocomplete="list"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="Search or create folder..."
           />
           <DialogClose render={<IconButton buttonSize="xs" hover="text" aria-label="Close" />}>
@@ -118,7 +126,12 @@ export function MoveToFolderModal({
           </DialogClose>
         </div>
 
-        <div className="max-h-[min(15rem,50dvh)] overflow-y-auto py-1">
+        <div
+          id={listboxId}
+          role="listbox"
+          aria-label="Folder options"
+          className="max-h-[min(15rem,50dvh)] overflow-y-auto py-1"
+        >
           {options.length === 0 && (
             <div className="px-3 py-4 text-center text-sm text-text-muted">
               Type a folder name to create one
@@ -128,6 +141,9 @@ export function MoveToFolderModal({
           {options.map((opt, i) => (
             <button
               key={opt.value ?? "__root__"}
+              id={`move-folder-option-${i}`}
+              role="option"
+              aria-selected={i === selectedIndex}
               onClick={() => {
                 onSelect(opt.value);
                 onClose();

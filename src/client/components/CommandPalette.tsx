@@ -44,6 +44,7 @@ export function CommandPalette({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const listboxId = "command-palette-results";
 
   // Build filtered results
   const results = useMemo(() => {
@@ -94,6 +95,9 @@ export function CommandPalette({
 
     return items;
   }, [query, actions, notes, onSelectNote, onCreateWithTitle]);
+  const activeOptionId = results[selectedIndex]?.id
+    ? `command-palette-option-${results[selectedIndex].id}`
+    : undefined;
 
   // Reset state when opening
   useEffect(() => {
@@ -173,7 +177,7 @@ export function CommandPalette({
         </div>
       }
     >
-      <div onKeyDown={handleKeyDown}>
+      <div>
         {/* Search input */}
         <div className="flex items-center gap-2 border-b border-border px-3 py-2.5">
           <Search size={15} className="shrink-0 text-text-muted" />
@@ -182,8 +186,14 @@ export function CommandPalette({
             variant="ghost"
             inputSize="md"
             type="text"
+            role="combobox"
+            aria-expanded={open}
+            aria-controls={listboxId}
+            aria-activedescendant={activeOptionId}
+            aria-autocomplete="list"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="Search notes and actions..."
           />
           <Kbd size="xs" className="shrink-0">
@@ -192,7 +202,14 @@ export function CommandPalette({
         </div>
 
         {/* Results */}
-        <div key={query} ref={listRef} className="max-h-[min(18rem,55dvh)] overflow-y-auto py-1">
+        <div
+          key={query}
+          id={listboxId}
+          ref={listRef}
+          role="listbox"
+          aria-label="Command palette results"
+          className="max-h-[min(18rem,55dvh)] overflow-y-auto py-1"
+        >
           {results.length === 0 && (
             <div className="px-3 py-6 text-center text-sm text-text-muted">No results</div>
           )}
@@ -212,6 +229,9 @@ export function CommandPalette({
             return (
               <button
                 key={item.id}
+                id={`command-palette-option-${item.id}`}
+                role="option"
+                aria-selected={index === selectedIndex}
                 onClick={() => {
                   item.onSelect();
                   onClose();

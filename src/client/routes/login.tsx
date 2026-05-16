@@ -222,8 +222,14 @@ function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-3">
           {mode === "signup" && (
             <div>
-              <label className="block text-[12px] font-medium text-text-secondary mb-1">Name</label>
+              <label
+                htmlFor="auth-name"
+                className="block text-[12px] font-medium text-text-secondary mb-1"
+              >
+                Name
+              </label>
               <input
+                id="auth-name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -235,10 +241,14 @@ function LoginPage() {
           )}
           {mode !== "twoFactor" && (
             <div>
-              <label className="block text-[12px] font-medium text-text-secondary mb-1">
+              <label
+                htmlFor="auth-email"
+                className="block text-[12px] font-medium text-text-secondary mb-1"
+              >
                 Email
               </label>
               <input
+                id="auth-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -252,7 +262,12 @@ function LoginPage() {
           {(mode === "signin" || mode === "signup") && (
             <div>
               <div className="mb-1 flex items-center justify-between gap-3">
-                <label className="text-[12px] font-medium text-text-secondary">Password</label>
+                <label
+                  htmlFor="auth-password"
+                  className="text-[12px] font-medium text-text-secondary"
+                >
+                  Password
+                </label>
                 {mode === "signin" && (
                   <button
                     type="button"
@@ -265,6 +280,7 @@ function LoginPage() {
               </div>
               <div className="relative">
                 <input
+                  id="auth-password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

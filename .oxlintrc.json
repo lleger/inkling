@@ -6,6 +6,7 @@
     "typescript",
     "unicorn",
     "vitest",
+    "jsx-a11y",
     "oxc"
   ],
   "categories": {
@@ -18,6 +19,7 @@
     "react/react-in-jsx-scope": "off",
     "unicorn/consistent-function-scoping": "off",
     "unicorn/no-array-sort": "off",
+    "jsx-a11y/no-autofocus": "off",
     "vitest/require-mock-type-parameters": "off"
   },
   "env": {

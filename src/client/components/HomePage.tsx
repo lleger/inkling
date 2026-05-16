@@ -220,56 +220,64 @@ export function HomePage({
           {filtered.map((note) => (
             <div
               key={note.id}
-              onClick={() => onSelectNote(note.id)}
-              className="group relative cursor-pointer rounded-lg border border-border bg-surface-secondary p-4 text-left transition-all duration-150 hover:bg-surface-hover hover:-translate-y-0.5 hover:shadow-md"
+              className="group relative rounded-lg border border-border bg-surface-secondary transition-all duration-150 hover:bg-surface-hover hover:-translate-y-0.5 hover:shadow-md"
             >
               <button
+                type="button"
+                aria-label={`Open ${note.title || "Untitled"}`}
+                onClick={() => onSelectNote(note.id)}
+                className="block w-full rounded-lg p-4 text-left"
+              >
+                <div className="mb-1 truncate pr-6 text-sm font-medium text-text">
+                  {note.title || "Untitled"}
+                </div>
+                {note.preview && (
+                  <div className="mb-3 line-clamp-2 text-xs leading-relaxed text-text-muted">
+                    {note.preview}
+                  </div>
+                )}
+                <div className="flex items-center gap-3 text-[11px] text-text-muted">
+                  <span>{timeAgo(note.updated_at)}</span>
+                  <span>{note.word_count} words</span>
+                  {note.task_total > 0 && (
+                    <span>
+                      {note.task_done}/{note.task_total} tasks
+                    </span>
+                  )}
+                </div>
+                {(() => {
+                  try {
+                    const tags = JSON.parse(note.tags) as string[];
+                    if (tags.length === 0) return null;
+                    return (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="rounded-full bg-accent/10 px-2 py-px text-[10px] font-medium text-accent"
+                          >
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    );
+                  } catch {
+                    return null;
+                  }
+                })()}
+              </button>
+              <button
+                type="button"
                 className="absolute top-2 right-2 flex size-8 items-center justify-center rounded-md text-text-muted opacity-100 transition-opacity hover:bg-surface-active hover:text-text sm:size-6 sm:opacity-0 sm:group-hover:opacity-100"
                 onClick={(e) => {
                   e.stopPropagation();
                   onDeleteNote(note.id);
                 }}
+                aria-label={`Delete ${note.title || "Untitled"}`}
                 title="Delete"
               >
                 <X size={13} />
               </button>
-              <div className="mb-1 truncate pr-6 text-sm font-medium text-text">
-                {note.title || "Untitled"}
-              </div>
-              {note.preview && (
-                <div className="mb-3 line-clamp-2 text-xs leading-relaxed text-text-muted">
-                  {note.preview}
-                </div>
-              )}
-              <div className="flex items-center gap-3 text-[11px] text-text-muted">
-                <span>{timeAgo(note.updated_at)}</span>
-                <span>{note.word_count} words</span>
-                {note.task_total > 0 && (
-                  <span>
-                    {note.task_done}/{note.task_total} tasks
-                  </span>
-                )}
-              </div>
-              {(() => {
-                try {
-                  const tags = JSON.parse(note.tags) as string[];
-                  if (tags.length === 0) return null;
-                  return (
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="rounded-full bg-accent/10 px-2 py-px text-[10px] font-medium text-accent"
-                        >
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
-                  );
-                } catch {
-                  return null;
-                }
-              })()}
             </div>
           ))}
         </div>

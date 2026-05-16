@@ -79,10 +79,10 @@ export function FolderIconPickerModal({
 
       <div className="max-h-[min(calc(100dvh-8rem),28rem)] overflow-y-auto p-3">
         <div className="mb-4 rounded-lg border border-border bg-surface-secondary p-2">
-          <label className="mb-2 flex items-center gap-2 text-xs font-medium text-text-secondary">
+          <div className="mb-2 flex items-center gap-2 text-xs font-medium text-text-secondary">
             <Smile size={13} />
             Custom emoji
-          </label>
+          </div>
           <div className="flex gap-2">
             <Input
               ref={inputRef}
@@ -118,6 +118,7 @@ export function FolderIconPickerModal({
                     ? "border-accent bg-accent/10"
                     : "border-border bg-surface-secondary hover:bg-surface-hover"
                 }`}
+                aria-label={`Use ${value} folder emoji`}
                 title={value}
               >
                 {value}

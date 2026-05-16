@@ -40,6 +40,7 @@ function InlineChip({ url }: { url: string }) {
             href={href}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label={`Open ${display}`}
             data-url-chip="inline"
             className="inline-flex max-w-full items-center gap-1.5 rounded-md border border-border bg-surface-secondary px-1.5 py-0.5 align-baseline text-[0.95em] text-text no-underline transition-colors hover:border-accent/40 hover:text-accent"
           />
@@ -224,6 +225,7 @@ function CardChip({ url }: { url: string }) {
       <button
         type="button"
         onClick={handleRefresh}
+        aria-label="Refresh preview"
         title="Refresh preview"
         className="flex-shrink-0 self-start p-2 text-text-muted opacity-0 transition-opacity hover:text-text group-hover:opacity-100"
       >
