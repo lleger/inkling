@@ -150,7 +150,10 @@ export function VersionHistoryView({
                     {restore.isPending ? "Restoring..." : "Restore this version"}
                   </button>
                 </div>
-                <div className="flex-1 overflow-y-auto rounded-lg border border-border bg-surface-secondary p-4 sm:p-6">
+                <div
+                  key={preview.id}
+                  className="flex-1 overflow-y-auto rounded-lg border border-border bg-surface-secondary p-4 sm:p-6 motion-content-in"
+                >
                   <RichTextPreview content={preview.content} />
                 </div>
               </>

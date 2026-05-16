@@ -848,12 +848,75 @@ button:focus-visible {
   }
 }
 
+@keyframes content-in {
+  from {
+    transform: translateY(3px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes list-item-in {
+  from {
+    transform: translateX(-3px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes list-item-exit {
+  to {
+    transform: translateX(8px) scale(0.98);
+    opacity: 0;
+  }
+}
+
+@keyframes save-success-pulse {
+  0% {
+    transform: scale(1);
+    background: var(--color-accent);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent), transparent 45%);
+  }
+  65% {
+    transform: scale(1.6);
+    background: var(--color-accent);
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--color-accent), transparent 100%);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent), transparent 100%);
+  }
+}
+
 .motion-pop-in {
   animation: pop-in 0.16s ease-out;
 }
 
 .motion-drop-target-in {
   animation: drop-target-in 0.16s ease-out;
+}
+
+.motion-content-in {
+  animation: content-in 0.16s ease-out;
+}
+
+.motion-list-item-in {
+  animation: list-item-in 0.12s ease-out both;
+}
+
+.motion-list-item-exit {
+  pointer-events: none;
+  animation: list-item-exit 0.16s ease-in forwards;
+}
+
+.motion-save-success {
+  animation: save-success-pulse 0.46s ease-out;
 }
 
 .sidebar-folder-children {

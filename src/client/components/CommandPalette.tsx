@@ -192,7 +192,7 @@ export function CommandPalette({
         </div>
 
         {/* Results */}
-        <div ref={listRef} className="max-h-[min(18rem,55dvh)] overflow-y-auto py-1">
+        <div key={query} ref={listRef} className="max-h-[min(18rem,55dvh)] overflow-y-auto py-1">
           {results.length === 0 && (
             <div className="px-3 py-6 text-center text-sm text-text-muted">No results</div>
           )}
@@ -202,7 +202,7 @@ export function CommandPalette({
               return (
                 <div
                   key={`header-${i}`}
-                  className={`px-3 ${i === 0 ? "pt-1.5" : "pt-2.5"} pb-1 text-[10px] font-medium uppercase tracking-widest text-text-muted`}
+                  className={`px-3 ${i === 0 ? "pt-1.5" : "pt-2.5"} pb-1 text-[10px] font-medium uppercase tracking-widest text-text-muted motion-list-item-in`}
                 >
                   {entry.label}
                 </div>
@@ -216,9 +216,9 @@ export function CommandPalette({
                   item.onSelect();
                   onClose();
                 }}
-                className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors ${
+                className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors motion-list-item-in ${
                   index === selectedIndex
-                    ? "bg-surface-hover text-text"
+                    ? "bg-surface-hover text-text motion-pop-in"
                     : "text-text-secondary hover:bg-surface-hover hover:text-text"
                 }`}
               >

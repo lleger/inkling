@@ -70,11 +70,13 @@ function NoteRoute() {
   const [activeHeadingId, setActiveHeadingId] = useState<string | null>(null);
   const [outlineOpen, setOutlineOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
+  const [savedPulseKey, setSavedPulseKey] = useState(0);
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingContentRef = useRef<string | null>(null);
   const currentContentRef = useRef<string>("");
   const lastSavedContentRef = useRef<string>("");
+  const previousSaveStatusRef = useRef<SaveStatus>("saved");
   const retryCountRef = useRef(0);
   const loadedNoteIdRef = useRef<string>("");
 
@@ -116,6 +118,14 @@ function NoteRoute() {
   useEffect(() => {
     setGlobalSaveStatus(saveStatus);
   }, [saveStatus, setGlobalSaveStatus]);
+
+  useEffect(() => {
+    const previous = previousSaveStatusRef.current;
+    if (saveStatus === "saved" && (previous === "saving" || previous === "unsaved")) {
+      setSavedPulseKey((key) => key + 1);
+    }
+    previousSaveStatusRef.current = saveStatus;
+  }, [saveStatus]);
 
   useEffect(() => {
     if (editorMode === "split" || ui.focusMode || tocHeadings.length === 0) {
@@ -397,7 +407,10 @@ function NoteRoute() {
           className={`inline-flex items-center gap-1.5 ${saveMeta.textClassName}`}
           title={saveMeta.label}
         >
-          <span className={`size-1.5 rounded-full ${saveMeta.dotClassName}`} />
+          <span
+            key={savedPulseKey}
+            className={`size-1.5 rounded-full ${saveMeta.dotClassName} ${savedPulseKey > 0 && saveStatus === "saved" ? "motion-save-success" : ""}`}
+          />
           {saveMeta.shortLabel}
         </span>
         <span className="text-border">·</span>

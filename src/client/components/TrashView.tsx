@@ -28,6 +28,7 @@ export function TrashView() {
   const { showToast } = useUI();
   const { data: notes = [], isLoading, error, refetch } = useQuery(trashQuery());
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [exitingIds, setExitingIds] = useState<Set<string>>(new Set());
 
   const restore = useMutation({
     mutationFn: restoreNote,
@@ -41,20 +42,27 @@ export function TrashView() {
   const deleteNote = notes.find((note) => note.id === deleteId);
 
   const handleRestore = (id: string, title: string) => {
-    restore.mutate(id, {
-      onSuccess: () => showToast({ message: `Restored "${title}"` }),
-    });
+    setExitingIds((ids) => new Set(ids).add(id));
+    window.setTimeout(() => {
+      restore.mutate(id, {
+        onSuccess: () => showToast({ message: `Restored "${title}"` }),
+        onError: () => setExitingIds((ids) => removeExitingId(ids, id)),
+      });
+    }, 160);
   };
 
   const handlePermanentDelete = () => {
     if (!deleteId) return;
+    const id = deleteId;
     const title = deleteNote?.title || "Untitled";
-    purge.mutate(deleteId, {
-      onSuccess: () => {
-        setDeleteId(null);
-        showToast({ message: `Permanently deleted "${title}"` });
-      },
-    });
+    setDeleteId(null);
+    setExitingIds((ids) => new Set(ids).add(id));
+    window.setTimeout(() => {
+      purge.mutate(id, {
+        onSuccess: () => showToast({ message: `Permanently deleted "${title}"` }),
+        onError: () => setExitingIds((ids) => removeExitingId(ids, id)),
+      });
+    }, 160);
   };
 
   return (
@@ -87,7 +95,7 @@ export function TrashView() {
             {notes.map((note) => (
               <div
                 key={note.id}
-                className="group flex items-center justify-between gap-3 rounded-lg border border-border bg-surface-secondary p-3 transition-colors hover:bg-surface-hover"
+                className={`group flex items-center justify-between gap-3 rounded-lg border border-border bg-surface-secondary p-3 transition-colors hover:bg-surface-hover ${exitingIds.has(note.id) ? "motion-list-item-exit" : ""}`}
               >
                 <div className="min-w-0">
                   <div className="text-sm font-medium text-text">{note.title || "Untitled"}</div>
@@ -139,4 +147,10 @@ export function TrashView() {
       />
     </>
   );
+}
+
+function removeExitingId(ids: Set<string>, id: string): Set<string> {
+  const next = new Set(ids);
+  next.delete(id);
+  return next;
 }
