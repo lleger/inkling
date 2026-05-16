@@ -937,6 +937,59 @@ button:focus-visible {
   overflow: hidden;
 }
 
+.sidebar-panel {
+  width: min(18rem, 82vw);
+}
+
+.sidebar-resize-handle {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .sidebar-panel {
+    width: var(--sidebar-width);
+  }
+
+  .sidebar-panel[data-open="false"] {
+    transform: translateX(calc(var(--sidebar-width) * -1));
+  }
+
+  .sidebar-panel[data-resizing="true"] {
+    transition: none;
+    user-select: none;
+  }
+
+  .sidebar-resize-handle {
+    position: absolute;
+    top: 0;
+    right: -0.25rem;
+    bottom: 0;
+    z-index: 1;
+    display: block;
+    width: 0.5rem;
+    cursor: col-resize;
+    touch-action: none;
+  }
+
+  .sidebar-resize-handle::after {
+    position: absolute;
+    top: 0;
+    right: 0.1875rem;
+    bottom: 0;
+    width: 0.125rem;
+    background: var(--color-accent);
+    content: "";
+    opacity: 0;
+    transition: opacity 0.12s ease-out;
+  }
+
+  .sidebar-resize-handle:hover::after,
+  .sidebar-resize-handle:focus-visible::after,
+  .sidebar-panel[data-resizing="true"] .sidebar-resize-handle::after {
+    opacity: 0.7;
+  }
+}
+
 @keyframes drawer-slide-up {
   from {
     transform: translateY(100%);

@@ -22,6 +22,17 @@
 - A hamburger button should appear at the top-left of the main area
 - Click it to reopen the sidebar
 
+## Resize
+- Set viewport to a desktop size such as 1280x800
+- Drag the right edge of the sidebar wider and narrower
+- Sidebar width should change while the main content reflows beside it
+- Refresh the page
+- Sidebar should keep the last chosen width
+- Double-click the resize handle
+- Sidebar should reset to its default width
+- Focus the resize handle and press Left/Right arrow keys
+- Sidebar width should shrink/grow from the keyboard
+
 ## Mobile Drawer
 - Set viewport to a phone size such as 390x844
 - Sidebar should open as an overlay drawer, not squeeze the main content

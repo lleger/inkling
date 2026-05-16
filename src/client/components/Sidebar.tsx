@@ -1,5 +1,5 @@
 import { ContextMenu } from "@base-ui/react/context-menu";
-import { useState, type ReactNode } from "react";
+import { useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 import {
   Plus,
   PanelLeftClose,
@@ -154,6 +154,11 @@ interface SidebarProps {
   onCustomizeFolder: (path: string) => void;
   onDeleteFolder: (path: string) => void;
   dailyNoteFolder: string;
+  width: number;
+  defaultWidth: number;
+  minWidth: number;
+  maxWidth: number;
+  onResize: (width: number | ((previous: number) => number)) => void;
 }
 
 export function Sidebar({
@@ -184,22 +189,30 @@ export function Sidebar({
   onCustomizeFolder,
   onDeleteFolder,
   dailyNoteFolder,
+  width,
+  defaultWidth,
+  minWidth,
+  maxWidth,
+  onResize,
 }: SidebarProps) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(["__all__"]));
+  const [resizing, setResizing] = useState(false);
   const { tree, unfiled } = buildFolderTree(notes, new Set([dailyNoteFolder, scratchFolder()]));
+
+  const sidebarStyle = { "--sidebar-width": `${width}px` } as CSSProperties;
 
   const renderLoadingRows = () => (
     <div className="px-1 py-2" aria-label="Loading notes" role="status">
       <span className="sr-only">Loading notes...</span>
-      {["w-4/5", "w-2/3", "w-5/6", "w-3/5"].map((width, index) => (
+      {["w-4/5", "w-2/3", "w-5/6", "w-3/5"].map((rowWidth, index) => (
         <div
-          key={width}
+          key={rowWidth}
           className="flex min-h-10 items-center gap-2 rounded-md px-2 py-2 md:min-h-0"
           aria-hidden="true"
         >
           <div className="size-1.5 rounded-full bg-surface-tertiary animate-pulse" />
           <div
-            className={`h-2 ${width} rounded-full bg-surface-tertiary animate-pulse`}
+            className={`h-2 ${rowWidth} rounded-full bg-surface-tertiary animate-pulse`}
             style={{ animationDelay: `${index * 120}ms` }}
           />
         </div>
@@ -214,6 +227,17 @@ export function Sidebar({
       else next.add(path);
       return next;
     });
+  };
+
+  const handleResizeKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    const step = event.shiftKey ? 32 : 16;
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      onResize((previous) => previous - step);
+    } else if (event.key === "ArrowRight") {
+      event.preventDefault();
+      onResize((previous) => previous + step);
+    }
   };
 
   // Auto-expand folder containing active note
@@ -470,11 +494,14 @@ export function Sidebar({
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-30 flex w-[min(18rem,82vw)] shrink-0 flex-col border-r border-border bg-surface-secondary transition-transform duration-200 ease-out lg:relative lg:z-auto lg:w-56 lg:shadow-none ${
+      className={`sidebar-panel fixed inset-y-0 left-0 z-30 flex shrink-0 flex-col border-r border-border bg-surface-secondary transition-transform duration-200 ease-out lg:relative lg:z-auto lg:shadow-none ${
         open
           ? "translate-x-0 shadow-2xl"
-          : "-translate-x-full lg:-translate-x-56 lg:absolute lg:top-0 lg:bottom-0"
+          : "-translate-x-full lg:absolute lg:top-0 lg:bottom-0"
       }`}
+      data-open={open}
+      data-resizing={resizing}
+      style={sidebarStyle}
     >
       <div className="flex items-center justify-between border-b border-border px-3 py-2">
         <button
@@ -578,6 +605,41 @@ export function Sidebar({
           </button>
         </div>
       </div>
+
+      <button
+        type="button"
+        className="sidebar-resize-handle"
+        aria-label="Resize sidebar"
+        aria-orientation="vertical"
+        aria-valuemin={minWidth}
+        aria-valuemax={maxWidth}
+        aria-valuenow={width}
+        role="separator"
+        title="Drag to resize sidebar. Double-click to reset."
+        onDoubleClick={() => onResize(defaultWidth)}
+        onKeyDown={handleResizeKeyDown}
+        onPointerDown={(event) => {
+          if (event.button !== 0) return;
+          event.preventDefault();
+          event.currentTarget.setPointerCapture(event.pointerId);
+          setResizing(true);
+        }}
+        onPointerMove={(event) => {
+          if (!resizing) return;
+          onResize(event.clientX);
+        }}
+        onPointerUp={(event) => {
+          if (!resizing) return;
+          event.currentTarget.releasePointerCapture(event.pointerId);
+          setResizing(false);
+        }}
+        onPointerCancel={(event) => {
+          if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+          }
+          setResizing(false);
+        }}
+      />
     </aside>
   );
 }

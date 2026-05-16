@@ -41,7 +41,13 @@ import { useFolderMetadata } from "../hooks/useFolderMetadata";
 import { applyAccent } from "../lib/accent-colors";
 import { dailyFolder } from "../lib/daily-notes";
 import { scratchFolder } from "../lib/scratch-notes";
-import { getDefaultSidebarOpen, useUI } from "../context/UIContext";
+import {
+  defaultSidebarWidth,
+  getDefaultSidebarOpen,
+  maxSidebarWidth,
+  minSidebarWidth,
+  useUI,
+} from "../context/UIContext";
 import { authClient } from "../lib/auth-client";
 import { RouteError } from "../components/LoadStates";
 import { folderMetadataQuery, notesQuery } from "../lib/queries";
@@ -490,6 +496,11 @@ function AppLayout() {
           onCustomizeFolder={setIconFolderPath}
           onDeleteFolder={handleDeleteFolder}
           dailyNoteFolder={dailyFolder(settings)}
+          width={ui.sidebarWidth}
+          defaultWidth={defaultSidebarWidth}
+          minWidth={minSidebarWidth}
+          maxWidth={maxSidebarWidth}
+          onResize={ui.setSidebarWidth}
         />
       </div>
 

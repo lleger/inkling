@@ -12,6 +12,8 @@ export interface ToastOptions {
 interface UIContextValue {
   sidebarOpen: boolean;
   setSidebarOpen: (v: boolean | ((p: boolean) => boolean)) => void;
+  sidebarWidth: number;
+  setSidebarWidth: (v: number | ((p: number) => number)) => void;
   focusMode: boolean;
   setFocusMode: (v: boolean | ((p: boolean) => boolean)) => void;
   paletteOpen: boolean;
@@ -29,6 +31,22 @@ interface UIContextValue {
 const UIContext = createContext<UIContextValue | null>(null);
 export const desktopSidebarQuery = "(min-width: 1024px)";
 const desktopSidebarMinWidth = 1024;
+export const defaultSidebarWidth = 224;
+export const minSidebarWidth = defaultSidebarWidth;
+export const maxSidebarWidth = 384;
+const sidebarWidthStorageKey = "inkling:sidebar-width";
+
+export function clampSidebarWidth(width: number) {
+  return Math.min(maxSidebarWidth, Math.max(minSidebarWidth, Math.round(width)));
+}
+
+function getStoredSidebarWidth() {
+  if (typeof window === "undefined") return defaultSidebarWidth;
+  const raw = window.localStorage.getItem(sidebarWidthStorageKey);
+  if (raw === null) return defaultSidebarWidth;
+  const stored = Number(raw);
+  return Number.isFinite(stored) ? clampSidebarWidth(stored) : defaultSidebarWidth;
+}
 
 export function getDefaultSidebarOpen() {
   if (typeof window === "undefined") return true;
@@ -51,6 +69,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
 
 function UIProviderContent({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(getDefaultSidebarOpen);
+  const [sidebarWidth, setSidebarWidthState] = useState(getStoredSidebarWidth);
   const [focusMode, setFocusMode] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [folderModalOpen, setFolderModalOpen] = useState(false);
@@ -84,6 +103,14 @@ function UIProviderContent({ children }: { children: ReactNode }) {
     [add],
   );
 
+  const setSidebarWidth = useCallback((value: number | ((p: number) => number)) => {
+    setSidebarWidthState((previous) => {
+      const next = clampSidebarWidth(typeof value === "function" ? value(previous) : value);
+      window.localStorage.setItem(sidebarWidthStorageKey, String(next));
+      return next;
+    });
+  }, []);
+
   // Cmd+K and Escape (focus mode)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -105,6 +132,8 @@ function UIProviderContent({ children }: { children: ReactNode }) {
       value={{
         sidebarOpen,
         setSidebarOpen,
+        sidebarWidth,
+        setSidebarWidth,
         focusMode,
         setFocusMode,
         paletteOpen,

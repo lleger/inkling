@@ -31,6 +31,11 @@ const baseProps = {
   onCustomizeFolder: vi.fn(),
   onDeleteFolder: vi.fn(),
   dailyNoteFolder: "Daily",
+  width: 224,
+  defaultWidth: 224,
+  minWidth: 224,
+  maxWidth: 384,
+  onResize: vi.fn(),
 };
 
 const notes = [
@@ -201,6 +206,53 @@ describe("Sidebar", () => {
     render(<Sidebar {...baseProps} notes={[]} activeNoteId={null} onCollapse={onCollapse} />);
     fireEvent.click(screen.getByTitle("Collapse sidebar"));
     expect(onCollapse).toHaveBeenCalledOnce();
+  });
+
+  it("renders a keyboard-accessible sidebar resize handle", () => {
+    render(<Sidebar {...baseProps} notes={[]} activeNoteId={null} width={280} />);
+
+    const handle = screen.getByRole("separator", { name: "Resize sidebar" });
+
+    expect(handle.getAttribute("aria-valuenow")).toBe("280");
+    expect(handle.getAttribute("aria-valuemin")).toBe("224");
+    expect(handle.getAttribute("aria-valuemax")).toBe("384");
+  });
+
+  it("resizes the sidebar from the keyboard", () => {
+    const onResize = vi.fn();
+    render(<Sidebar {...baseProps} notes={[]} activeNoteId={null} onResize={onResize} />);
+
+    const handle = screen.getByRole("separator", { name: "Resize sidebar" });
+    fireEvent.keyDown(handle, { key: "ArrowRight" });
+    fireEvent.keyDown(handle, { key: "ArrowLeft", shiftKey: true });
+
+    expect(onResize).toHaveBeenCalledTimes(2);
+    expect(onResize.mock.calls[0][0](224)).toBe(240);
+    expect(onResize.mock.calls[1][0](280)).toBe(248);
+  });
+
+  it("resets the sidebar width on double click", () => {
+    const onResize = vi.fn();
+    render(<Sidebar {...baseProps} notes={[]} activeNoteId={null} width={320} onResize={onResize} />);
+
+    fireEvent.doubleClick(screen.getByRole("separator", { name: "Resize sidebar" }));
+
+    expect(onResize).toHaveBeenCalledWith(224);
+  });
+
+  it("resizes the sidebar by dragging the handle", () => {
+    const onResize = vi.fn();
+    render(<Sidebar {...baseProps} notes={[]} activeNoteId={null} onResize={onResize} />);
+
+    const handle = screen.getByRole("separator", { name: "Resize sidebar" });
+    handle.setPointerCapture = vi.fn();
+    handle.releasePointerCapture = vi.fn();
+
+    fireEvent.pointerDown(handle, { button: 0, pointerId: 1 });
+    fireEvent.pointerMove(handle, { clientX: 300, pointerId: 1 });
+    fireEvent.pointerUp(handle, { pointerId: 1 });
+
+    expect(onResize).toHaveBeenCalledWith(300);
   });
 
   it("calls onOpenSettings when clicking the settings button", () => {

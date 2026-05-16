@@ -1,6 +1,13 @@
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { desktopSidebarQuery, UIProvider, useUI } from "./UIContext";
+import {
+  defaultSidebarWidth,
+  desktopSidebarQuery,
+  maxSidebarWidth,
+  minSidebarWidth,
+  UIProvider,
+  useUI,
+} from "./UIContext";
 
 function mockMatchMedia(initialMatches: boolean) {
   let matches = initialMatches;
@@ -44,8 +51,27 @@ function SidebarState() {
   return <div data-testid="sidebar-state">{ui.sidebarOpen ? "open" : "closed"}</div>;
 }
 
+function SidebarWidthState() {
+  const ui = useUI();
+  return (
+    <>
+      <div data-testid="sidebar-width">{ui.sidebarWidth}</div>
+      <button type="button" onClick={() => ui.setSidebarWidth(320)}>
+        Set width
+      </button>
+      <button type="button" onClick={() => ui.setSidebarWidth(100)}>
+        Set narrow width
+      </button>
+      <button type="button" onClick={() => ui.setSidebarWidth(500)}>
+        Set wide width
+      </button>
+    </>
+  );
+}
+
 beforeEach(() => {
   mockMatchMedia(false);
+  localStorage.clear();
 });
 
 afterEach(cleanup);
@@ -169,5 +195,58 @@ describe("UIProvider", () => {
 
   it("uses Tailwind lg as the desktop sidebar breakpoint", () => {
     expect(desktopSidebarQuery).toBe("(min-width: 1024px)");
+  });
+
+  it("starts with the default sidebar width", () => {
+    render(
+      <UIProvider>
+        <SidebarWidthState />
+      </UIProvider>,
+    );
+
+    expect(screen.getByTestId("sidebar-width").textContent).toBe(String(defaultSidebarWidth));
+  });
+
+  it("hydrates the sidebar width from localStorage", () => {
+    localStorage.setItem("inkling:sidebar-width", "320");
+
+    render(
+      <UIProvider>
+        <SidebarWidthState />
+      </UIProvider>,
+    );
+
+    expect(screen.getByTestId("sidebar-width").textContent).toBe("320");
+  });
+
+  it("persists sidebar width changes", () => {
+    render(
+      <UIProvider>
+        <SidebarWidthState />
+      </UIProvider>,
+    );
+
+    fireEvent.click(screen.getByText("Set width"));
+
+    expect(screen.getByTestId("sidebar-width").textContent).toBe("320");
+    expect(localStorage.getItem("inkling:sidebar-width")).toBe("320");
+  });
+
+  it("clamps stored and updated sidebar widths", () => {
+    localStorage.setItem("inkling:sidebar-width", "1000");
+
+    render(
+      <UIProvider>
+        <SidebarWidthState />
+      </UIProvider>,
+    );
+
+    expect(screen.getByTestId("sidebar-width").textContent).toBe(String(maxSidebarWidth));
+
+    fireEvent.click(screen.getByText("Set narrow width"));
+    expect(screen.getByTestId("sidebar-width").textContent).toBe(String(minSidebarWidth));
+
+    fireEvent.click(screen.getByText("Set wide width"));
+    expect(screen.getByTestId("sidebar-width").textContent).toBe(String(maxSidebarWidth));
   });
 });
