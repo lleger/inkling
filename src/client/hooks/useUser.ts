@@ -6,5 +6,6 @@ export function useUser() {
   return {
     sub: data.user.id,
     email: data.user.email,
+    twoFactorEnabled: Boolean((data.user as { twoFactorEnabled?: boolean }).twoFactorEnabled),
   };
 }

@@ -1,14 +1,19 @@
 import { Hono } from "hono";
+import { eq } from "drizzle-orm";
 import type { Env } from "./types";
 import { getExecutionContext } from "./context";
 import { authMiddleware } from "./middleware/auth";
 import { getAuth } from "./auth";
+import { makeDb } from "./db/client";
+import { passkey, user, verification } from "./db/schema";
 import { notesRoutes } from "./routes/notes";
 import { userRoutes } from "./routes/user";
 import { settingsRoutes } from "./routes/settings";
 import { ogRoutes } from "./routes/og";
 import { foldersRoutes } from "./routes/folders";
 import { attachmentsRoutes } from "./routes/attachments";
+import { securityRoutes } from "./routes/security";
+import { requireStepUp, securityNotice } from "./security";
 
 type AuthVars = { userId: string; userEmail: string };
 
@@ -52,6 +57,165 @@ app.post("/api/auth/sign-up/email", async (c) => {
   return new Response(JSON.stringify({}), { status: 200, headers });
 });
 
+app.post("/api/auth/reset-password", async (c) => {
+  const body = (await c.req.raw
+    .clone()
+    .json()
+    .catch(() => null)) as { token?: string } | null;
+  const token = body?.token || new URL(c.req.url).searchParams.get("token");
+  if (token) {
+    const db = makeDb(c.env.DB);
+    const [resetToken] = await db
+      .select({ userId: verification.value })
+      .from(verification)
+      .where(eq(verification.identifier, `reset-password:${token}`))
+      .limit(1);
+    if (resetToken) {
+      const [account] = await db
+        .select({ twoFactorEnabled: user.twoFactorEnabled })
+        .from(user)
+        .where(eq(user.id, resetToken.userId))
+        .limit(1);
+      const [existingPasskey] = await db
+        .select({ id: passkey.id })
+        .from(passkey)
+        .where(eq(passkey.userId, resetToken.userId))
+        .limit(1);
+      if (existingPasskey && !account?.twoFactorEnabled) {
+        return c.json(
+          {
+            error:
+              "This account uses passkeys. Use a passkey to sign in, or contact support for high-risk recovery.",
+          },
+          403,
+        );
+      }
+    }
+  }
+
+  return getAuth(c.env, c.req.url, getExecutionContext(c)).handler(c.req.raw.clone() as Request);
+});
+
+app.all("/api/auth/passkey/generate-register-options", async (c) => {
+  const stepUp = await requireStepUp(c.env, c.req.raw, getExecutionContext(c));
+  if (!stepUp.ok) return stepUp.response;
+  return getAuth(c.env, c.req.url, getExecutionContext(c)).handler(c.req.raw.clone() as Request);
+});
+
+app.post("/api/auth/passkey/delete-passkey", async (c) => {
+  const stepUp = await requireStepUp(c.env, c.req.raw, getExecutionContext(c));
+  if (!stepUp.ok) return stepUp.response;
+  const body = (await c.req.raw
+    .clone()
+    .json()
+    .catch(() => null)) as { id?: string } | null;
+  const db = makeDb(c.env.DB);
+  const [account] = await db
+    .select({ twoFactorEnabled: user.twoFactorEnabled })
+    .from(user)
+    .where(eq(user.id, stepUp.session.user.id))
+    .limit(1);
+  const existingPasskeys = await db
+    .select({ id: passkey.id })
+    .from(passkey)
+    .where(eq(passkey.userId, stepUp.session.user.id))
+    .limit(2);
+  if (body?.id && existingPasskeys.length <= 1 && !account?.twoFactorEnabled) {
+    return c.json(
+      {
+        error: "Add another passkey or enable authenticator app 2FA before removing this passkey.",
+      },
+      400,
+    );
+  }
+  const res = await getAuth(c.env, c.req.url, getExecutionContext(c)).handler(
+    c.req.raw.clone() as Request,
+  );
+  if (res.ok) {
+    securityNotice(
+      c.env,
+      getExecutionContext(c),
+      stepUp.session.user.email,
+      "Inkling passkey removed",
+      "Passkey removed",
+      "A passkey was removed from your Inkling account. If this wasn't you, reset your password and review your account security.",
+    );
+  }
+  return res;
+});
+
+app.post("/api/auth/passkey/update-passkey", async (c) => {
+  return getAuth(c.env, c.req.url, getExecutionContext(c)).handler(c.req.raw.clone() as Request);
+});
+
+app.post("/api/auth/two-factor/disable", async (c) => {
+  const stepUp = await requireStepUp(c.env, c.req.raw, getExecutionContext(c));
+  if (!stepUp.ok) return stepUp.response;
+  const [existingPasskey] = await makeDb(c.env.DB)
+    .select({ id: passkey.id })
+    .from(passkey)
+    .where(eq(passkey.userId, stepUp.session.user.id))
+    .limit(1);
+  if (!existingPasskey) {
+    return c.json({ error: "Add a passkey before disabling authenticator app 2FA." }, 400);
+  }
+  const res = await getAuth(c.env, c.req.url, getExecutionContext(c)).handler(
+    c.req.raw.clone() as Request,
+  );
+  if (res.ok) {
+    securityNotice(
+      c.env,
+      getExecutionContext(c),
+      stepUp.session.user.email,
+      "Inkling two-factor authentication disabled",
+      "Two-factor authentication disabled",
+      "Authenticator app 2FA was disabled for your Inkling account. If this wasn't you, reset your password and review your account security.",
+    );
+  }
+  return res;
+});
+
+app.post("/api/auth/two-factor/verify-totp", async (c) => {
+  const session = await getAuth(c.env, c.req.url, getExecutionContext(c)).api.getSession({
+    headers: c.req.raw.headers,
+  });
+  const wasDisabled =
+    session?.user && !(session.user as { twoFactorEnabled?: boolean }).twoFactorEnabled;
+  const res = await getAuth(c.env, c.req.url, getExecutionContext(c)).handler(
+    c.req.raw.clone() as Request,
+  );
+  if (res.ok && session?.user?.email && wasDisabled) {
+    securityNotice(
+      c.env,
+      getExecutionContext(c),
+      session.user.email,
+      "Inkling two-factor authentication enabled",
+      "Two-factor authentication enabled",
+      "Authenticator app 2FA was enabled for your Inkling account. If this wasn't you, review your account security.",
+    );
+  }
+  return res;
+});
+
+app.post("/api/auth/passkey/verify-registration", async (c) => {
+  const session = await requireStepUp(c.env, c.req.raw, getExecutionContext(c));
+  if (!session.ok) return session.response;
+  const res = await getAuth(c.env, c.req.url, getExecutionContext(c)).handler(
+    c.req.raw.clone() as Request,
+  );
+  if (res.ok) {
+    securityNotice(
+      c.env,
+      getExecutionContext(c),
+      session.session.user.email,
+      "New Inkling passkey added",
+      "New passkey added",
+      "A new passkey was added to your Inkling account. If this wasn't you, remove it and reset your password.",
+    );
+  }
+  return res;
+});
+
 app.all("/api/auth/*", async (c) => {
   const auth = getAuth(c.env, c.req.url, getExecutionContext(c));
   try {
@@ -63,6 +227,7 @@ app.all("/api/auth/*", async (c) => {
 });
 
 app.use("/api/*", authMiddleware);
+app.route("/api/security", securityRoutes);
 app.route("/api/user", userRoutes);
 app.route("/api/notes", notesRoutes);
 app.route("/api/settings", settingsRoutes);

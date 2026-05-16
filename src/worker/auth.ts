@@ -1,7 +1,8 @@
 import { betterAuth } from "better-auth";
 import { APIError } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { magicLink } from "better-auth/plugins";
+import { passkey } from "@better-auth/passkey";
+import { twoFactor } from "better-auth/plugins/two-factor";
 import { makeDb } from "./db/client";
 import * as schema from "./db/schema";
 import { sendAuthEmail } from "./email";
@@ -59,6 +60,7 @@ export function getAuth(env: Env, requestUrl: string, ctx?: ExecutionContext) {
   const allowlist = signupMode === "allowlist" ? parseAllowlist(env) : null;
   const baseUrl = new URL(requestUrl);
   return betterAuth({
+    appName: "Inkling",
     baseURL: baseUrl.origin,
     database: drizzleAdapter(makeDb(env.DB), {
       provider: "sqlite",
@@ -67,6 +69,8 @@ export function getAuth(env: Env, requestUrl: string, ctx?: ExecutionContext) {
         session: schema.session,
         account: schema.account,
         verification: schema.verification,
+        twoFactor: schema.twoFactor,
+        passkey: schema.passkey,
       },
     }),
     secret: env.BETTER_AUTH_SECRET,
@@ -85,6 +89,19 @@ export function getAuth(env: Env, requestUrl: string, ctx?: ExecutionContext) {
             body: "Use this link to choose a new password for your Inkling account. It expires in 1 hour.",
             actionText: "Reset password",
             actionUrl: url,
+          }),
+        );
+      },
+      onPasswordReset: async ({ user }) => {
+        waitForEmail(
+          ctx,
+          sendAuthEmail(env, {
+            to: user.email,
+            subject: "Your Inkling password was reset",
+            title: "Password reset complete",
+            body: "Your Inkling password was reset and existing sessions were revoked. If this wasn't you, review your account security immediately.",
+            actionText: "Open Inkling",
+            actionUrl: new URL(requestUrl).origin,
           }),
         );
       },
@@ -134,22 +151,13 @@ export function getAuth(env: Env, requestUrl: string, ctx?: ExecutionContext) {
         }
       : undefined,
     plugins: [
-      magicLink({
-        disableSignUp: true,
-        expiresIn: 300,
-        sendMagicLink: async ({ email, url }) => {
-          waitForEmail(
-            ctx,
-            sendAuthEmail(env, {
-              to: email,
-              subject: "Sign in to Inkling",
-              title: "Your sign-in link",
-              body: "Use this link to sign in to Inkling. It expires in 5 minutes.",
-              actionText: "Sign in",
-              actionUrl: url,
-            }),
-          );
-        },
+      twoFactor({
+        issuer: "Inkling",
+      }),
+      passkey({
+        rpID: baseUrl.hostname,
+        rpName: "Inkling",
+        origin: baseUrl.origin,
       }),
     ],
     advanced: {

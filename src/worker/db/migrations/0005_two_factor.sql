@@ -1,0 +1,14 @@
+ALTER TABLE "user" ADD COLUMN twoFactorEnabled INTEGER NOT NULL DEFAULT 0;
+
+CREATE TABLE IF NOT EXISTS twoFactor (
+  id TEXT PRIMARY KEY NOT NULL,
+  secret TEXT NOT NULL,
+  backupCodes TEXT NOT NULL,
+  userId TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+  verified INTEGER NOT NULL DEFAULT 1
+);
+
+CREATE INDEX IF NOT EXISTS idx_twoFactor_secret ON twoFactor(secret);
+CREATE INDEX IF NOT EXISTS idx_twoFactor_userId ON twoFactor(userId);
+
+DROP TABLE IF EXISTS passkey;

@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
+    "@better-auth/passkey": "^1.6.11",
     "@hono/zod-validator": "^0.7.6",
     "@lexical/clipboard": "^0.22.0",
     "@lexical/code": "^0.22.0",
@@ -45,6 +46,7 @@
     "lucide-react": "^1.8.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-qr-code": "^2.0.21",
     "zod": "^4.3.6"
   },
   "devDependencies": {

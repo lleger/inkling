@@ -19,6 +19,10 @@ describe("useUser", () => {
       data: { user: { id: "user-123", email: "logan@hiive.com" } },
     });
     const { result } = renderHook(() => useUser());
-    expect(result.current).toEqual({ sub: "user-123", email: "logan@hiive.com" });
+    expect(result.current).toEqual({
+      sub: "user-123",
+      email: "logan@hiive.com",
+      twoFactorEnabled: false,
+    });
   });
 });

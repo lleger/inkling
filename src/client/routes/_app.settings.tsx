@@ -24,6 +24,7 @@ function SettingsRoute() {
         settings={settings}
         onUpdateSettings={update}
         userEmail={user?.email ?? null}
+        twoFactorEnabled={user?.twoFactorEnabled ?? false}
       />
     </PageContainer>
   );

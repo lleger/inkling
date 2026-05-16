@@ -1,14 +1,15 @@
 import { createFileRoute, redirect, useNavigate, useSearch } from "@tanstack/react-router";
-import { useState } from "react";
+import { KeyRound } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { authClient, signIn, signUp } from "../lib/auth-client";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
-type LoginMode = "signin" | "signup" | "forgot" | "magic";
+type LoginMode = "signin" | "signup" | "forgot" | "twoFactor";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (search): { mode?: LoginMode; redirect?: string } => ({
     mode:
-      search.mode === "signup" || search.mode === "forgot" || search.mode === "magic"
+      search.mode === "signup" || search.mode === "forgot" || search.mode === "twoFactor"
         ? search.mode
         : "signin",
     redirect: typeof search.redirect === "string" ? search.redirect : undefined,
@@ -28,18 +29,36 @@ function LoginPage() {
   const [mode, setMode] = useState<LoginMode>(search.mode ?? "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [useBackupCode, setUseBackupCode] = useState(false);
+  const [trustDevice, setTrustDevice] = useState(false);
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const twoFactorRequiredRef = useRef(false);
+
+  useEffect(() => {
+    const handleTwoFactorRequired = () => {
+      twoFactorRequiredRef.current = true;
+      setMode("twoFactor");
+      setPassword("");
+      setBusy(false);
+    };
+    window.addEventListener("inkling:two-factor-required", handleTwoFactorRequired);
+    return () => {
+      window.removeEventListener("inkling:two-factor-required", handleTwoFactorRequired);
+    };
+  }, []);
 
   useDocumentTitle(
     mode === "signup"
       ? "Create account"
       : mode === "forgot"
         ? "Reset password"
-        : mode === "magic"
-          ? "Magic link"
+        : mode === "twoFactor"
+          ? "Two-factor verification"
           : "Sign in",
   );
 
@@ -50,6 +69,10 @@ function LoginPage() {
     setError(null);
     setNotice(null);
     setPassword("");
+    setShowPassword(false);
+    setTwoFactorCode("");
+    setUseBackupCode(false);
+    setTrustDevice(false);
     setName("");
   };
 
@@ -64,17 +87,20 @@ function LoginPage() {
         setNotice("Check your email to verify your account.");
         setPassword("");
         setName("");
+      } else if (mode === "twoFactor") {
+        const res = useBackupCode
+          ? await authClient.twoFactor.verifyBackupCode({ code: twoFactorCode, trustDevice })
+          : await authClient.twoFactor.verifyTotp({ code: twoFactorCode, trustDevice });
+        if (res.error) throw new Error(res.error.message || "Invalid verification code");
+        navigate({ to: redirectTo });
       } else if (mode === "forgot") {
         await authClient.requestPasswordReset({
           email,
           redirectTo: `${window.location.origin}/reset-password`,
         });
         setNotice("If that account exists, a reset link is on its way.");
-      } else if (mode === "magic") {
-        await signIn.magicLink({ email, callbackURL: redirectTo });
-        setNotice("If that account exists, a sign-in link is on its way.");
       } else {
-        const res = await signIn.email({ email, password, callbackURL: redirectTo });
+        const res = await signIn.email({ email, password });
         if (res.error) {
           const message = res.error.message || "Something went wrong";
           if (res.error.status === 403 || message.toLowerCase().includes("verified")) {
@@ -82,16 +108,40 @@ function LoginPage() {
           }
           throw new Error(message);
         }
+        const data = res.data as { twoFactorRedirect?: boolean } | null;
+        if (data?.twoFactorRedirect) {
+          twoFactorRequiredRef.current = true;
+          setMode("twoFactor");
+          setPassword("");
+          return;
+        }
+        if (twoFactorRequiredRef.current) return;
         navigate({ to: redirectTo });
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Something went wrong";
       setError(
-        message.toLowerCase().includes("verify") || message.toLowerCase().includes("verified")
+        mode !== "twoFactor" &&
+          (message.toLowerCase().includes("verify") || message.toLowerCase().includes("verified"))
           ? "Please verify your email first."
           : message,
       );
       setPassword("");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handlePasskeySignIn = async () => {
+    setError(null);
+    setNotice(null);
+    setBusy(true);
+    try {
+      const res = await signIn.passkey();
+      if (res.error) throw new Error(res.error.message || "Could not sign in with passkey");
+      navigate({ to: redirectTo });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not sign in with passkey");
     } finally {
       setBusy(false);
     }
@@ -107,7 +157,7 @@ function LoginPage() {
               ? "Open the verification link to finish creating your account."
               : mode === "forgot"
                 ? "Open the reset link to choose a new password."
-                : "Open the sign-in link within 5 minutes."}
+                : "Open the link in your email."}
           </p>
 
           <div className="rounded-md border border-border bg-surface-secondary px-3 py-2 text-[12px] text-text-secondary">
@@ -134,8 +184,8 @@ function LoginPage() {
             ? "Create account"
             : mode === "forgot"
               ? "Reset password"
-              : mode === "magic"
-                ? "Magic link"
+              : mode === "twoFactor"
+                ? "Two-factor verification"
                 : "Sign in"}
         </h1>
         <p className="mb-6 text-sm text-text-muted">
@@ -143,10 +193,28 @@ function LoginPage() {
             ? "Start writing after verifying your email."
             : mode === "forgot"
               ? "We'll send a password reset link."
-              : mode === "magic"
-                ? "We'll email you a short-lived sign-in link."
+              : mode === "twoFactor"
+                ? "Enter your authenticator app code or a backup code."
                 : "Welcome back."}
         </p>
+
+        {mode === "signin" && (
+          <>
+            <button
+              type="button"
+              onClick={handlePasskeySignIn}
+              disabled={busy}
+              className="flex w-full items-center justify-center gap-2 rounded-md border border-border bg-surface-secondary px-3 py-2.5 text-sm font-medium text-text-secondary shadow-sm transition-colors hover:bg-surface-hover hover:text-text disabled:opacity-50"
+            >
+              <KeyRound size={16} /> Sign in with passkey
+            </button>
+            <div className="my-4 flex items-center gap-3 text-[11px] text-text-muted">
+              <div className="h-px flex-1 bg-border" />
+              <span>or sign in with password</span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+          </>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-3">
           {mode === "signup" && (
@@ -162,33 +230,81 @@ function LoginPage() {
               />
             </div>
           )}
-          <div>
-            <label className="block text-[12px] font-medium text-text-secondary mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-              placeholder="you@example.com"
-              className="w-full rounded-md border border-border bg-surface-secondary px-2.5 py-2 text-sm text-text placeholder:text-text-muted outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20"
-            />
-          </div>
-          {(mode === "signin" || mode === "signup") && (
+          {mode !== "twoFactor" && (
             <div>
               <label className="block text-[12px] font-medium text-text-secondary mb-1">
-                Password
+                Email
               </label>
               <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
-                minLength={8}
-                autoComplete={mode === "signin" ? "current-password" : "new-password"}
-                placeholder={mode === "signin" ? "Your password" : "At least 8 characters"}
+                autoComplete="email"
+                placeholder="you@example.com"
                 className="w-full rounded-md border border-border bg-surface-secondary px-2.5 py-2 text-sm text-text placeholder:text-text-muted outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20"
               />
+            </div>
+          )}
+          {(mode === "signin" || mode === "signup") && (
+            <div>
+              <div className="mb-1 flex items-center justify-between gap-3">
+                <label className="text-[12px] font-medium text-text-secondary">Password</label>
+                {mode === "signin" && (
+                  <button
+                    type="button"
+                    onClick={() => resetForm("forgot")}
+                    className="text-[12px] text-text-muted hover:text-text-secondary"
+                  >
+                    Forgot password?
+                  </button>
+                )}
+              </div>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={8}
+                  autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                  placeholder={mode === "signin" ? "Your password" : "At least 8 characters"}
+                  className="w-full rounded-md border border-border bg-surface-secondary px-2.5 py-2 pr-14 text-sm text-text placeholder:text-text-muted outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((value) => !value)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[12px] text-text-muted hover:text-text-secondary"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+            </div>
+          )}
+          {mode === "twoFactor" && (
+            <div>
+              <label className="block text-[12px] font-medium text-text-secondary mb-1">
+                {useBackupCode ? "Backup code" : "Authenticator code"}
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={twoFactorCode}
+                onChange={(e) => setTwoFactorCode(e.target.value)}
+                required
+                autoComplete="one-time-code"
+                placeholder={useBackupCode ? "Backup code" : "123456"}
+                className="w-full rounded-md border border-border bg-surface-secondary px-2.5 py-2 text-sm text-text placeholder:text-text-muted outline-none transition-colors focus:border-accent focus:ring-2 focus:ring-accent/20"
+              />
+              <label className="mt-2 flex items-center gap-2 text-[12px] text-text-muted">
+                <input
+                  type="checkbox"
+                  checked={trustDevice}
+                  onChange={(e) => setTrustDevice(e.target.checked)}
+                />
+                Trust this device for 30 days
+              </label>
             </div>
           )}
 
@@ -208,29 +324,24 @@ function LoginPage() {
                 ? "Create account"
                 : mode === "forgot"
                   ? "Send reset link"
-                  : mode === "magic"
-                    ? "Send sign-in link"
+                  : mode === "twoFactor"
+                    ? "Verify"
                     : "Sign in"}
           </button>
         </form>
 
-        {mode === "signin" && (
-          <div className="mt-3 flex justify-between gap-3 text-[12px]">
-            <button
-              type="button"
-              onClick={() => resetForm("forgot")}
-              className="text-text-muted hover:text-text-secondary"
-            >
-              Forgot password?
-            </button>
-            <button
-              type="button"
-              onClick={() => resetForm("magic")}
-              className="text-text-muted hover:text-text-secondary"
-            >
-              Email a sign-in link
-            </button>
-          </div>
+        {mode === "twoFactor" && (
+          <button
+            type="button"
+            onClick={() => {
+              setUseBackupCode((value) => !value);
+              setTwoFactorCode("");
+              setError(null);
+            }}
+            className="mt-3 text-[12px] text-text-muted hover:text-text-secondary"
+          >
+            {useBackupCode ? "Use authenticator code" : "Use backup code"}
+          </button>
         )}
 
         <button

@@ -23,15 +23,44 @@
 - Submit — should return to `/login`
 - Sign in with the new password succeeds
 - Existing sessions for that user are revoked
+- The user receives a password-reset security notification
+- If the account has passkeys but no authenticator-app 2FA, email-only password reset is refused with a high-risk recovery message instead of enabling password-only access
+- If the account has authenticator-app 2FA enabled, password reset does not disable it; the next password sign-in still requires an authenticator code
 
-## Magic Link
-- Navigate to `/login` and click "Email a sign-in link"
-- Enter an existing user's email and submit
-- Should see "If that account exists, a sign-in link is on its way."
-- Open the magic link within 5 minutes
+## Two-Factor Authentication
+- Sign in, open Settings, and find the Account section
+- Enter the current password and click "Set up 2FA"
+- A QR code, TOTP setup URI, and backup codes are shown
+- Clicking "Copy codes" copies all backup codes to the clipboard
+- Scan the QR code or add the setup URI to an authenticator app, enter the app code, and click "Verify and enable"
+- The user receives a 2FA-enabled security notification
+- Sign out, then sign in with email + password
+- The login form switches to "Two-factor verification"
+- Enter a valid authenticator app code and submit
 - Should be signed in and redirected to `/` (or to the `redirect` query param if present)
-- Magic links do not create new accounts for unknown emails
-- Expired or reused magic links do not sign the user in
+- Invalid authenticator codes show an inline error and do not sign in
+- "Use backup code" accepts a valid backup code instead of an authenticator code
+- Disabling 2FA requires recent sign-in or authenticator step-up
+- If no passkey is enrolled, disabling 2FA is refused with "Add a passkey before disabling authenticator app 2FA."
+- With a passkey enrolled, entering the current password and clicking "Disable 2FA" turns 2FA off and sends a security notification
+
+## Passkeys
+- Sign in, open Settings, and find the Account section
+- Enter a recognizable passkey label, such as "MacBook Touch ID"
+- Click "Add passkey" in the Passkeys card
+- If the session is not fresh, a Security verification modal requires an authenticator code before continuing
+- Complete the browser passkey prompt
+- The page shows "Passkey added. You can use it to sign in on this device."
+- The passkey appears in the Passkeys list with the chosen label
+- Clicking "Rename", entering a new label, and saving updates the passkey label without step-up
+- The user receives a passkey-added security notification
+- Sign out and return to `/login`
+- Click "Sign in with passkey" and complete the browser passkey prompt
+- Should be signed in and redirected to `/` (or to the `redirect` query param if present)
+- Removing a passkey requires recent sign-in or authenticator step-up
+- Removing the last passkey is refused unless authenticator-app 2FA remains enabled
+- Removing a passkey sends a security notification
+- Passkeys are passwordless sign-in credentials; they are not presented as a second factor
 
 ## Auth Gate
 - Sign out (or open in a fresh browser)
