@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useLayoutEffect, useState, useCallback, useRef } from "react";
 import { Toolbar } from "@base-ui/react/toolbar";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
@@ -43,9 +43,16 @@ interface ToolbarButton {
   isActive: boolean;
 }
 
+const VIEWPORT_MARGIN = 8;
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
 export function FloatingToolbar() {
   const [editor] = useLexicalComposerContext();
   const [show, setShow] = useState(false);
+  const [anchorPosition, setAnchorPosition] = useState({ top: 0, left: 0 });
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const [formats, setFormats] = useState<Set<TextFormatType>>(new Set());
   const [isLink, setIsLink] = useState(false);
@@ -97,12 +104,38 @@ export function FloatingToolbar() {
     const range = nativeSelection.getRangeAt(0);
     const rect = range.getBoundingClientRect();
 
-    setPosition({
+    setAnchorPosition({
       top: rect.top - 48,
       left: rect.left + rect.width / 2,
     });
     setShow(true);
   }, []);
+
+  useLayoutEffect(() => {
+    if (!show) return;
+
+    const toolbar = toolbarRef.current;
+    if (!toolbar) return;
+
+    const { offsetWidth, offsetHeight } = toolbar;
+    const maxLeft = window.innerWidth - offsetWidth - VIEWPORT_MARGIN;
+    const maxTop = window.innerHeight - offsetHeight - VIEWPORT_MARGIN;
+    const nextPosition = {
+      top: clamp(anchorPosition.top, VIEWPORT_MARGIN, Math.max(VIEWPORT_MARGIN, maxTop)),
+      left: clamp(
+        anchorPosition.left - offsetWidth / 2,
+        VIEWPORT_MARGIN,
+        Math.max(VIEWPORT_MARGIN, maxLeft),
+      ),
+    };
+
+    setPosition((current) => {
+      if (current.top === nextPosition.top && current.left === nextPosition.left) {
+        return current;
+      }
+      return nextPosition;
+    });
+  }, [anchorPosition, show]);
 
   useEffect(() => {
     return editor.registerUpdateListener(({ editorState }) => {
@@ -254,7 +287,6 @@ export function FloatingToolbar() {
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,
-        transform: "translateX(-50%)",
       }}
       onMouseDown={(e) => e.preventDefault()}
     >
