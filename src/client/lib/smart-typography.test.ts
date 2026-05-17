@@ -85,6 +85,38 @@ describe("getSmartReplacement", () => {
     });
   });
 
+  describe("emoji", () => {
+    it("converts smile emoticons", () => {
+      const r = getSmartReplacement(")", ":", " :", "hello :");
+      expect(r).toEqual({ char: "🙂", deleteCount: 1 });
+    });
+
+    it("converts skeptical emoticons", () => {
+      const r = getSmartReplacement("/", ":", " :", "hello :");
+      expect(r).toEqual({ char: "😕", deleteCount: 1 });
+    });
+
+    it("does not convert emoticons inside URL schemes", () => {
+      const r = getSmartReplacement("/", ":", "p:", "http:");
+      expect(r).toBeNull();
+    });
+
+    it("converts GitHub and Slack-style emoji shortcuts", () => {
+      const r = getSmartReplacement(":", "1", "+1", ":+1");
+      expect(r).toEqual({ char: "👍🏻", deleteCount: 3 });
+    });
+
+    it("converts named emoji shortcuts", () => {
+      const r = getSmartReplacement(":", "e", "le", "ship it :tada");
+      expect(r).toEqual({ char: "🎉", deleteCount: 5 });
+    });
+
+    it("ignores unknown emoji shortcuts", () => {
+      const r = getSmartReplacement(":", "n", "wn", ":unknown");
+      expect(r).toBeNull();
+    });
+  });
+
   describe("no replacement", () => {
     it("returns null for regular characters", () => {
       expect(getSmartReplacement("a", " ", "")).toBeNull();

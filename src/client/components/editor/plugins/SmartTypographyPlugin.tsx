@@ -27,8 +27,9 @@ export function SmartTypographyPlugin() {
         const offset = isText ? anchor.offset : 0;
         const charBefore = offset > 0 ? text[offset - 1] : "";
         const twoBefore = offset > 1 ? text.slice(offset - 2, offset) : "";
+        const textBefore = isText ? text.slice(0, offset) : "";
 
-        const replacement = getSmartReplacement(event.key, charBefore, twoBefore);
+        const replacement = getSmartReplacement(event.key, charBefore, twoBefore, textBefore);
         if (!replacement) return false;
 
         // Replacements that delete preceding characters need a text node
