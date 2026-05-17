@@ -52,7 +52,8 @@ export function DailySettings({ settings, onUpdateSettings }: DailySettingsProps
             className="font-mono"
           />
           <span className="mt-1 block text-[11px] text-text-muted">
-            Supports {"{{date}}"}, {"{{label}}"}, and {"{{weekday}}"}
+            Supports {"{{date}}"} (e.g., 2026-05-20), {"{{label}}"} (e.g., Today or Mon, May
+            20), and {"{{weekday}}"} (e.g., Wednesday).
           </span>
         </div>
       </div>
