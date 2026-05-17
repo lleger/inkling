@@ -5,6 +5,7 @@ import { MarkdownEditor } from "./MarkdownEditor";
 import { RichTextEditor } from "./RichTextEditor";
 import { RichTextPreview } from "./RichTextPreview";
 import { attachmentMarkdown, formatBytes } from "./AttachmentNode";
+import { emitToast } from "../context/UIContext";
 import { uploadAttachment } from "../lib/api";
 import { queryKeys } from "../lib/queries";
 import type { EditorMode } from "../types";
@@ -61,7 +62,7 @@ export function Editor({
     setPendingUploads(uploadItems);
     try {
       const uploaded = [];
-      let failed = false;
+      let failed = 0;
       for (let i = 0; i < list.length; i++) {
         const file = list[i];
         const itemId = uploadItems[i].id;
@@ -74,8 +75,13 @@ export function Editor({
           setPendingUploads((items) =>
             items.map((item) => (item.id === itemId ? { ...item, status: "failed" } : item)),
           );
-          failed = true;
+          failed++;
         }
+      }
+      if (failed > 0) {
+        emitToast({
+          message: `${failed} ${failed === 1 ? "attachment" : "attachments"} failed to upload.`,
+        });
       }
       if (uploaded.length === 0) return;
       const insertion = uploaded
@@ -94,7 +100,7 @@ export function Editor({
       onChange(next);
       qc.invalidateQueries({ queryKey: queryKeys.attachments(noteId) });
       setEditorRevision((value) => value + 1);
-      if (!failed) window.setTimeout(() => setPendingUploads([]), 1200);
+      if (failed === 0) window.setTimeout(() => setPendingUploads([]), 1200);
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";

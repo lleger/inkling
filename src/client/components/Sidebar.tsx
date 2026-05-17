@@ -75,7 +75,7 @@ function SidebarContextMenu({
                   item.onSelect();
                 }}
                 className={cx(
-                  "flex cursor-default items-center rounded-md px-2.5 py-1.5 outline-none transition-colors data-[highlighted]:bg-surface-hover",
+                  "flex cursor-default items-center rounded-md px-2.5 py-1.5 outline-none transition-colors data-[highlighted]:bg-surface-hover dark:data-[highlighted]:bg-white/10",
                   index > 0 && item.destructive ? "mt-1 border-t border-border pt-2" : "",
                   item.destructive
                     ? "text-red-600 data-[highlighted]:bg-red-500/10"
@@ -105,7 +105,7 @@ function AccountMenu({
     <Menu.Root>
       <Menu.Trigger
         aria-label={accountLabel}
-        className="group flex w-full min-h-11 items-center gap-2 rounded-lg bg-surface/70 px-2 py-2 text-left transition-colors hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-accent"
+        className="group flex w-full min-h-11 items-center gap-2 rounded-lg bg-surface/70 px-2 py-2 text-left transition-colors hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-accent dark:bg-white/[0.03] dark:hover:bg-white/10"
       >
         <span
           aria-hidden="true"
@@ -139,7 +139,7 @@ function AccountMenu({
                   item.onSelect();
                 }}
                 className={cx(
-                  "flex cursor-default items-center gap-2 rounded-lg px-2.5 py-2 outline-none transition-colors data-[highlighted]:bg-surface-hover",
+                  "flex cursor-default items-center gap-2 rounded-lg px-2.5 py-2 outline-none transition-colors data-[highlighted]:bg-surface-hover dark:data-[highlighted]:bg-white/10",
                   index > 0 && item.destructive ? "mt-1 border-t border-border pt-2" : "",
                   item.destructive
                     ? "text-red-600 data-[highlighted]:bg-red-500/10"
@@ -337,8 +337,8 @@ export function Sidebar({
       <div
         className={`group relative flex w-full min-h-10 items-center gap-2 rounded-md px-2 py-1.5 transition-colors md:min-h-0 ${
           isScratchActive
-            ? "bg-surface-active text-text"
-            : "text-text-secondary hover:bg-surface-hover hover:text-text"
+            ? "bg-surface-active text-text dark:bg-white/10"
+            : "text-text-secondary hover:bg-surface-hover hover:text-text dark:hover:bg-white/10"
         }`}
       >
         <button
@@ -359,7 +359,7 @@ export function Sidebar({
             type="button"
             aria-label="Delete scratch note"
             title="Delete scratch note"
-            className="flex size-7 shrink-0 items-center justify-center rounded text-text-muted opacity-100 transition-opacity hover:bg-surface-active hover:text-text md:size-5 md:opacity-0 md:group-hover:opacity-100"
+            className="flex size-7 shrink-0 items-center justify-center rounded text-text-muted opacity-100 transition-opacity hover:bg-surface-active hover:text-text dark:hover:bg-white/10 md:size-5 md:opacity-0 md:group-hover:opacity-100"
             onClick={(e) => {
               e.stopPropagation();
               onDeleteNote(scratchNote.id);
@@ -391,8 +391,8 @@ export function Sidebar({
             key={dailyTitle(date)}
             className={`group relative flex w-full min-h-10 items-center gap-2 rounded-md px-2 py-1.5 transition-colors md:min-h-0 ${
               isActive
-                ? "bg-surface-active text-text"
-                : "text-text-secondary hover:bg-surface-hover hover:text-text"
+                ? "bg-surface-active text-text dark:bg-white/10"
+                : "text-text-secondary hover:bg-surface-hover hover:text-text dark:hover:bg-white/10"
             }`}
           >
             <button
@@ -414,7 +414,7 @@ export function Sidebar({
                 type="button"
                 aria-label={`Delete ${dailyTitle(date)}`}
                 title="Delete"
-                className="flex size-7 shrink-0 items-center justify-center rounded text-text-muted opacity-100 transition-opacity hover:bg-surface-active hover:text-text md:size-5 md:opacity-0 md:group-hover:opacity-100"
+                className="flex size-7 shrink-0 items-center justify-center rounded text-text-muted opacity-100 transition-opacity hover:bg-surface-active hover:text-text dark:hover:bg-white/10 md:size-5 md:opacity-0 md:group-hover:opacity-100"
                 onClick={(e) => {
                   e.stopPropagation();
                   onDeleteNote(note.id);
@@ -436,8 +436,8 @@ export function Sidebar({
       <div
         className={`group relative flex min-h-11 items-center gap-2 rounded-md transition-colors md:min-h-0 ${
           isActive
-            ? "bg-surface-active text-text"
-            : "text-text-secondary hover:bg-surface-hover hover:text-text"
+            ? "bg-surface-active text-text dark:bg-white/10"
+            : "text-text-secondary hover:bg-surface-hover hover:text-text dark:hover:bg-white/10"
         }`}
       >
         <button
@@ -468,7 +468,7 @@ export function Sidebar({
         <div className="absolute right-1.5 flex items-center gap-0.5 opacity-100 transition-opacity md:pointer-events-none md:opacity-0 md:group-hover:pointer-events-auto md:group-hover:opacity-100">
           <button
             type="button"
-            className="flex size-8 items-center justify-center rounded text-text-muted hover:bg-surface-active hover:text-text md:size-5"
+            className="flex size-8 items-center justify-center rounded text-text-muted hover:bg-surface-active hover:text-text dark:hover:bg-white/10 md:size-5"
             onClick={(e) => {
               e.stopPropagation();
               onTogglePin(note.id);
@@ -482,7 +482,7 @@ export function Sidebar({
           </button>
           <button
             type="button"
-            className="flex size-8 items-center justify-center rounded text-text-muted hover:bg-surface-active hover:text-text md:size-5"
+            className="flex size-8 items-center justify-center rounded text-text-muted hover:bg-surface-active hover:text-text dark:hover:bg-white/10 md:size-5"
             onClick={(e) => {
               e.stopPropagation();
               onDeleteNote(note.id);
@@ -518,7 +518,7 @@ export function Sidebar({
       (activeFolder !== undefined && activeFolder !== null && activeFolder.startsWith(folder.path));
     const hasContent = folder.notes.length > 0 || folder.children.length > 0;
     const folderRow = (
-      <div className="group flex min-h-10 items-center rounded-md text-[12px] font-medium text-text-secondary transition-colors hover:bg-surface-hover hover:text-text md:min-h-0">
+      <div className="group flex min-h-10 items-center rounded-md text-[12px] font-medium text-text-secondary transition-colors hover:bg-surface-hover hover:text-text dark:hover:bg-white/10 md:min-h-0">
         <button
           onClick={() => toggleFolder(folder.path)}
           className="flex min-w-0 flex-1 items-center gap-1.5 px-2 py-1.5 text-left"
@@ -537,7 +537,7 @@ export function Sidebar({
         <button
           type="button"
           onClick={() => onCustomizeFolder(folder.path)}
-          className="mr-1 flex size-8 shrink-0 items-center justify-center rounded text-text-muted opacity-100 transition-opacity hover:bg-surface-active hover:text-text md:size-5 md:opacity-0 md:group-hover:opacity-100"
+          className="mr-1 flex size-8 shrink-0 items-center justify-center rounded text-text-muted opacity-100 transition-opacity hover:bg-surface-active hover:text-text dark:hover:bg-white/10 md:size-5 md:opacity-0 md:group-hover:opacity-100"
           title={`Customize ${folder.name} icon`}
           aria-label={`Customize ${folder.name} icon`}
         >
@@ -590,7 +590,7 @@ export function Sidebar({
       <div className="flex items-center justify-between border-b border-border px-3 py-2">
         <button
           type="button"
-          className="flex size-8 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-surface-hover hover:text-text"
+          className="flex size-8 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-surface-hover hover:text-text dark:hover:bg-white/10"
           onClick={onHome}
           title="Home"
           aria-label="Home"
@@ -600,7 +600,7 @@ export function Sidebar({
         <div className="flex items-center gap-0.5 rounded-md bg-surface p-0.5">
           <button
             type="button"
-            className="flex size-9 items-center justify-center rounded text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary md:size-7"
+            className="flex size-9 items-center justify-center rounded text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary dark:hover:bg-white/10 md:size-7"
             onClick={onCreateNote}
             title="New note"
             aria-label="New note"
@@ -609,7 +609,7 @@ export function Sidebar({
           </button>
           <button
             type="button"
-            className="flex size-9 items-center justify-center rounded text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary md:size-7"
+            className="flex size-9 items-center justify-center rounded text-text-muted transition-colors hover:bg-surface-hover hover:text-text-secondary dark:hover:bg-white/10 md:size-7"
             onClick={onCollapse}
             title="Collapse sidebar"
             aria-label="Collapse sidebar"

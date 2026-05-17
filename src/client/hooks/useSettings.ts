@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { emitToast } from "../context/UIContext";
 import { queryKeys } from "../lib/queries";
 import { fetchSettings, saveSettings } from "../lib/api";
 import { DEFAULT_DAILY_NOTE_TEMPLATE } from "../lib/daily-notes";
@@ -44,7 +45,12 @@ export function useSettings() {
     staleTime: Infinity,
   });
 
-  const { mutate: save } = useMutation({ mutationFn: saveSettings });
+  const { mutate: save } = useMutation({
+    mutationFn: saveSettings,
+    onError: () => {
+      emitToast({ message: "Settings could not be saved. Check your connection." });
+    },
+  });
 
   const update = useCallback(
     (partial: Partial<Settings>) => {

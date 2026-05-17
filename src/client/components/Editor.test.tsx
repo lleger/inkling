@@ -135,4 +135,23 @@ describe("Editor", () => {
       );
     });
   });
+
+  it("emits a toast when an attachment upload fails", async () => {
+    uploadAttachmentMock.mockRejectedValueOnce(new Error("offline"));
+    const toastListener = vi.fn();
+    document.addEventListener("inkling:toast", toastListener as EventListener);
+    const file = new File(["hello"], "brief.pdf", { type: "application/pdf" });
+    const { container } = render(
+      <Editor content="Existing" onChange={vi.fn()} mode="markdown" noteId="note-1" />,
+    );
+    const editor = container.firstElementChild!;
+
+    fireEvent.drop(editor, { dataTransfer: { files: [file] } });
+
+    await waitFor(() => expect(toastListener).toHaveBeenCalled());
+    expect((toastListener.mock.calls[0][0] as CustomEvent).detail.message).toBe(
+      "1 attachment failed to upload.",
+    );
+    document.removeEventListener("inkling:toast", toastListener as EventListener);
+  });
 });

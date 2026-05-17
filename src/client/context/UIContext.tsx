@@ -29,6 +29,7 @@ interface UIContextValue {
 }
 
 const UIContext = createContext<UIContextValue | null>(null);
+const toastEventName = "inkling:toast";
 export const desktopSidebarQuery = "(min-width: 1024px)";
 const desktopSidebarMinWidth = 1024;
 export const defaultSidebarWidth = 224;
@@ -57,6 +58,11 @@ export function useUI() {
   const ctx = useContext(UIContext);
   if (!ctx) throw new Error("useUI must be used within UIProvider");
   return ctx;
+}
+
+export function emitToast(toast: ToastOptions) {
+  if (typeof document === "undefined") return;
+  document.dispatchEvent(new CustomEvent<ToastOptions>(toastEventName, { detail: toast }));
 }
 
 export function UIProvider({ children }: { children: ReactNode }) {
@@ -102,6 +108,15 @@ function UIProviderContent({ children }: { children: ReactNode }) {
       }),
     [add],
   );
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const toast = (event as CustomEvent<ToastOptions>).detail;
+      if (toast?.message) showToast(toast);
+    };
+    document.addEventListener(toastEventName, handler);
+    return () => document.removeEventListener(toastEventName, handler);
+  }, [showToast]);
 
   const setSidebarWidth = useCallback((value: number | ((p: number) => number)) => {
     setSidebarWidthState((previous) => {
@@ -149,7 +164,7 @@ function UIProviderContent({ children }: { children: ReactNode }) {
       }}
     >
       {children}
-      <ToastViewport />
+      <ToastViewport hostedInSidebar={sidebarOpen && !focusMode} sidebarWidth={sidebarWidth} />
     </UIContext.Provider>
   );
 }

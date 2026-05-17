@@ -104,4 +104,23 @@ describe("useSettings", () => {
     // Empty {} from server should not clobber local "dark"
     expect(result.current.settings.theme).toBe("dark");
   });
+
+  it("emits a toast when remote settings save fails", async () => {
+    vi.mocked(api.fetchSettings).mockResolvedValue({} as any);
+    vi.mocked(api.saveSettings).mockRejectedValueOnce(new Error("offline"));
+    const toastListener = vi.fn();
+    document.addEventListener("inkling:toast", toastListener as EventListener);
+    const { Wrapper } = makeQueryWrapper();
+    const { result } = renderHook(() => useSettings(), { wrapper: Wrapper });
+
+    await act(async () => {
+      result.current.update({ theme: "dark" });
+    });
+
+    await waitFor(() => expect(toastListener).toHaveBeenCalled());
+    expect((toastListener.mock.calls[0][0] as CustomEvent).detail.message).toBe(
+      "Settings could not be saved. Check your connection.",
+    );
+    document.removeEventListener("inkling:toast", toastListener as EventListener);
+  });
 });

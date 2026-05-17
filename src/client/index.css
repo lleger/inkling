@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* App theme selection is class-based; never let OS dark mode override light mode. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-surface: #fafaf9;
   --color-surface-secondary: #f5f3f0;
@@ -839,6 +842,28 @@ button:focus-visible {
   }
 }
 
+@keyframes toast-card-enter {
+  0% {
+    transform: translate3d(-10px, 6px, 0) scale(0.96);
+    opacity: 0;
+  }
+  60% {
+    transform: translate3d(1px, -1px, 0) scale(1.01);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes toast-card-exit {
+  to {
+    transform: translate3d(-8px, 4px, 0) scale(0.97);
+    opacity: 0;
+  }
+}
+
 @keyframes drop-target-in {
   from {
     transform: scale(0.98) translateY(-4px);
@@ -898,6 +923,20 @@ button:focus-visible {
 
 .motion-pop-in {
   animation: pop-in 0.16s ease-out;
+}
+
+.toast-card {
+  transform-origin: bottom left;
+  will-change: transform, opacity;
+}
+
+.toast-card-enter {
+  animation: toast-card-enter 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.toast-card-exit {
+  pointer-events: none;
+  animation: toast-card-exit 0.16s ease-in forwards;
 }
 
 .motion-drop-target-in {
