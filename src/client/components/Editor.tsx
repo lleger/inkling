@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, FileUp, LoaderCircle, Paperclip, X } from "lucide-react";
+import { Check, FileUp, LoaderCircle, X } from "lucide-react";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { RichTextEditor } from "./RichTextEditor";
 import { RichTextPreview } from "./RichTextPreview";
@@ -24,6 +24,7 @@ interface EditorProps {
   noteId?: string;
   copyMarkdownByDefault?: boolean;
   smartTypography?: boolean;
+  attachmentControl?: (props: { openFilePicker: () => void; uploading: boolean }) => ReactNode;
 }
 
 export function Editor({
@@ -33,6 +34,7 @@ export function Editor({
   noteId = "",
   copyMarkdownByDefault = false,
   smartTypography = true,
+  attachmentControl,
 }: EditorProps) {
   const [editorRevision, setEditorRevision] = useState(0);
   const [uploading, setUploading] = useState(false);
@@ -143,8 +145,8 @@ export function Editor({
     void attachFiles(files);
   }
 
-  const attachButton = (
-    <div className="fixed right-3 bottom-[calc(3.25rem+env(safe-area-inset-bottom))] z-10 sm:right-4 sm:bottom-14">
+  const filePicker = (
+    <>
       <input
         ref={fileInputRef}
         type="file"
@@ -154,16 +156,11 @@ export function Editor({
           event.currentTarget.files && void attachFiles(event.currentTarget.files)
         }
       />
-      <button
-        type="button"
-        onClick={() => fileInputRef.current?.click()}
-        disabled={uploading}
-        title="Attach files"
-        className="flex size-9 items-center justify-center rounded-lg border border-border bg-surface-secondary/80 text-text-muted shadow-sm backdrop-blur-sm transition-colors hover:bg-surface-hover hover:text-text-secondary disabled:cursor-wait disabled:text-accent"
-      >
-        {uploading ? <LoaderCircle size={15} className="animate-spin" /> : <Paperclip size={15} />}
-      </button>
-    </div>
+      {attachmentControl?.({
+        openFilePicker: () => fileInputRef.current?.click(),
+        uploading,
+      })}
+    </>
   );
 
   const dropZone = draggingFiles && (
@@ -179,7 +176,7 @@ export function Editor({
   );
 
   const uploadTray = pendingUploads.length > 0 && (
-    <div className="fixed right-3 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] z-20 flex w-[min(calc(100vw-1.5rem),20rem)] flex-col gap-1.5 rounded-xl border border-border bg-surface-secondary/95 p-2 text-xs text-text shadow-lg backdrop-blur-sm sm:right-4 sm:bottom-24 motion-pop-in">
+    <div className="absolute right-3 bottom-16 z-20 flex w-[min(calc(100vw-1.5rem),20rem)] flex-col gap-1.5 rounded-xl border border-border bg-surface-secondary/95 p-2 text-xs text-text shadow-lg backdrop-blur-sm sm:right-4 motion-pop-in">
       <div className="flex items-center gap-1.5 px-1 pb-0.5 font-medium text-text-secondary">
         <FileUp size={13} />
         Uploading attachments
@@ -203,16 +200,15 @@ export function Editor({
     onDragLeave: handleDragLeave,
     onDrop: handleDrop,
   };
-
   if (mode === "split") {
     return (
       <div
         {...editorEvents}
-        className="relative flex min-h-full w-full max-w-[1200px] flex-col px-4 pt-16 pb-32 animate-[fade-in_0.2s_ease-out] sm:pt-10 sm:pb-24"
+        className="relative flex min-h-full w-full max-w-[1200px] flex-col px-4 pt-16 animate-[fade-in_0.2s_ease-out] sm:pt-10"
       >
         {dropZone}
         {uploadTray}
-        {attachButton}
+        {filePicker}
         <div className="flex flex-1 flex-col gap-8 md:flex-row md:gap-6">
           <div className="flex-1 min-w-0">
             <MarkdownEditor
@@ -233,11 +229,11 @@ export function Editor({
   return (
     <div
       {...editorEvents}
-      className="relative flex min-h-full w-full max-w-[680px] flex-col px-4 pt-16 pb-32 animate-[fade-in_0.2s_ease-out] sm:px-6 sm:pt-10 sm:pb-24"
+      className="relative flex min-h-full w-full max-w-[680px] flex-col px-4 pt-16 animate-[fade-in_0.2s_ease-out] sm:px-6 sm:pt-10"
     >
       {dropZone}
       {uploadTray}
-      {attachButton}
+      {filePicker}
       <div className="flex-1">
         {mode === "markdown" ? (
           <MarkdownEditor

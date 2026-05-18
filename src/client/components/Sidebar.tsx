@@ -105,7 +105,7 @@ function AccountMenu({
     <Menu.Root>
       <Menu.Trigger
         aria-label={accountLabel}
-        className="group flex w-full min-h-11 items-center gap-2 rounded-lg bg-surface/70 px-2 py-2 text-left transition-colors hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-accent dark:bg-white/[0.03] dark:hover:bg-white/10"
+        className="group flex min-h-10 w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-accent dark:hover:bg-white/10"
       >
         <span
           aria-hidden="true"
@@ -662,7 +662,7 @@ export function Sidebar({
         )}
       </div>
 
-      <div className="border-t border-border px-2.5 py-2">
+      <div className="flex h-12 items-center border-t border-border bg-surface-secondary px-2.5 py-1">
         <AccountMenu
           accountLabel={accountLabel}
           avatarLabel={avatarLabel}

@@ -116,6 +116,7 @@ function AppLayout() {
     const m = location.pathname.match(/^\/notes\/([^/]+)$/);
     return m ? m[1] : null;
   }, [location.pathname]);
+  const hasEditorStatusline = activeNoteId !== null && !ui.focusMode;
 
   const activeNote = useMemo(
     () => (activeNoteId ? (notes.find((n) => n.id === activeNoteId) ?? null) : null),
@@ -511,7 +512,9 @@ function AppLayout() {
         />
       </div>
 
-      <main className="relative flex min-w-0 flex-1 justify-center overflow-y-auto bg-surface">
+      <main
+        className={`relative flex min-w-0 flex-1 justify-center overflow-y-auto bg-surface ${hasEditorStatusline ? "mb-[calc(3rem+env(safe-area-inset-bottom))]" : ""}`}
+      >
         <div
           className={`transition-opacity duration-200 ${ui.focusMode ? "opacity-0 pointer-events-none" : "opacity-100"}`}
         >

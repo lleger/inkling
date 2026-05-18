@@ -5,7 +5,7 @@
 - The app should open today's daily note
 - If no note exists for today, a new note is created with the title `YYYY-MM-DD` (today's date)
 - The note is placed in the `Daily` folder by default (configurable in Settings)
-- The active daily note shows a compact daily navigation control with the current date rendered relatively (e.g. `Today`)
+- The active daily note shows compact daily navigation in the editor statusline with the current date rendered relatively (e.g. `Today`)
 
 ## Open today's daily note via /today URL
 - Navigate to `/today` (e.g., bookmark, type in URL bar)
@@ -43,12 +43,12 @@
 - The previous daily note opens, creating it if missing
 - When viewing a past daily note, click the next-day control
 - The next daily note opens, creating it if missing, but only up to today
-- When viewing today's daily note, there is no next-day control
+- When viewing today's daily note, the next-day control is disabled
 - Existing daily notes are reused instead of duplicated
 
 ## Date picker
 - Open a daily note
-- Click the date label in the compact daily navigation control
+- Click the date label in the editor statusline daily navigation
 - A calendar date picker should open
 - Choose a past date
 - The selected daily note opens, creating it if missing

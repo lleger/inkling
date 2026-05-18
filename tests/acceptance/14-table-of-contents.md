@@ -27,7 +27,7 @@ Duplicate heading text.
 ## Desktop outline drawer
 
 1. Open the note in rich text mode on a desktop-width viewport.
-2. Verify an Outline button appears in the floating editor controls.
+2. Verify an Outline button appears in the editor statusline.
 3. Click the Outline button.
 4. Verify a right-side outline drawer slides in and lists `Project Plan`, `Goals`, `Details`, `Risks`, and the second `Details`.
 5. Click `Risks` in the drawer.
@@ -52,7 +52,7 @@ Duplicate heading text.
 ## Mobile outline sheet
 
 1. Resize to a mobile-width viewport.
-2. Verify an Outline button appears in the floating editor controls when the note has headings.
+2. Verify an Outline button appears in the editor statusline when the note has headings.
 3. Tap the Outline button.
 4. Verify a bottom sheet opens with the same heading list.
 5. Tap `Risks`.

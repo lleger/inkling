@@ -2,7 +2,7 @@
 
 ## Upload Files
 - Open a note
-- Click the paperclip attachment button
+- Click the paperclip attachment button in the editor statusline
 - Choose an image and a non-image file
 - Both files should upload and markdown references should appear in the note
 - Wait for autosave, then refresh — the attachment references should still be present
