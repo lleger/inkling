@@ -5,7 +5,6 @@ import {
   Plus,
   PanelLeftClose,
   X,
-  Home,
   CalendarRange,
   Eraser,
   Settings,
@@ -16,6 +15,7 @@ import {
   ChevronUp,
   Paintbrush,
 } from "lucide-react";
+import { InklingMark } from "./Brand";
 import { cx } from "../lib/cx";
 import { renderFolderIcon } from "../lib/folder-icons";
 import { addDays, dailyLabel, dailyTitle, findDailyNote } from "../lib/daily-notes";
@@ -590,12 +590,12 @@ export function Sidebar({
       <div className="flex items-center justify-between border-b border-border px-3 py-2">
         <button
           type="button"
-          className="flex size-8 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-surface-hover hover:text-text dark:hover:bg-white/10"
+          className="flex size-8 items-center justify-center rounded-md text-text transition-colors hover:bg-surface-hover dark:hover:bg-white/10"
           onClick={onHome}
           title="Home"
           aria-label="Home"
         >
-          <Home size={16} />
+          <InklingMark size={18} />
         </button>
         <div className="flex items-center gap-0.5 rounded-md bg-surface p-0.5">
           <button

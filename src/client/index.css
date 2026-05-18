@@ -21,6 +21,7 @@
   --font-editor-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --font-editor-mono:
     ui-monospace, "Cascadia Mono", "Segoe UI Mono", Menlo, Monaco, Consolas, monospace;
+  --font-brand-serif: "Fraunces", "Times New Roman", Georgia, serif;
 }
 
 .dark {
@@ -129,6 +130,7 @@ body {
 .app-shell-fallback__icon-button {
   width: 2rem;
   height: 2rem;
+  color: var(--color-text);
 }
 
 .app-shell-fallback__small-button {

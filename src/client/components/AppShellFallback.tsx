@@ -1,10 +1,12 @@
+import { InklingMark } from "./Brand";
+
 export function AppShellFallback() {
   return (
     <div className="app-shell-fallback" aria-label="Loading Inkling">
       <aside className="app-shell-fallback__sidebar">
         <div className="app-shell-fallback__sidebar-header">
           <div className="app-shell-fallback__icon-button" aria-hidden="true">
-            <span>⌂</span>
+            <InklingMark size={18} />
           </div>
           <div className="app-shell-fallback__button-group">
             <div className="app-shell-fallback__small-button" aria-hidden="true">

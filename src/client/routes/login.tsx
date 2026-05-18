@@ -2,6 +2,7 @@ import { createFileRoute, redirect, useNavigate, useSearch } from "@tanstack/rea
 import { KeyRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { authClient, signIn, signUp } from "../lib/auth-client";
+import { InklingWordmark } from "../components/Brand";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 type LoginMode = "signin" | "signup" | "forgot" | "twoFactor";
@@ -154,6 +155,9 @@ function LoginPage() {
     return (
       <div className="flex h-full items-center justify-center bg-surface px-6">
         <div className="w-full max-w-sm">
+          <div className="mb-8 flex justify-center text-text">
+            <InklingWordmark size={32} />
+          </div>
           <h1 className="mb-1 text-lg font-semibold text-text">Check your email</h1>
           <p className="mb-6 text-sm text-text-muted">
             {mode === "signup"
@@ -182,6 +186,9 @@ function LoginPage() {
   return (
     <div className="flex h-full items-center justify-center bg-surface px-6">
       <div className="w-full max-w-sm">
+        <div className="mb-8 flex justify-center text-text">
+          <InklingWordmark size={32} />
+        </div>
         <h1 className="mb-1 text-lg font-semibold text-text">
           {mode === "signup"
             ? "Create account"
