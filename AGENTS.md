@@ -118,6 +118,22 @@ user using whatever `QA_EMAIL` / `QA_PASSWORD` are currently in `.env`.
 - `pnpm run fmt` — oxfmt
 - `pnpm run lint` — oxlint
 
+## PWA
+
+The app is a PWA: `vite-plugin-pwa` (configured in `vite.config.ts`)
+generates a precaching service worker (`/sw.js`) and the manifest
+(`/manifest.webmanifest`) during `pnpm run build`. Only the app shell is
+cached; `/api/*` and `/cdn-cgi/*` are explicitly excluded so authenticated
+data is never served from the SW cache.
+
+Update flow: the SW registers in `prompt` mode. When a new build is
+detected (on visibility change or every 30 minutes), `src/client/lib/pwa.ts`
+surfaces a toast via `emitToast`. The user must click "Refresh" — we
+never auto-reload because the editor has unsaved-changes state.
+
+Icons live in `public/`. To regenerate the PNG variants from the SVG
+sources, run `node scripts/generate-pwa-icons.mjs` (requires `sharp`).
+
 # Cloudflare
 
 You have access to local Cloudflare services (KV, R2, D1, Durable Objects, and Workflows) for this app via the Explorer API.
